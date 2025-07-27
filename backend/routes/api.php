@@ -115,6 +115,17 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
         Route::get('/counts', [App\Http\Controllers\API\NotificationController::class, 'getCounts']);
         Route::post('/{notificationId}/read', [App\Http\Controllers\API\NotificationController::class, 'markAsRead']);
     });
+
+    // État des lieux routes
+    Route::prefix('etat-des-lieux')->group(function () {
+        Route::get('/', [App\Http\Controllers\API\EtatDesLieuxController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\API\EtatDesLieuxController::class, 'store']);
+        Route::get('/photo-positions', [App\Http\Controllers\API\EtatDesLieuxController::class, 'getPhotoPositions']);
+        Route::get('/{etatDesLieux}', [App\Http\Controllers\API\EtatDesLieuxController::class, 'show']);
+        Route::put('/{etatDesLieux}', [App\Http\Controllers\API\EtatDesLieuxController::class, 'update']);
+        Route::delete('/{etatDesLieux}', [App\Http\Controllers\API\EtatDesLieuxController::class, 'destroy']);
+        Route::post('/{etatDesLieux}/upload-photo', [App\Http\Controllers\API\EtatDesLieuxController::class, 'uploadPhoto']);
+    });
 });
 
 // Routes avec vérification du profil incomplet (pour les utilisateurs authentifiés)

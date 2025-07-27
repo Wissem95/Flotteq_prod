@@ -72,7 +72,7 @@ const MaintenanceModal: React.FC<MaintenanceModalProps> = ({
       setFormData({
         maintenance_date: new Date().toISOString().split('T')[0],
         maintenance_type: "",
-        mileage: "",
+            mileage: "",
         workshop: "",
         cost: "",
         description: "",
@@ -93,7 +93,7 @@ const MaintenanceModal: React.FC<MaintenanceModalProps> = ({
     setFormData({
       maintenance_date: new Date().toISOString().split('T')[0],
       maintenance_type: "",
-      mileage: "",
+        mileage: "",
       workshop: "",
       cost: "",
       description: "",
@@ -144,6 +144,7 @@ const MaintenanceModal: React.FC<MaintenanceModalProps> = ({
               </SelectContent>
             </Select>
           </div>
+
 
           {/* Kilométrage */}
           <div>

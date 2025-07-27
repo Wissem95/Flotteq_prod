@@ -40,6 +40,8 @@ import TrouverGaragePage from "./pages/TrouverGaragePage";
 import Transactions from "./pages/Transactions";
 import FleetStatus from "./pages/FleetStatus";
 import FinancialStatus from "./pages/FinancialStatus";
+import NouvelEtatDesLieux from "./pages/EtatDesLieux/NouvelEtatDesLieux";
+import HistoriqueEtatDesLieux from "./pages/EtatDesLieux/HistoriqueEtatDesLieux";
 
 // Vérification de l'authentification
 const isAuthenticated = () => {
@@ -107,6 +109,8 @@ const App = () => (
           <Route path="/profile" element={<PrivateRoute><Layout><Profile /></Layout></PrivateRoute>} />
           <Route path="/users" element={<PrivateRoute><Layout><UserManagement /></Layout></PrivateRoute>} />
           <Route path="/users/stats" element={<PrivateRoute><Layout><Statistics /></Layout></PrivateRoute>} />
+          <Route path="/etat-des-lieux/nouveau" element={<PrivateRoute><Layout><NouvelEtatDesLieux /></Layout></PrivateRoute>} />
+          <Route path="/etat-des-lieux/historique" element={<PrivateRoute><Layout><HistoriqueEtatDesLieux /></Layout></PrivateRoute>} />
 
           {/* Fallback vers register si non connecté, dashboard si connecté */}
           <Route path="*" element={

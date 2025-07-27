@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance;
 use App\Models\Vehicle;
+use App\Models\EtatDesLieux;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -77,9 +78,13 @@ class MaintenanceController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
+        // Debug : afficher les données reçues
+        \Log::info('Données reçues pour maintenance:', $request->all());
+
         $validated = $request->validate([
             'vehicle_id' => ['required', 'exists:vehicles,id'],
             'maintenance_type' => ['required', 'in:oil_change,revision,tires,brakes,belt,filters,other'],
+            'reason' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'maintenance_date' => ['required', 'date'],
             'mileage' => ['required', 'integer', 'min:0'],
@@ -99,10 +104,27 @@ class MaintenanceController extends Controller
             return response()->json(['message' => 'Vehicle not found or access denied'], 404);
         }
 
+        // Validation du kilométrage cohérent
+        $minKilometrage = $this->getMinimumKilometrage($validated['vehicle_id']);
+        
+        if ($validated['mileage'] < $minKilometrage) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => [
+                    'mileage' => ["Le kilométrage ne peut pas être inférieur à {$minKilometrage} km (dernier enregistrement)"]
+                ]
+            ], 422);
+        }
+
         $maintenance = Maintenance::create([
             ...$validated,
             'status' => $validated['status'] ?? 'completed',
         ]);
+
+        // Mettre à jour le kilométrage du véhicule si c'est plus récent
+        if ($validated['mileage'] > $vehicle->kilometrage) {
+            $vehicle->update(['kilometrage' => $validated['mileage']]);
+        }
 
         $maintenance->load('vehicle:id,marque,modele,immatriculation');
 
@@ -179,6 +201,27 @@ class MaintenanceController extends Controller
             }
         }
 
+        // Validation du kilométrage si modifié
+        if (isset($validated['mileage'])) {
+            $vehicleId = $validated['vehicle_id'] ?? $maintenance->vehicle_id;
+            $minKilometrage = $this->getMinimumKilometrage($vehicleId, $maintenance->id);
+            
+            if ($validated['mileage'] < $minKilometrage) {
+                return response()->json([
+                    'message' => 'Validation failed',
+                    'errors' => [
+                        'mileage' => ["Le kilométrage ne peut pas être inférieur à {$minKilometrage} km (dernier enregistrement)"]
+                    ]
+                ], 422);
+            }
+
+            // Mettre à jour le kilométrage du véhicule si nécessaire
+            $vehicle = $maintenance->vehicle;
+            if ($validated['mileage'] > $vehicle->kilometrage) {
+                $vehicle->update(['kilometrage' => $validated['mileage']]);
+            }
+        }
+
         $maintenance->update($validated);
         $maintenance->load('vehicle:id,marque,modele,immatriculation');
 
@@ -211,5 +254,45 @@ class MaintenanceController extends Controller
         return response()->json([
             'message' => 'Maintenance deleted successfully'
         ]);
+    }
+
+    /**
+     * Récupère le kilométrage minimum autorisé pour un véhicule
+     */
+    private function getMinimumKilometrage(int $vehicleId, ?int $excludeMaintenanceId = null): int
+    {
+        $vehicle = Vehicle::find($vehicleId);
+        $vehicleKilometrage = $vehicle->kilometrage ?? 0;
+
+        // Dernière maintenance (en excluant celle en cours d'édition si fournie)
+        $lastMaintenanceQuery = Maintenance::where('vehicle_id', $vehicleId)
+            ->orderBy('maintenance_date', 'desc')
+            ->orderBy('created_at', 'desc');
+        
+        if ($excludeMaintenanceId) {
+            $lastMaintenanceQuery->where('id', '!=', $excludeMaintenanceId);
+        }
+        
+        $lastMaintenance = $lastMaintenanceQuery->first();
+        $lastMaintenanceKilometrage = $lastMaintenance ? $lastMaintenance->mileage : 0;
+
+        // Dernier état des lieux
+        $lastEtatDesLieux = EtatDesLieux::where('vehicle_id', $vehicleId)
+            ->orderBy('created_at', 'desc')
+            ->first();
+        $lastEtatDesLieuxKilometrage = $lastEtatDesLieux ? $lastEtatDesLieux->kilometrage : 0;
+
+        // Dernier CT
+        $lastCtKilometrage = 0;
+        if ($vehicle->last_ct_date) {
+            // On suppose que le CT a été fait au kilométrage actuel du véhicule à cette date
+            // Idealement, il faudrait stocker le kilométrage du CT dans une table séparée
+            $lastCtKilometrage = $vehicleKilometrage;
+        }
+
+        // Le kilométrage d'achat (purchase_date)
+        $purchaseKilometrage = 0; // On suppose que l'achat se fait à 0 km ou on pourrait stocker cette info
+
+        return max($vehicleKilometrage, $lastMaintenanceKilometrage, $lastEtatDesLieuxKilometrage, $lastCtKilometrage, $purchaseKilometrage);
     }
 }

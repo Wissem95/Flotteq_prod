@@ -41,9 +41,33 @@ class NotificationController extends Controller
         $statusNotifications = $this->getVehicleStatusNotifications($tenant->id, $user->id);
         $notifications = $notifications->concat($statusNotifications);
         
+        // Transformer les notifications pour le frontend
+        $formattedNotifications = $notifications->map(function($notification) {
+            return [
+                'id' => $notification['id'],
+                'type' => $this->mapNotificationType($notification['type']),
+                'title' => $this->getNotificationTitle($notification),
+                'message' => $this->getNotificationMessage($notification),
+                'data' => [
+                    'vehicle' => [
+                        'id' => $notification['vehicle_id'],
+                        'marque' => explode(' ', $notification['vehicle'])[0] ?? '',
+                        'modele' => explode(' ', $notification['vehicle'], 2)[1] ?? '',
+                        'immatriculation' => $notification['plate'] ?? '',
+                    ],
+                    'due_date' => $notification['dueDate'] ?? null,
+                    'priority' => $notification['priority'] ?? 'medium',
+                    'maintenance_type' => $notification['maintenance_type'] ?? null,
+                    'reason' => $notification['reason'] ?? null,
+                ],
+                'read_at' => null, // Toutes les notifications sont considérées comme non lues pour l'instant
+                'created_at' => $notification['created'] ?? now()->toDateString(),
+            ];
+        });
+        
         // Trier par priorité et date
-        $sortedNotifications = $notifications->sortByDesc(function($notification) {
-            $priorityWeight = match($notification['priority']) {
+        $sortedNotifications = $formattedNotifications->sortByDesc(function($notification) {
+            $priorityWeight = match($notification['data']['priority']) {
                 'critical' => 4,
                 'high' => 3,
                 'medium' => 2,
@@ -51,16 +75,93 @@ class NotificationController extends Controller
                 default => 0
             };
             
-            $dateWeight = Carbon::parse($notification['dueDate'])->isPast() ? 1000 : 0;
+            $dateWeight = isset($notification['data']['due_date']) && 
+                          Carbon::parse($notification['data']['due_date'])->isPast() ? 1000 : 0;
             return $priorityWeight + $dateWeight;
         })->values();
         
         return response()->json([
-            'notifications' => $sortedNotifications,
+            'data' => $sortedNotifications,
             'total' => $sortedNotifications->count(),
-            'urgent' => $sortedNotifications->where('status', 'urgent')->count(),
-            'overdue' => $sortedNotifications->where('status', 'overdue')->count(),
+            'unread' => $sortedNotifications->whereNull('read_at')->count(),
         ]);
+    }
+
+    private function mapNotificationType(string $type): string
+    {
+        return match($type) {
+            'ct' => 'ct_reminder',
+            'maintenance' => 'maintenance_reminder',
+            'repair' => 'repair',
+            'issue' => 'vehicle_status',
+            'status_change' => 'vehicle_status',
+            default => 'general'
+        };
+    }
+
+    private function getNotificationTitle(array $notification): string
+    {
+        return match($notification['type']) {
+            'ct' => 'Contrôle technique',
+            'maintenance' => 'Maintenance programmée',
+            'repair' => 'Réparation urgente',
+            'issue' => 'Problème véhicule',
+            'status_change' => 'Changement de statut',
+            default => 'Notification'
+        };
+    }
+
+    private function getNotificationMessage(array $notification): string
+    {
+        $vehicle = $notification['vehicle'] . ' (' . $notification['plate'] . ')';
+        
+        switch ($notification['type']) {
+            case 'ct':
+                $dueDate = Carbon::parse($notification['dueDate']);
+                $daysDiff = Carbon::now()->diffInDays($dueDate, false);
+                
+                if ($daysDiff < 0) {
+                    return "Contrôle technique expiré depuis " . abs($daysDiff) . " jour(s) pour le véhicule {$vehicle}";
+                } elseif ($daysDiff <= 7) {
+                    return "Contrôle technique à effectuer dans {$daysDiff} jour(s) pour le véhicule {$vehicle}";
+                } else {
+                    return "Contrôle technique à programmer pour le véhicule {$vehicle} (échéance : " . $dueDate->format('d/m/Y') . ")";
+                }
+                
+            case 'maintenance':
+                $maintenanceType = $this->getMaintenanceTypeLabel($notification['maintenance_type'] ?? 'other');
+                $dueDate = Carbon::parse($notification['dueDate']);
+                $daysDiff = Carbon::now()->diffInDays($dueDate, false);
+                
+                if ($daysDiff < 0) {
+                    return "Maintenance {$maintenanceType} en retard de " . abs($daysDiff) . " jour(s) pour le véhicule {$vehicle}";
+                } elseif ($daysDiff <= 3) {
+                    return "Maintenance {$maintenanceType} prévue dans {$daysDiff} jour(s) pour le véhicule {$vehicle}";
+                } else {
+                    return "Maintenance {$maintenanceType} programmée le " . $dueDate->format('d/m/Y') . " pour le véhicule {$vehicle}";
+                }
+                
+            case 'issue':
+            case 'status_change':
+                return $notification['message'] . " : {$vehicle}";
+                
+            default:
+                return $notification['message'] ?? "Notification pour le véhicule {$vehicle}";
+        }
+    }
+
+    private function getMaintenanceTypeLabel(string $type): string
+    {
+        return match($type) {
+            'oil_change' => 'vidange',
+            'revision' => 'révision',
+            'tires' => 'pneus',
+            'brakes' => 'freins',
+            'belt' => 'courroie',
+            'filters' => 'filtres',
+            'other' => 'générale',
+            default => 'générale'
+        };
     }
     
     /**
@@ -156,13 +257,15 @@ class NotificationController extends Controller
                     'type' => 'maintenance',
                     'vehicle' => $maintenance->vehicle->marque . ' ' . $maintenance->vehicle->modele,
                     'plate' => $maintenance->vehicle->immatriculation,
-                    'message' => $message . ' - ' . $maintenance->type,
-                    'dueDate' => $maintenance->scheduled_date,
+                    'message' => $message . ' - ' . $maintenance->maintenance_type,
+                    'dueDate' => $maintenance->maintenance_date ?? $maintenance->scheduled_date,
                     'status' => $status,
                     'priority' => $priority,
                     'created' => $maintenance->created_at->toDateString(),
                     'vehicle_id' => $maintenance->vehicle_id,
                     'maintenance_id' => $maintenance->id,
+                    'maintenance_type' => $maintenance->maintenance_type,
+                    'reason' => $maintenance->reason,
                 ]);
             }
         }
@@ -232,9 +335,18 @@ class NotificationController extends Controller
             ->get();
             
         foreach ($statusNotifications as $statusNotification) {
+            // Déterminer le type de notification selon le nouveau statut
+            $notificationType = match($statusNotification->new_status) {
+                'en_maintenance' => 'maintenance_reminder',
+                'en_reparation' => 'repair',
+                'en_service' => 'vehicle_status',
+                'hors_service' => 'vehicle_status',
+                default => 'vehicle_status'
+            };
+            
             $notifications->push([
                 'id' => 'status_' . $statusNotification->id,
-                'type' => 'status_change',
+                'type' => $notificationType,
                 'vehicle' => $statusNotification->vehicle->marque . ' ' . $statusNotification->vehicle->modele,
                 'plate' => $statusNotification->vehicle->immatriculation,
                 'message' => $statusNotification->message,
@@ -313,6 +425,7 @@ class NotificationController extends Controller
         
         return response()->json([
             'total' => $notifications->count(),
+            'unread' => $notifications->count(), // Toutes les notifications sont considérées comme non lues pour l'instant
             'urgent' => $notifications->whereIn('status', ['urgent', 'overdue'])->count(),
             'critical' => $notifications->where('priority', 'critical')->count(),
             'upcoming' => $notifications->where('status', 'upcoming')->count(),

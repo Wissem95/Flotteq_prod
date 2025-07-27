@@ -8,6 +8,8 @@ import {
   LogOut,
   Settings as SettingsIcon,
   List,
+  Clock,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +18,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { useNotifications } from "@/hooks/useNotifications";
 
 interface TopNavProps {
   title: string;
@@ -24,10 +28,21 @@ interface TopNavProps {
 
 const TopNav: React.FC<TopNavProps> = ({ title }) => {
   const navigate = useNavigate();
+  const { notifications, counts, markAsRead, getNotificationIcon, getNotificationColor, getNotificationBackgroundColor } = useNotifications();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'À l\'instant';
+    if (diffInHours < 24) return `Il y a ${diffInHours}h`;
+    return date.toLocaleDateString('fr-FR');
   };
 
   return (
@@ -48,26 +63,77 @@ const TopNav: React.FC<TopNavProps> = ({ title }) => {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
               <Bell size={20} />
-              <span className="absolute top-0.5 right-0.5 h-2.5 w-2.5 rounded-full bg-red-500" />
+              {counts.unread > 0 && (
+                <Badge 
+                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500 text-white"
+                >
+                  {counts.unread > 9 ? '9+' : counts.unread}
+                </Badge>
+              )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
-            <div className="p-2 font-medium border-b">Notifications</div>
-            <DropdownMenuItem className="p-3 cursor-pointer">
-              <div>
-                <p className="font-medium text-sm">Contrôle technique à venir</p>
-                <p className="text-xs text-slate-500">Renault Clio - AB-123-CD - Dans 15 jours</p>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="p-3 cursor-pointer">
-              <div>
-                <p className="font-medium text-sm">Entretien programmé</p>
-                <p className="text-xs text-slate-500">Peugeot 308 - EF-456-GH - Demain</p>
-              </div>
-            </DropdownMenuItem>
-            <div className="p-2 text-center text-sm text-blue-500 border-t">
-              Voir toutes les notifications
+          <DropdownMenuContent align="end" className="w-96 max-h-96 overflow-y-auto">
+            <div className="p-3 font-medium border-b flex items-center justify-between">
+              <span>Notifications</span>
+              {counts.unread > 0 && (
+                <Badge variant="destructive" className="text-xs">
+                  {counts.unread} non lue{counts.unread > 1 ? 's' : ''}
+                </Badge>
+              )}
             </div>
+            
+            {notifications.length === 0 ? (
+              <div className="p-6 text-center text-gray-500">
+                <Bell className="mx-auto mb-2 h-8 w-8 text-gray-300" />
+                <p>Aucune notification</p>
+              </div>
+            ) : (
+              notifications.slice(0, 5).map((notification) => (
+                <DropdownMenuItem 
+                  key={notification.id}
+                  className={`p-3 cursor-pointer border-l-2 ${
+                    notification.read_at ? 'border-l-transparent bg-gray-50' : 'border-l-blue-500 bg-blue-50'
+                  }`}
+                  onClick={() => markAsRead(notification.id)}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm">{getNotificationIcon(notification.type)}</span>
+                        <p className={`font-medium text-sm ${getNotificationColor(notification.type)}`}>
+                          {notification.title}
+                        </p>
+                        {!notification.read_at && (
+                          <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-gray-400">
+                        <Clock size={12} />
+                        {formatDate(notification.created_at)}
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-600 line-clamp-2">
+                      {notification.message}
+                    </p>
+                    {notification.data && notification.data.vehicle && (
+                      <p className="text-xs text-blue-600 mt-1">
+                        🚗 {notification.data.vehicle.marque} {notification.data.vehicle.modele} - {notification.data.vehicle.immatriculation}
+                      </p>
+                    )}
+                  </div>
+                </DropdownMenuItem>
+              ))
+            )}
+            
+            {notifications.length > 0 && (
+              <div 
+                className="p-2 text-center text-sm text-blue-500 border-t cursor-pointer hover:bg-gray-50 flex items-center justify-center gap-2"
+                onClick={() => navigate('/notifications')}
+              >
+                <Eye size={14} />
+                Voir toutes les notifications ({counts.total})
+              </div>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 

@@ -112,6 +112,14 @@ class Vehicle extends Model implements HasMedia
     }
 
     /**
+     * Get all états des lieux for this vehicle.
+     */
+    public function etatsDesLieux(): HasMany
+    {
+        return $this->hasMany(EtatDesLieux::class);
+    }
+
+    /**
      * Register media collections.
      */
     public function registerMediaCollections(): void

@@ -21,6 +21,8 @@ import {
   ArrowUpDown,
   Euro,
   Activity,
+  FileImage,
+  ClipboardList,
 } from "lucide-react";
 import * as Collapsible from "@radix-ui/react-collapsible";
 
@@ -34,6 +36,9 @@ const Sidebar: React.FC = () => {
   const [showUsersMenu, setShowUsersMenu] = useState(false);
   const [showDashboardMenu, setShowDashboardMenu] = useState(() =>
     location.pathname.startsWith("/dashboard")
+  );
+  const [showEtatDesLieuxMenu, setShowEtatDesLieuxMenu] = useState(() =>
+    location.pathname.startsWith("/etat-des-lieux")
   );
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -131,6 +136,28 @@ const Sidebar: React.FC = () => {
                 { to: "/vehicles/maintenance", label: "Maintenance", icon: <Wrench size={18} /> },
                 { to: "/vehicles/history", label: "Historique", icon: <History size={18} /> },
                 { to: "/vehicles/stats", label: "Statistiques", icon: <BarChart3 size={18} /> },
+              ].map(({ to, label, icon }) => (
+                <Link key={to} to={to} className={subNavLink(to, location.pathname, collapsed)}>
+                  {icon}
+                  {!collapsed && <span className="ml-3">{label}</span>}
+                </Link>
+              ))}
+            </Collapsible.Content>
+          </Collapsible.Root>
+
+          <button
+            onClick={() => setShowEtatDesLieuxMenu((prev) => !prev)}
+            className={navLinkGroup("/etat-des-lieux", location.pathname, collapsed)}
+          >
+            <FileImage size={20} />
+            {!collapsed && <span className="ml-3">État des lieux</span>}
+          </button>
+
+          <Collapsible.Root open={showEtatDesLieuxMenu}>
+            <Collapsible.Content>
+              {[
+                { to: "/etat-des-lieux/nouveau", label: "Nouvel état des lieux", icon: <ClipboardList size={18} /> },
+                { to: "/etat-des-lieux/historique", label: "Historique", icon: <History size={18} /> },
               ].map(({ to, label, icon }) => (
                 <Link key={to} to={to} className={subNavLink(to, location.pathname, collapsed)}>
                   {icon}

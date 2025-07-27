@@ -16,7 +16,7 @@ import RecentEvents from "@/components/dashboard/RecentEvents";
 
 // Services
 import { api } from "@/lib/api";
-import { notificationService } from "@/services/notificationService";
+import { useNotifications } from "@/hooks/useNotifications";
 import { fetchVehicles } from "@/services/vehicleService";
 import { toast } from "@/hooks/use-toast";
 
@@ -36,12 +36,7 @@ interface DashboardStats {
   };
 }
 
-interface NotificationCounts {
-  total: number;
-  urgent: number;
-  upcoming: number;
-  critical: number;
-}
+// Interface NotificationCounts supprimée - on utilise celle du hook
 
 interface MaintenanceItem {
   id: number;
@@ -72,8 +67,8 @@ interface Event {
 }
 
 const FleetStatus: React.FC = () => {
+  const { notifications, counts } = useNotifications();
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
-  const [notificationCounts, setNotificationCounts] = useState<NotificationCounts | null>(null);
   const [upcomingMaintenances, setUpcomingMaintenances] = useState<MaintenanceItem[]>([]);
   const [vehicleIssues, setVehicleIssues] = useState<AlertItem[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -100,15 +95,13 @@ const FleetStatus: React.FC = () => {
       setIsLoading(true);
       
       // Charger les données de base
-      const [statsResponse, notificationCountsResponse, maintenancesResponse, vehiclesData] = await Promise.all([
+      const [statsResponse, maintenancesResponse, vehiclesData] = await Promise.all([
         api.get('/analytics/dashboard'),
-        notificationService.getNotificationCounts(),
         api.get('/maintenances?status=in_progress&limit=7'),
         fetchVehicles(),
       ]);
 
       setDashboardStats(statsResponse.data);
-      setNotificationCounts(notificationCountsResponse);
       setVehicles(vehiclesData);
       
       // Convertir les maintenances en format attendu
@@ -136,18 +129,17 @@ const FleetStatus: React.FC = () => {
       
       setUpcomingMaintenances(maintenances);
 
-      // Charger les alertes
-      const notificationsResponse = await notificationService.getNotifications();
-      const issues = notificationsResponse.notifications
-        .filter(n => n.type === 'issue' || n.type === 'alert')
+      // Charger les alertes depuis le hook
+      const issues = notifications
+        .filter(n => n.type === 'vehicle_status' || n.type === 'repair')
         .slice(0, 3)
         .map(n => ({
-          id: parseInt(n.id.replace(/\D/g, '')),
-          vehicle_name: n.vehicle || 'Véhicule inconnu',
-          plate: n.plate || '',
+          id: parseInt(n.id.toString().replace(/\D/g, '') || '0'),
+          vehicle_name: n.data?.vehicle ? `${n.data.vehicle.marque} ${n.data.vehicle.modele}` : 'Véhicule inconnu',
+          plate: n.data?.vehicle?.immatriculation || '',
           issue: n.message,
-          severity: (n.priority === 'critical' ? 'high' : n.priority === 'high' ? 'medium' : 'low') as 'high' | 'medium' | 'low',
-          status: n.status
+          severity: (n.data?.priority === 'critical' ? 'high' : n.data?.priority === 'high' ? 'medium' : 'low') as 'high' | 'medium' | 'low',
+          status: 'active'
         }));
       
       setVehicleIssues(issues);
@@ -170,7 +162,7 @@ const FleetStatus: React.FC = () => {
         { status: "En service", count: vehiclesData.filter(v => v.status === "active").length, color: "#10B981" },
         { status: "Hors service", count: vehiclesData.filter(v => v.status === "hors_service").length, color: "#EF4444" },
         { status: "En maintenance", count: vehiclesData.filter(v => v.status === "en_maintenance" || v.status === "en_reparation").length, color: "#F59E0B" },
-        { status: "À inspecter", count: notificationCountsResponse.upcoming || 0, color: "#3B82F6" },
+        { status: "À inspecter", count: 0, color: "#3B82F6" },
       ];
       setStatusData(statusMapping);
 
@@ -260,18 +252,7 @@ const FleetStatus: React.FC = () => {
           title="Véhicules"
           description="État de votre flotte"
           value={dashboardStats?.overview.total_vehicles || vehicles.length}
-          subtitle={
-            <div>
-              <span className="text-green-500 font-medium">
-                {dashboardStats?.overview.active_vehicles || valideVehicles.length} actif(s)
-              </span>
-              {((dashboardStats?.overview.total_vehicles || vehicles.length) > (dashboardStats?.overview.active_vehicles || valideVehicles.length)) && (
-                <span className="text-orange-500 font-medium ml-2">
-                  • {(dashboardStats?.overview.total_vehicles || vehicles.length) - (dashboardStats?.overview.active_vehicles || valideVehicles.length)} en maintenance
-                </span>
-              )}
-            </div>
-          }
+          subtitle={`${dashboardStats?.overview.active_vehicles || valideVehicles.length} actif(s)${((dashboardStats?.overview.total_vehicles || vehicles.length) > (dashboardStats?.overview.active_vehicles || valideVehicles.length)) ? ` • ${(dashboardStats?.overview.total_vehicles || vehicles.length) - (dashboardStats?.overview.active_vehicles || valideVehicles.length)} en maintenance` : ''}`}
           progress={
             vehicles.length > 0 
               ? Math.round((valideVehicles.length / vehicles.length) * 100)
@@ -286,10 +267,10 @@ const FleetStatus: React.FC = () => {
         <FleetStatusCard
           title="Contrôles techniques"
           description="Prochaines échéances"
-          value={notificationCounts?.upcoming || 0}
-          subtitle={<span className="text-amber-500 font-medium">{notificationCounts?.urgent || 0} urgent(es)</span>}
-          progress={notificationCounts?.total ? 
-            Math.round((notificationCounts.urgent / notificationCounts.total) * 100) : 0}
+          value={counts?.total || 0}
+          subtitle={`${counts?.unread || 0} non lue(s)`}
+          progress={counts?.total ? 
+            Math.round((counts.unread / counts.total) * 100) : 0}
           icon={Calendar}
           isLoading={isLoading}
         />
@@ -297,10 +278,10 @@ const FleetStatus: React.FC = () => {
         <FleetStatusCard
           title="Alertes"
           description="Problèmes à résoudre"
-          value={notificationCounts?.total || 0}
-          subtitle={<span className="text-red-500 font-medium">{notificationCounts?.critical || 0} critique(s)</span>}
-          progress={notificationCounts?.total ? 
-            Math.round((notificationCounts.critical / notificationCounts.total) * 100) : 0}
+          value={counts?.total || 0}
+          subtitle={`${counts?.unread || 0} non lue(s)`}
+          progress={counts?.total ? 
+            Math.round((counts.unread / counts.total) * 100) : 0}
           icon={AlertTriangle}
           isLoading={isLoading}
         />
