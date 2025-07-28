@@ -21,6 +21,12 @@ import SupportDashboard from "./pages/support/SupportDashboard";
 import EmployeesOverview from "./pages/employees/EmployeesOverview";
 import SubscriptionsOverview from "./pages/subscriptions/SubscriptionsOverview";
 import PlansManagement from "./pages/subscriptions/PlansManagement";
+import AnalyticsDashboard from "./pages/analytics/AnalyticsDashboard";
+import SystemMonitoring from "./pages/tools/SystemMonitoring";
+import GlobalSettings from "./pages/settings/GlobalSettings";
+import RolesPermissions from "./pages/permissions/RolesPermissions";
+import APIIntegrations from "./pages/tools/APIIntegrations";
+import DemoDataGenerator from "./components/demo/DemoDataGenerator";
 
 // Pages existantes (à conserver)
 import AdminRoutes from "./pages/admin/AdminRoutes";
@@ -141,24 +147,9 @@ const App: React.FC = () => {
                       } />
                       
                       {/* Analytics */}
-                      <Route path="/analytics/usage" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Usage de la Plateforme</h2>
-                          <p className="text-gray-600">Métriques d'utilisation</p>
-                        </div>
-                      } />
-                      <Route path="/analytics/performance" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Performance Globale</h2>
-                          <p className="text-gray-600">Indicateurs de performance</p>
-                        </div>
-                      } />
-                      <Route path="/analytics/comportement" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Comportement Utilisateurs</h2>
-                          <p className="text-gray-600">Analyse comportementale</p>
-                        </div>
-                      } />
+                      <Route path="/analytics/usage" element={<AnalyticsDashboard />} />
+                      <Route path="/analytics/performance" element={<AnalyticsDashboard />} />
+                      <Route path="/analytics/comportement" element={<AnalyticsDashboard />} />
                       
                       {/* Autres sections */}
                       <Route path="/paiements" element={
@@ -179,40 +170,16 @@ const App: React.FC = () => {
                           <p className="text-gray-600">Features expérimentales et bêta</p>
                         </div>
                       } />
-                      <Route path="/permissions" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Permissions & Rôles</h2>
-                          <p className="text-gray-600">Gestion avancée des droits</p>
-                        </div>
-                      } />
+                      <Route path="/permissions" element={<RolesPermissions />} />
                       
                       {/* Outils */}
-                      <Route path="/outils/api" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">API Externes</h2>
-                          <p className="text-gray-600">Intégrations et webhooks</p>
-                        </div>
-                      } />
-                      <Route path="/outils/monitoring" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Monitoring Système</h2>
-                          <p className="text-gray-600">Surveillance et alertes</p>
-                        </div>
-                      } />
-                      <Route path="/outils/logs" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Logs Système</h2>
-                          <p className="text-gray-600">Historique et debugging</p>
-                        </div>
-                      } />
+                      <Route path="/outils/api" element={<APIIntegrations />} />
+                      <Route path="/outils/demo-data" element={<DemoDataGenerator />} />
+                      <Route path="/outils/monitoring" element={<SystemMonitoring />} />
+                      <Route path="/outils/logs" element={<SystemMonitoring />} />
                       
                       {/* Paramètres */}
-                      <Route path="/parametres" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Paramètres Globaux</h2>
-                          <p className="text-gray-600">Configuration de la plateforme</p>
-                        </div>
-                      } />
+                      <Route path="/parametres" element={<GlobalSettings />} />
                       <Route path="/profile" element={
                         <div className="p-8 text-center">
                           <h2 className="text-xl font-semibold mb-4">Mon Profil</h2>

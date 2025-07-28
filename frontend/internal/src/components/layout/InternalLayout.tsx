@@ -67,13 +67,14 @@ const InternalLayout: React.FC<InternalLayoutProps> = ({ children }) => {
     if (path === "/features-bonus") return "Fonctionnalités Bonus";
     if (path === "/permissions") return "Permissions & Rôles";
     
-    // Outils
-    if (path.startsWith("/outils")) {
-      if (path === "/outils/api") return "API Externes";
-      if (path === "/outils/monitoring") return "Monitoring Système";
-      if (path === "/outils/logs") return "Logs Système";
-      return "Outils & Intégrations";
-    }
+      // Outils
+  if (path.startsWith("/outils")) {
+    if (path === "/outils/api") return "API Externes";
+    if (path === "/outils/monitoring") return "Monitoring Système";
+    if (path === "/outils/logs") return "Logs Système";
+    if (path === "/outils/demo-data") return "Générateur de Données";
+    return "Outils & Intégrations";
+  }
     
     // Paramètres
     if (path === "/parametres") return "Paramètres Globaux";
