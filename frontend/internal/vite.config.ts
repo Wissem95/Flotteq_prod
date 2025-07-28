@@ -1,23 +1,32 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
-import path from "path";
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react-swc'
+import path from 'path'
 
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-    proxy: {
-      '/api': 'http://localhost:8000',
-    },
-  },
-  plugins: [
-    react()
-    // si vous aviez d'autres plugins (lovable-tagger, etc.), gardez-les ici
-  ].filter(Boolean),
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src")
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  server: {
+    port: 8080,
+    host: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      }
+    },
+    hmr: {
+      overlay: false,
+      clientPort: 8080
     }
+  },
+  define: {
+    __WS_TOKEN__: JSON.stringify(process.env.WS_TOKEN || '')
   }
-}));
+})
 

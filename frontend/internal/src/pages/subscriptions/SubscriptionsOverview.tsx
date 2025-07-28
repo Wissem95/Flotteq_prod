@@ -1,0 +1,568 @@
+// SubscriptionsOverview.tsx - Vue d'ensemble de la gestion des abonnements FlotteQ
+
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
+import { Plus, Search, Filter, CreditCard, TrendingUp, Users, DollarSign, Calendar, MoreHorizontal, Eye, Edit, Ban, Play, X, Download, Mail, AlertTriangle, CheckCircle, Clock, Building2, } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, } from "recharts";
+import { Subscription, SubscriptionFilters, SubscriptionStats } from "@/services/subscriptionsService";
+
+const SubscriptionsOverview: React.FC = () => {
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [stats, setStats] = useState<SubscriptionStats | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<SubscriptionFilters>({});
+  const [loading, setLoading] = useState(true);
+
+  // Données mockées pour la démonstration
+  const mockStats: SubscriptionStats = {
+    total_subscriptions: 2847,
+    active_subscriptions: 2456,
+    trial_subscriptions: 298,
+    expired_subscriptions: 67,
+    suspended_subscriptions: 26,
+    monthly_revenue: 45780,
+    yearly_revenue: 389450,
+    total_revenue: 435230,
+    churn_rate: 2.3,
+    growth_rate: 8.7,
+    average_revenue_per_user: 177,
+    revenue_by_plan: [
+      { plan_name: "Starter", revenue: 89450, subscription_count: 1245 },
+      { plan_name: "Business", revenue: 234500, subscription_count: 856 },
+      { plan_name: "Enterprise", revenue: 111280, subscription_count: 355 },
+    ],
+    revenue_by_month: [
+      { month: "Jan", revenue: 38900, new_subscriptions: 145, cancelled_subscriptions: 23 },
+      { month: "Fév", revenue: 42100, new_subscriptions: 167, cancelled_subscriptions: 18 },
+      { month: "Mar", revenue: 39800, new_subscriptions: 134, cancelled_subscriptions: 29 },
+      { month: "Avr", revenue: 43200, new_subscriptions: 189, cancelled_subscriptions: 15 },
+      { month: "Mai", revenue: 45780, new_subscriptions: 203, cancelled_subscriptions: 22 },
+    ],
+  };
+
+  const mockSubscriptions: Subscription[] = [
+    {
+      id: 1,
+      tenant_id: 101,
+      plan_id: "business",
+      plan: {
+        id: "business",
+        name: "Business",
+        description: "Plan intermédiaire pour PME",
+        price_monthly: 299,
+        price_yearly: 2990,
+        features: ["50 véhicules", "10 utilisateurs", "Support prioritaire"],
+        max_vehicles: 50,
+        max_users: 10,
+        support_level: "premium",
+        is_active: true,
+        is_popular: true,
+        created_at: "2024-01-15",
+        updated_at: "2024-07-20",
+      },
+      tenant: {
+        id: 101,
+        name: "Transport Express SARL",
+        email: "admin@transport-express.fr",
+        status: "active",
+      },
+      status: "active",
+      billing_cycle: "yearly",
+      price: 2990,
+      started_at: "2024-02-01",
+      expires_at: "2025-02-01",
+      next_billing_date: "2025-02-01",
+      auto_renew: true,
+      trial_ends_at: null,
+      is_trial: false,
+      created_at: "2024-02-01",
+      updated_at: "2024-07-25",
+    },
+    {
+      id: 2,
+      tenant_id: 102,
+      plan_id: "starter",
+      plan: {
+        id: "starter",
+        name: "Starter",
+        description: "Plan de base pour petites entreprises",
+        price_monthly: 99,
+        price_yearly: 990,
+        features: ["10 véhicules", "3 utilisateurs", "Support standard"],
+        max_vehicles: 10,
+        max_users: 3,
+        support_level: "basic",
+        is_active: true,
+        is_popular: false,
+        created_at: "2024-01-15",
+        updated_at: "2024-07-20",
+      },
+      tenant: {
+        id: 102,
+        name: "Livraisons Rapides",
+        email: "contact@livraisons-rapides.com",
+        status: "active",
+      },
+      status: "active",
+      billing_cycle: "monthly",
+      price: 99,
+      started_at: "2024-07-15",
+      expires_at: "2024-08-15",
+      next_billing_date: "2024-08-15",
+      auto_renew: true,
+      trial_ends_at: "2024-07-22",
+      is_trial: true,
+      created_at: "2024-07-15",
+      updated_at: "2024-07-25",
+    },
+    {
+      id: 3,
+      tenant_id: 103,
+      plan_id: "enterprise",
+      plan: {
+        id: "enterprise",
+        name: "Enterprise",
+        description: "Plan avancé pour grandes entreprises",
+        price_monthly: 699,
+        price_yearly: 6990,
+        features: ["Véhicules illimités", "Utilisateurs illimités", "Support 24/7"],
+        max_vehicles: -1,
+        max_users: -1,
+        support_level: "enterprise",
+        is_active: true,
+        is_popular: false,
+        created_at: "2024-01-15",
+        updated_at: "2024-07-20",
+      },
+      tenant: {
+        id: 103,
+        name: "FleetCorp International",
+        email: "admin@fleetcorp.com",
+        status: "active",
+      },
+      status: "suspended",
+      billing_cycle: "yearly",
+      price: 6990,
+      started_at: "2024-01-01",
+      expires_at: "2025-01-01",
+      next_billing_date: "2025-01-01",
+      auto_renew: false,
+      trial_ends_at: null,
+      is_trial: false,
+      created_at: "2024-01-01",
+      updated_at: "2024-07-25",
+    },
+  ];
+
+  useEffect(() => {
+    loadSubscriptions();
+    setStats(mockStats);
+  }, [filters]);
+
+  const loadSubscriptions = async () => {
+    setLoading(true);
+    try {
+      // Simulation d'un appel API
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      let filteredData = [...mockSubscriptions];
+      
+      if (filters.status) {
+        filteredData = filteredData.filter(sub => sub.status === filters.status);
+      }
+      
+      if (filters.billing_cycle) {
+        filteredData = filteredData.filter(sub => sub.billing_cycle === filters.billing_cycle);
+      }
+      
+      if (filters.is_trial !== undefined) {
+        filteredData = filteredData.filter(sub => sub.is_trial === filters.is_trial);
+      }
+      
+      if (searchTerm) {
+        filteredData = filteredData.filter(sub => 
+          sub.tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          sub.tenant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          sub.plan.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+      
+      setSubscriptions(filteredData);
+    } catch (error) {
+      console.error("Erreur lors du chargement des abonnements:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusBadge = (status: string, isTrial: boolean) => {
+    if (isTrial) {
+      return <Badge variant="secondary" className="bg-blue-100 text-blue-800">Essai</Badge>;
+    }
+    
+    switch (status) {
+      case "active":
+        return <Badge variant="default" className="bg-green-100 text-green-800">Actif</Badge>;
+      case "suspended":
+        return <Badge variant="destructive" className="bg-orange-100 text-orange-800">Suspendu</Badge>;
+      case "cancelled":
+        return <Badge variant="destructive">Annulé</Badge>;
+      case "expired":
+        return <Badge variant="secondary" className="bg-red-100 text-red-800">Expiré</Badge>;
+      default:
+        return <Badge variant="secondary">Inactif</Badge>;
+    }
+  };
+
+  const formatPrice = (price: number, currency = "EUR") => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: currency,
+    }).format(price);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR');
+  };
+
+  const isExpiringSoon = (expiresAt: string) => {
+    const expiryDate = new Date(expiresAt);
+    const now = new Date();
+    const diffTime = expiryDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays <= 30 && diffDays > 0;
+  };
+
+  // Composant pour les métriques
+  const MetricCard: React.FC<{
+    title: string;
+    value: string | number;
+    icon: React.ReactNode;
+    trend?: { value: number; isPositive: boolean };
+    description?: string;
+  }> = ({ title, value, icon, trend, description }) => (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        {icon}
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        {trend && (
+          <p className={`text-xs ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+            {trend.isPositive ? '+' : '-'}{Math.abs(trend.value)}% vs mois précédent
+          </p>
+        )}
+        {description && (
+          <p className="text-xs text-muted-foreground">{description}</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
+  return (
+    <div className="space-y-6">
+      {/* En-tête */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Gestion des abonnements</h1>
+          <p className="text-gray-600">Gérez les abonnements et la facturation des tenants FlotteQ</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Download className="w-4 h-4" />
+            Exporter
+          </Button>
+          <Button className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Nouvel abonnement
+          </Button>
+        </div>
+      </div>
+
+      {/* Métriques principales */}
+      {stats && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <MetricCard
+            title="Abonnements actifs"
+            value={stats.active_subscriptions.toLocaleString()}
+            icon={<Users className="h-4 w-4 text-muted-foreground" />}
+            trend={{ value: 8.7, isPositive: true }}
+            description={`${stats.trial_subscriptions} en essai`}
+          />
+          <MetricCard
+            title="Revenus mensuels"
+            value={formatPrice(stats.monthly_revenue)}
+            icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+            trend={{ value: 12.5, isPositive: true }}
+          />
+          <MetricCard
+            title="ARPU"
+            value={formatPrice(stats.average_revenue_per_user)}
+            icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
+            trend={{ value: 3.2, isPositive: true }}
+            description="Revenu moyen par utilisateur"
+          />
+          <MetricCard
+            title="Taux de désabonnement"
+            value={`${stats.churn_rate}%`}
+            icon={<AlertTriangle className="h-4 w-4 text-muted-foreground" />}
+            trend={{ value: 0.8, isPositive: false }}
+            description="Ce mois-ci"
+          />
+        </div>
+      )}
+
+      {/* Graphiques */}
+      {stats && (
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Évolution des revenus</CardTitle>
+              <CardDescription>Revenus mensuels des 5 derniers mois</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={stats.revenue_by_month}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => formatPrice(Number(value))} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="revenue" 
+                    stroke="#3b82f6" 
+                    strokeWidth={2}
+                    dot={{ fill: '#3b82f6' }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Répartition par plan</CardTitle>
+              <CardDescription>Revenus par type d'abonnement</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={stats.revenue_by_plan}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ plan_name, revenue }) => `${plan_name}: ${formatPrice(revenue)}`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="revenue"
+                  >
+                    {stats.revenue_by_plan.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => formatPrice(Number(value))} />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Filtres et recherche */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="w-5 h-5" />
+            Filtres et recherche
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4 flex-wrap">
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                <Input
+                  placeholder="Rechercher un tenant ou plan..."
+                  className="pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <Select onValueChange={(value) => setFilters(prev => ({ ...prev, status: value === 'all' ? undefined : value as any }))}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                <SelectItem value="active">Actif</SelectItem>
+                <SelectItem value="suspended">Suspendu</SelectItem>
+                <SelectItem value="cancelled">Annulé</SelectItem>
+                <SelectItem value="expired">Expiré</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select onValueChange={(value) => setFilters(prev => ({ ...prev, billing_cycle: value === 'all' ? undefined : value as any }))}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Facturation" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes</SelectItem>
+                <SelectItem value="monthly">Mensuelle</SelectItem>
+                <SelectItem value="yearly">Annuelle</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select onValueChange={(value) => setFilters(prev => ({ ...prev, is_trial: value === 'all' ? undefined : value === 'true' }))}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous</SelectItem>
+                <SelectItem value="true">Essais</SelectItem>
+                <SelectItem value="false">Payants</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tableau des abonnements */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Abonnements actifs ({subscriptions.length})</CardTitle>
+          <CardDescription>
+            Liste complète des abonnements avec détails et actions
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tenant</TableHead>
+                  <TableHead>Plan</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Facturation</TableHead>
+                  <TableHead>Prix</TableHead>
+                  <TableHead>Expiration</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {subscriptions.map((subscription) => (
+                  <TableRow key={subscription.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-gray-500" />
+                          {subscription.tenant.name}
+                        </div>
+                        <div className="text-sm text-gray-500">{subscription.tenant.email}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{subscription.plan.name}</div>
+                        <div className="text-sm text-gray-500">
+                          {subscription.plan.max_vehicles === -1 ? "Illimité" : subscription.plan.max_vehicles} véhicules
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(subscription.status, subscription.is_trial)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4 text-gray-500" />
+                        <span className="capitalize">{subscription.billing_cycle === 'monthly' ? 'Mensuelle' : 'Annuelle'}</span>
+                        {subscription.auto_renew && (
+                          <CheckCircle className="w-4 h-4 text-green-500" title="Renouvellement automatique" />
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-medium">{formatPrice(subscription.price)}</span>
+                      <span className="text-sm text-gray-500">
+                        /{subscription.billing_cycle === 'monthly' ? 'mois' : 'an'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className={`text-sm ${isExpiringSoon(subscription.expires_at) ? 'text-orange-600 font-medium' : ''}`}>
+                          {formatDate(subscription.expires_at)}
+                        </div>
+                        {isExpiringSoon(subscription.expires_at) && (
+                          <div className="text-xs text-orange-600 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            Expire bientôt
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem className="flex items-center gap-2">
+                            <Eye className="w-4 h-4" />
+                            Voir détails
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="flex items-center gap-2">
+                            <Edit className="w-4 h-4" />
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="flex items-center gap-2">
+                            <Mail className="w-4 h-4" />
+                            Envoyer facture
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {subscription.status === 'active' ? (
+                            <DropdownMenuItem className="flex items-center gap-2 text-orange-600">
+                              <Ban className="w-4 h-4" />
+                              Suspendre
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem className="flex items-center gap-2 text-green-600">
+                              <Play className="w-4 h-4" />
+                              Réactiver
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem className="flex items-center gap-2 text-red-600">
+                            <X className="w-4 h-4" />
+                            Annuler
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default SubscriptionsOverview; 
