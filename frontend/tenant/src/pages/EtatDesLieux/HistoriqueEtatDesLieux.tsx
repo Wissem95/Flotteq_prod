@@ -51,8 +51,8 @@ const HistoriqueEtatDesLieux: React.FC = () => {
   const [selectedEtat, setSelectedEtat] = useState<EtatDesLieux | null>(null);
   
   const [filters, setFilters] = useState({
-    vehicle_id: '',
-    type: '',
+    vehicle_id: 'all',
+    type: 'all',
     search: ''
   });
 
@@ -186,7 +186,7 @@ const HistoriqueEtatDesLieux: React.FC = () => {
                   <SelectValue placeholder="Tous les véhicules" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous les véhicules</SelectItem>
+                  <SelectItem value="all">Tous les véhicules</SelectItem>
                   {vehicles.map(vehicle => (
                     <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
                       {vehicle.marque} {vehicle.modele} - {vehicle.immatriculation}
@@ -200,7 +200,7 @@ const HistoriqueEtatDesLieux: React.FC = () => {
                   <SelectValue placeholder="Tous les types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous les types</SelectItem>
+                  <SelectItem value="all">Tous les types</SelectItem>
                   <SelectItem value="depart">Départ</SelectItem>
                   <SelectItem value="retour">Retour</SelectItem>
                 </SelectContent>

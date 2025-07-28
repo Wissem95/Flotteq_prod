@@ -20,11 +20,11 @@ class EtatDesLieuxController extends Controller
         $query = EtatDesLieux::with(['vehicle', 'user', 'validator'])
             ->forTenant($request->header('X-Tenant-ID'));
 
-        if ($request->has('vehicle_id')) {
+        if ($request->has('vehicle_id') && $request->vehicle_id !== 'all' && $request->vehicle_id !== null) {
             $query->where('vehicle_id', $request->vehicle_id);
         }
 
-        if ($request->has('type')) {
+        if ($request->has('type') && $request->type !== 'all' && $request->type !== null) {
             $query->ofType($request->type);
         }
 

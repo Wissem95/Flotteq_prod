@@ -233,7 +233,7 @@ const Notifications: React.FC = () => {
   };
 
   // Filtrage des notifications
-  let filteredNotifications = notifications;
+  let filteredNotifications = notifications || [];
 
   // Filtrer par recherche
   filteredNotifications = notificationService.searchNotifications(filteredNotifications, searchTerm);
@@ -302,13 +302,13 @@ const Notifications: React.FC = () => {
           <TabsTrigger value="all" className="relative">
             Toutes
             <span className="ml-2 bg-slate-100 text-slate-700 text-xs rounded-full px-2 py-0.5">
-              {notificationStats.total}
+              {notificationStats.total || 0}
             </span>
           </TabsTrigger>
           <TabsTrigger value="urgent" className="relative">
             Urgentes
             <span className="ml-2 bg-red-100 text-red-700 text-xs rounded-full px-2 py-0.5">
-              {notificationStats.urgent + notificationStats.overdue}
+              {(notificationStats.urgent || 0) + (notificationStats.overdue || 0)}
             </span>
           </TabsTrigger>
           <TabsTrigger value="upcoming">À venir</TabsTrigger>
