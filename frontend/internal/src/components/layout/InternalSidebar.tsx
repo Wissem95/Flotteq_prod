@@ -91,7 +91,7 @@ const InternalSidebar: React.FC = () => {
 
   return (
     <div
-      className={`h-full bg-gradient-to-b from-blue-900 to-blue-800 flex flex-col text-white transition-all duration-300 ${
+      className={`h-full bg-gradient-to-b from-blue-900 to-teal-600 flex flex-col text-white transition-all duration-300 ${
         collapsed ? "w-20" : "w-72"
       }`}
     >

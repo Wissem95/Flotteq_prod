@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('company')->nullable()->after('country');
-            $table->string('fleet_role')->nullable()->after('company');
-            $table->string('license_number')->nullable()->after('fleet_role');
-        });
+        // Fields already exist in initial users table migration
+        // This migration is kept for compatibility but does nothing
     }
 
     /**

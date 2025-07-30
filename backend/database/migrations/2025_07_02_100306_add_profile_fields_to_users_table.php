@@ -11,14 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->date('birthdate')->nullable();
-            $table->string('gender')->nullable();
-            $table->string('address')->nullable();
-            $table->string('postalCode')->nullable();
-            $table->string('city')->nullable();
-            $table->string('country')->nullable();
-        });
+        // Fields already exist in initial users table migration
+        // This migration is kept for compatibility but does nothing
     }
 
     /**

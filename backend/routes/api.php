@@ -139,8 +139,59 @@ Route::middleware(['auth:sanctum', 'check_incomplete_profile'])->group(function 
 });
 
 
-Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('admin')->group(function () {
+// Internal admin routes (FlotteQ employees only)
+Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal')->group(function () {
     Route::apiResource('employes', App\Http\Controllers\API\Admin\InternalEmployeeController::class);
+    
+    // Partners management (Internal only)
+    Route::prefix('partners')->group(function () {
+        Route::get('/', [App\Http\Controllers\API\PartnersController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\API\PartnersController::class, 'store']);
+        Route::get('/statistics', [App\Http\Controllers\API\PartnersController::class, 'statistics']);
+        Route::get('/{partner}', [App\Http\Controllers\API\PartnersController::class, 'show']);
+        Route::put('/{partner}', [App\Http\Controllers\API\PartnersController::class, 'update']);
+        Route::delete('/{partner}', [App\Http\Controllers\API\PartnersController::class, 'destroy']);
+    });
+    
+    // Support management (Internal only)
+    Route::prefix('support')->group(function () {
+        Route::get('/tickets', [App\Http\Controllers\API\SupportController::class, 'index']);
+        Route::get('/statistics', [App\Http\Controllers\API\SupportController::class, 'statistics']);
+        Route::post('/tickets/{ticket}/assign', [App\Http\Controllers\API\SupportController::class, 'assign']);
+        Route::get('/tenants/{tenantId}/metrics', [App\Http\Controllers\API\SupportController::class, 'tenantMetrics']);
+    });
+    
+    // Analytics (Internal only)
+    Route::prefix('analytics')->group(function () {
+        Route::get('/global', [App\Http\Controllers\API\InternalAnalyticsController::class, 'globalMetrics']);
+        Route::get('/tenants/{tenantId}', [App\Http\Controllers\API\InternalAnalyticsController::class, 'tenantAnalytics']);
+        Route::get('/user-behavior', [App\Http\Controllers\API\InternalAnalyticsController::class, 'userBehavior']);
+        Route::get('/performance', [App\Http\Controllers\API\InternalAnalyticsController::class, 'performanceMetrics']);
+    });
+});
+
+// Tenant-specific routes
+Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
+    // Partners for tenants (find and interact)
+    Route::prefix('partners')->group(function () {
+        Route::post('/find-nearby', [App\Http\Controllers\API\PartnersController::class, 'findNearby']);
+        Route::post('/{partner}/rate', [App\Http\Controllers\API\PartnersController::class, 'rate']);
+        Route::post('/{partner}/book', [App\Http\Controllers\API\PartnersController::class, 'book']);
+    });
+    
+    // Support for tenants
+    Route::prefix('support')->group(function () {
+        Route::get('/tickets', [App\Http\Controllers\API\SupportController::class, 'index']);
+        Route::post('/tickets', [App\Http\Controllers\API\SupportController::class, 'store']);
+        Route::get('/tickets/{ticket}', [App\Http\Controllers\API\SupportController::class, 'show']);
+        Route::post('/tickets/{ticket}/messages', [App\Http\Controllers\API\SupportController::class, 'addMessage']);
+        Route::patch('/tickets/{ticket}/status', [App\Http\Controllers\API\SupportController::class, 'updateStatus']);
+    });
+});
+
+// Analytics tracking (available for both Internal and Tenant)
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::post('/analytics/events', [App\Http\Controllers\API\InternalAnalyticsController::class, 'recordEvent']);
 });
 
 // Suppression des routes de test

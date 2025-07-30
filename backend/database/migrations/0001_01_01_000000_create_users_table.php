@@ -27,7 +27,10 @@ return new class extends Migration
             $table->string('phone')->nullable();
             $table->date('birthdate')->nullable();
             $table->string('gender')->nullable();
+            $table->string('address')->nullable();
             $table->string('postalCode', 10)->nullable();
+            $table->string('city')->nullable();
+            $table->string('country')->nullable();
             $table->string('company')->nullable();
             $table->string('fleet_role')->nullable();
             $table->string('license_number')->nullable();

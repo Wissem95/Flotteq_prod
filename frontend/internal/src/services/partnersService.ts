@@ -112,27 +112,25 @@ export interface PartnerStats {
 }
 
 /**
- * Service de gestion des partenaires FlotteQ
+ * Service de gestion des partenaires FlotteQ - Updated for Production Integration
  */
 export const partnersService = {
   /**
-   * Récupérer tous les partenaires avec filtres
+   * Récupérer tous les partenaires avec filtres (Internal API)
    */
   async getPartners(
     page: number = 1,
     perPage: number = 20,
     filters?: PartnerFilters
   ): Promise<{
-    partners: Partner[];
-    pagination: {
-      current_page: number;
-      per_page: number;
-      total: number;
-      last_page: number;
-    };
+    data: Partner[];
+    current_page: number;
+    per_page: number;
+    total: number;
+    last_page: number;
   }> {
     try {
-      let url = `/partners?page=${page}&per_page=${perPage}`;
+      let url = `/internal/partners?page=${page}&per_page=${perPage}`;
       
       if (filters) {
         const params = new URLSearchParams();
@@ -157,12 +155,12 @@ export const partnersService = {
   },
 
   /**
-   * Récupérer un partenaire par ID
+   * Récupérer un partenaire par ID (Internal API)
    */
   async getPartner(id: number): Promise<Partner> {
     try {
-      const response = await api.get(`/partners/${id}`);
-      return response.data.partner;
+      const response = await api.get(`/internal/partners/${id}`);
+      return response.data;
     } catch (error: any) {
       console.error(`Erreur lors de la récupération du partenaire ${id}:`, error);
       throw new Error(error.response?.data?.message || "Partenaire non trouvé");
@@ -170,12 +168,12 @@ export const partnersService = {
   },
 
   /**
-   * Créer un nouveau partenaire
+   * Créer un nouveau partenaire (Internal API)
    */
   async createPartner(data: CreatePartnerData): Promise<Partner> {
     try {
-      const response = await api.post('/partners', data);
-      return response.data.partner;
+      const response = await api.post('/internal/partners', data);
+      return response.data;
     } catch (error: any) {
       console.error("Erreur lors de la création du partenaire:", error);
       throw new Error(error.response?.data?.message || "Erreur lors de la création");
@@ -183,12 +181,12 @@ export const partnersService = {
   },
 
   /**
-   * Mettre à jour un partenaire
+   * Mettre à jour un partenaire (Internal API)
    */
   async updatePartner(id: number, data: Partial<CreatePartnerData>): Promise<Partner> {
     try {
-      const response = await api.put(`/partners/${id}`, data);
-      return response.data.partner;
+      const response = await api.put(`/internal/partners/${id}`, data);
+      return response.data;
     } catch (error: any) {
       console.error(`Erreur lors de la mise à jour du partenaire ${id}:`, error);
       throw new Error(error.response?.data?.message || "Erreur lors de la mise à jour");
@@ -196,11 +194,11 @@ export const partnersService = {
   },
 
   /**
-   * Supprimer un partenaire
+   * Supprimer un partenaire (Internal API)
    */
   async deletePartner(id: number): Promise<{ message: string }> {
     try {
-      const response = await api.delete(`/partners/${id}`);
+      const response = await api.delete(`/internal/partners/${id}`);
       return response.data;
     } catch (error: any) {
       console.error(`Erreur lors de la suppression du partenaire ${id}:`, error);
@@ -209,12 +207,12 @@ export const partnersService = {
   },
 
   /**
-   * Changer le statut d'un partenaire
+   * Activer/désactiver un partenaire (Internal API)
    */
-  async updatePartnerStatus(id: number, status: 'active' | 'inactive' | 'pending'): Promise<Partner> {
+  async togglePartnerStatus(id: number, isActive: boolean): Promise<Partner> {
     try {
-      const response = await api.patch(`/partners/${id}/status`, { status });
-      return response.data.partner;
+      const response = await api.put(`/internal/partners/${id}`, { is_active: isActive });
+      return response.data;
     } catch (error: any) {
       console.error(`Erreur lors du changement de statut du partenaire ${id}:`, error);
       throw new Error(error.response?.data?.message || "Erreur lors du changement de statut");
@@ -222,11 +220,24 @@ export const partnersService = {
   },
 
   /**
-   * Récupérer les statistiques des partenaires
+   * Vérifier/désvérifier un partenaire (Internal API)
+   */
+  async togglePartnerVerification(id: number, isVerified: boolean): Promise<Partner> {
+    try {
+      const response = await api.put(`/internal/partners/${id}`, { is_verified: isVerified });
+      return response.data;
+    } catch (error: any) {
+      console.error(`Erreur lors du changement de vérification du partenaire ${id}:`, error);
+      throw new Error(error.response?.data?.message || "Erreur lors du changement de vérification");
+    }
+  },
+
+  /**
+   * Récupérer les statistiques des partenaires (Internal API)
    */
   async getPartnerStats(): Promise<PartnerStats> {
     try {
-      const response = await api.get('/partners/stats');
+      const response = await api.get('/internal/partners/statistics');
       return response.data;
     } catch (error: any) {
       console.error("Erreur lors de la récupération des statistiques:", error);
