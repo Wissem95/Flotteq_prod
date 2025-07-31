@@ -139,7 +139,23 @@ Route::middleware(['auth:sanctum', 'check_incomplete_profile'])->group(function 
 });
 
 
-// Internal admin routes (FlotteQ employees only)
+// Internal authentication routes (public)
+Route::prefix('internal/auth')->group(function () {
+    Route::post('/login', [App\Http\Controllers\API\InternalAuthController::class, 'login']);
+    Route::get('/health/database', [App\Http\Controllers\API\InternalAuthController::class, 'healthDatabase']);
+});
+
+// Internal protected routes
+Route::middleware(['auth:sanctum'])->prefix('internal')->group(function () {
+    // Auth routes for internal users
+    Route::prefix('auth')->group(function () {
+        Route::get('/me', [App\Http\Controllers\API\InternalAuthController::class, 'me']);
+        Route::post('/logout', [App\Http\Controllers\API\InternalAuthController::class, 'logout']);
+        Route::put('/profile', [App\Http\Controllers\API\InternalAuthController::class, 'updateProfile']);
+    });
+});
+
+// Internal admin routes (FlotteQ employees only) 
 Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal')->group(function () {
     Route::apiResource('employes', App\Http\Controllers\API\Admin\InternalEmployeeController::class);
     

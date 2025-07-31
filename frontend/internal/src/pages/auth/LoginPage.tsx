@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Building2, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useInternalAuth } from "@/hooks/useInternalAuth";
+import { internalAuthService } from "@/services/internalAuthService";
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,6 +21,20 @@ const LoginPage: React.FC = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [dbStatus, setDbStatus] = useState<'checking' | 'online' | 'offline'>('checking');
+
+  // Vérifier la santé de l'API au chargement
+  React.useEffect(() => {
+    const checkApiHealth = async () => {
+      try {
+        const isOnline = await internalAuthService.checkDatabaseConnection();
+        setDbStatus(isOnline ? 'online' : 'offline');
+      } catch {
+        setDbStatus('offline');
+      }
+    };
+    checkApiHealth();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -48,18 +63,14 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  // Bypass temporaire pour le développement
-  const handleDemoLogin = () => {
-    // Simuler une connexion réussie
-    localStorage.setItem("internal_token", "demo_token");
-    localStorage.setItem("internal_user", JSON.stringify({
-      id: 1,
-      name: "Admin Demo",
-      email: "admin@flotteq.com",
-      role: "super_admin",
-      permissions: ["*"],
-    }));
-    navigate("/dashboard/overview");
+  // Mode démo pour le développement
+  const handleDemoLogin = async () => {
+    try {
+      await internalAuthService.demoLogin();
+      navigate("/dashboard/overview");
+    } catch (error) {
+      setError("Erreur lors de la connexion démo");
+    }
   };
 
   return (

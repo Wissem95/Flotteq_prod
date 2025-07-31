@@ -41,7 +41,8 @@ export const internalAuthService = {
    */
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
-      const response = await api.post('/auth/login', credentials);
+      // Essayer d'abord la connexion réelle
+      const response = await api.post('/internal/auth/login', credentials);
       
       // Stocker les données d'authentification
       if (response.data.token) {
@@ -52,8 +53,52 @@ export const internalAuthService = {
       return response.data;
     } catch (error: any) {
       console.error("Erreur lors de la connexion admin:", error);
+      
+      // Si l'API n'est pas accessible, proposer le mode démo
+      if (error.code === 'NETWORK_ERROR' || error.response?.status >= 500) {
+        console.warn("🔶 API non accessible - Mode démo disponible");
+      }
+      
       throw new Error(error.response?.data?.message || "Erreur de connexion");
     }
+  },
+
+  /**
+   * Vérifier si l'API et la base de données sont accessibles
+   */
+  async checkDatabaseConnection(): Promise<boolean> {
+    try {
+      const response = await api.get('/internal/auth/health/database');
+      return response.status === 200 && response.data.status === 'ok';
+    } catch (error) {
+      console.warn("Base de données non accessible:", error);
+      return false;
+    }
+  },
+
+  /**
+   * Mode démo - bypass pour le développement
+   */
+  async demoLogin(): Promise<LoginResponse> {
+    const demoUser = {
+      id: 1,
+      name: "Admin Demo",
+      email: "admin@flotteq.com",
+      role: "super_admin",
+      permissions: ["*"],
+      is_internal: true,
+      created_at: new Date().toISOString(),
+    };
+
+    // Stocker les données démo
+    localStorage.setItem("internal_token", "demo_token");
+    localStorage.setItem("internal_user", JSON.stringify(demoUser));
+
+    return {
+      user: demoUser,
+      token: "demo_token",
+      message: "Connexion démo réussie"
+    };
   },
 
   /**
@@ -61,7 +106,11 @@ export const internalAuthService = {
    */
   async logout(): Promise<void> {
     try {
-      await api.post('/auth/logout');
+      // Seulement si ce n'est pas le mode démo
+      const token = localStorage.getItem("internal_token");
+      if (token !== "demo_token") {
+        await api.post('/internal/auth/logout');
+      }
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error);
     } finally {
@@ -76,7 +125,14 @@ export const internalAuthService = {
    */
   async getProfile(): Promise<InternalUser> {
     try {
-      const response = await api.get('/auth/profile');
+      // Si mode démo, retourner les données locales
+      const token = localStorage.getItem("internal_token");
+      if (token === "demo_token") {
+        const user = this.getCurrentUser();
+        if (user) return user;
+      }
+
+      const response = await api.get('/internal/auth/me');
       
       // Mettre à jour les données stockées
       localStorage.setItem("internal_user", JSON.stringify(response.data.user));
