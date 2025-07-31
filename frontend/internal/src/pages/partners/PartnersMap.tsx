@@ -29,7 +29,7 @@ import {
   Shield,
   Zap,
 } from "lucide-react";
-import { Partner, PartnerFilters } from "@/services/partnersService";
+import { partnersService } from "@/services/partnersService";
 
 interface MapViewport {
   latitude: number;
@@ -37,10 +37,36 @@ interface MapViewport {
   zoom: number;
 }
 
+interface Partner {
+  id: number;
+  name: string;
+  type: 'garage' | 'controle_technique' | 'assurance';
+  description?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  address: string;
+  city: string;
+  postal_code: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  services?: string[];
+  pricing?: Record<string, number>;
+  availability?: Record<string, string[]>;
+  rating: number;
+  rating_count: number;
+  is_active: boolean;
+  is_verified: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 const PartnersMap: React.FC = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<PartnerFilters>({});
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
   const [viewport, setViewport] = useState<MapViewport>({
@@ -49,187 +75,29 @@ const PartnersMap: React.FC = () => {
     zoom: 6
   });
 
-  // Données simulées avec coordonnées géographiques
-  const mockPartners: Partner[] = [
-    {
-      id: 1,
-      name: "Garage Central Paris",
-      type: "garage",
-      email: "contact@garagecentral.fr",
-      phone: "01 23 45 67 89",
-      website: "https://garagecentral.fr",
-      status: "active",
-      address: {
-        street: "123 Rue de la République",
-        city: "Paris",
-        postal_code: "75001",
-        country: "France",
-        latitude: 48.8566,
-        longitude: 2.3522,
-      },
-      services: ["Révision", "Réparation", "Pneus"],
-      rating: { average: 4.5, total_reviews: 127 },
-      created_at: "2024-01-15",
-      updated_at: "2024-07-15",
-      availability: {
-        monday: { open: "08:00", close: "18:00" },
-        tuesday: { open: "08:00", close: "18:00" },
-        wednesday: { open: "08:00", close: "18:00" },
-        thursday: { open: "08:00", close: "18:00" },
-        friday: { open: "08:00", close: "18:00" },
-        saturday: { open: "09:00", close: "17:00" },
-        sunday: null,
-      },
-    },
-    {
-      id: 2,
-      name: "AutoVision CT Lyon",
-      type: "controle_technique",
-      email: "rdv@autovision-ct.fr",
-      phone: "01 98 76 54 32",
-      status: "active",
-      address: {
-        street: "45 Avenue des Tilleuls",
-        city: "Lyon",
-        postal_code: "69000",
-        country: "France",
-        latitude: 45.7640,
-        longitude: 4.8357,
-      },
-      services: ["Contrôle technique", "Contre-visite"],
-      rating: { average: 4.2, total_reviews: 89 },
-      created_at: "2024-02-20",
-      updated_at: "2024-07-10",
-      availability: {
-        monday: { open: "08:00", close: "19:00" },
-        tuesday: { open: "08:00", close: "19:00" },
-        wednesday: { open: "08:00", close: "19:00" },
-        thursday: { open: "08:00", close: "19:00" },
-        friday: { open: "08:00", close: "19:00" },
-        saturday: { open: "08:00", close: "16:00" },
-        sunday: null,
-      },
-    },
-    {
-      id: 3,
-      name: "AXA Assurances Marseille",
-      type: "assurance",
-      email: "marseille@axa.fr",
-      phone: "04 91 12 34 56",
-      website: "https://axa.fr/marseille",
-      status: "active",
-      address: {
-        street: "10 La Canebière",
-        city: "Marseille",
-        postal_code: "13001",
-        country: "France",
-        latitude: 43.2965,
-        longitude: 5.3698,
-      },
-      services: ["Assurance flotte", "Responsabilité civile", "Tous risques"],
-      rating: { average: 4.1, total_reviews: 156 },
-      created_at: "2024-03-10",
-      updated_at: "2024-07-20",
-      availability: {
-        monday: { open: "09:00", close: "18:00" },
-        tuesday: { open: "09:00", close: "18:00" },
-        wednesday: { open: "09:00", close: "18:00" },
-        thursday: { open: "09:00", close: "18:00" },
-        friday: { open: "09:00", close: "18:00" },
-        saturday: null,
-        sunday: null,
-      },
-    },
-    {
-      id: 4,
-      name: "Garage Expert Toulouse",
-      type: "garage",
-      email: "info@garage-expert-toulouse.fr",
-      phone: "05 61 23 45 67",
-      status: "active",
-      address: {
-        street: "78 Avenue Jean Jaurès",
-        city: "Toulouse",
-        postal_code: "31000",
-        country: "France",
-        latitude: 43.6047,
-        longitude: 1.4442,
-      },
-      services: ["Mécanique", "Carrosserie", "Électricité"],
-      rating: { average: 4.3, total_reviews: 98 },
-      created_at: "2024-04-05",
-      updated_at: "2024-07-18",
-      availability: {
-        monday: { open: "08:00", close: "18:00" },
-        tuesday: { open: "08:00", close: "18:00" },
-        wednesday: { open: "08:00", close: "18:00" },
-        thursday: { open: "08:00", close: "18:00" },
-        friday: { open: "08:00", close: "18:00" },
-        saturday: { open: "09:00", close: "17:00" },
-        sunday: null,
-      },
-    },
-    {
-      id: 5,
-      name: "CT Rapide Bordeaux",
-      type: "controle_technique",
-      email: "contact@ct-rapide-bordeaux.fr",
-      phone: "05 56 78 90 12",
-      status: "pending",
-      address: {
-        street: "25 Cours Portal",
-        city: "Bordeaux",
-        postal_code: "33000",
-        country: "France",
-        latitude: 44.8378,
-        longitude: -0.5792,
-      },
-      services: ["Contrôle technique VL", "Contrôle technique PL"],
-      created_at: "2024-07-01",
-      updated_at: "2024-07-25",
-      availability: {
-        monday: { open: "08:00", close: "19:00" },
-        tuesday: { open: "08:00", close: "19:00" },
-        wednesday: { open: "08:00", close: "19:00" },
-        thursday: { open: "08:00", close: "19:00" },
-        friday: { open: "08:00", close: "19:00" },
-        saturday: { open: "08:00", close: "16:00" },
-        sunday: null,
-      },
-    },
-  ];
 
   useEffect(() => {
     loadPartners();
-  }, [filters, searchTerm]);
+  }, [typeFilter, statusFilter, searchTerm]);
 
   const loadPartners = async () => {
-    setLoading(true);
-    // TODO: Remplacer par un vrai appel API
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    let filteredPartners = [...mockPartners];
-    
-    // Filtrage par terme de recherche
-    if (searchTerm) {
-      filteredPartners = filteredPartners.filter(partner =>
-        partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        partner.address.city.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    try {
+      setLoading(true);
+      const filters = {
+        search: searchTerm || undefined,
+        type: typeFilter === 'all' ? undefined : typeFilter as 'garage' | 'controle_technique' | 'assurance',
+        is_active: statusFilter === 'active' ? true : statusFilter === 'inactive' ? false : undefined,
+        per_page: 100, // Get all partners for map display
+      };
+
+      const response = await partnersService.getPartners(1, 100, filters);
+      setPartners(response.data);
+    } catch (error) {
+      console.error('Erreur lors du chargement des partenaires:', error);
+      setPartners([]);
+    } finally {
+      setLoading(false);
     }
-    
-    // Filtrage par type
-    if (filters.type) {
-      filteredPartners = filteredPartners.filter(partner => partner.type === filters.type);
-    }
-    
-    // Filtrage par statut
-    if (filters.status) {
-      filteredPartners = filteredPartners.filter(partner => partner.status === filters.status);
-    }
-    
-    setPartners(filteredPartners);
-    setLoading(false);
   };
 
   // Calcul des statistiques pour le sidebar
@@ -241,24 +109,22 @@ const PartnersMap: React.FC = () => {
     }, {} as Record<string, number>);
     
     const byStatus = partners.reduce((acc, partner) => {
-      acc[partner.status] = (acc[partner.status] || 0) + 1;
+      const status = partner.is_active ? 'active' : 'inactive';
+      acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
     return { total, byType, byStatus };
   }, [partners]);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Actif</Badge>;
-      case 'inactive':
-        return <Badge className="bg-gray-100 text-gray-800"><XCircle className="w-3 h-3 mr-1" />Inactif</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />En attente</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
+  const getStatusBadge = (partner: Partner) => {
+    if (!partner.is_active) {
+      return <Badge className="bg-gray-100 text-gray-800"><XCircle className="w-3 h-3 mr-1" />Inactif</Badge>;
     }
+    if (!partner.is_verified) {
+      return <Badge className="bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" />En attente</Badge>;
+    }
+    return <Badge className="bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" />Actif</Badge>;
   };
 
   const getTypeIcon = (type: string) => {
@@ -289,10 +155,10 @@ const PartnersMap: React.FC = () => {
 
   const handlePartnerClick = (partner: Partner) => {
     setSelectedPartner(partner);
-    if (partner.address.latitude && partner.address.longitude) {
+    if (partner.latitude && partner.longitude) {
       setViewport({
-        latitude: partner.address.latitude,
-        longitude: partner.address.longitude,
+        latitude: partner.latitude,
+        longitude: partner.longitude,
         zoom: 12
       });
     }
@@ -327,7 +193,7 @@ const PartnersMap: React.FC = () => {
 
             {/* Filtres */}
             <div className="flex gap-2">
-              <Select onValueChange={(value) => setFilters(prev => ({ ...prev, type: value === 'all' ? undefined : value as any }))}>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="flex-1">
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
@@ -339,14 +205,13 @@ const PartnersMap: React.FC = () => {
                 </SelectContent>
               </Select>
 
-              <Select onValueChange={(value) => setFilters(prev => ({ ...prev, status: value === 'all' ? undefined : value as any }))}>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="flex-1">
                   <SelectValue placeholder="Statut" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous</SelectItem>
                   <SelectItem value="active">Actifs</SelectItem>
-                  <SelectItem value="pending">En attente</SelectItem>
                   <SelectItem value="inactive">Inactifs</SelectItem>
                 </SelectContent>
               </Select>
@@ -400,18 +265,18 @@ const PartnersMap: React.FC = () => {
                           {getTypeIcon(partner.type)}
                           <span className="font-medium text-sm">{partner.name}</span>
                         </div>
-                        {getStatusBadge(partner.status)}
+                        {getStatusBadge(partner)}
                       </div>
                       
                       <div className="text-xs text-gray-600 space-y-1">
                         <div className="flex items-center gap-1">
                           <MapPin className="w-3 h-3" />
-                          <span>{partner.address.city}, {partner.address.postal_code}</span>
+                          <span>{partner.city}, {partner.postal_code}</span>
                         </div>
-                        {partner.rating && (
+                        {partner.rating_count > 0 && (
                           <div className="flex items-center gap-1">
                             <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                            <span>{partner.rating.average} ({partner.rating.total_reviews} avis)</span>
+                            <span>{partner.rating.toFixed(1)} ({partner.rating_count} avis)</span>
                           </div>
                         )}
                       </div>
@@ -452,11 +317,11 @@ const PartnersMap: React.FC = () => {
 
               {/* Marqueurs des partenaires */}
               {partners.map((partner) => {
-                if (!partner.address.latitude || !partner.address.longitude) return null;
+                if (!partner.latitude || !partner.longitude) return null;
                 
                 // Conversion simplifiée des coordonnées en position sur la carte
-                const x = ((partner.address.longitude + 5) / 10) * 100;
-                const y = ((52 - partner.address.latitude) / 10) * 100;
+                const x = ((partner.longitude + 5) / 10) * 100;
+                const y = ((52 - partner.latitude) / 10) * 100;
                 
                 return (
                   <div
@@ -485,21 +350,21 @@ const PartnersMap: React.FC = () => {
                         <div className="text-xs space-y-1">
                           <div className="flex items-center gap-1">
                             <MapPin className="w-3 h-3" />
-                            <span>{partner.address.street}, {partner.address.city}</span>
+                            <span>{partner.address}, {partner.city}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Phone className="w-3 h-3" />
                             <span>{partner.phone}</span>
                           </div>
-                          {partner.rating && (
+                          {partner.rating_count > 0 && (
                             <div className="flex items-center gap-1">
                               <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                              <span>{partner.rating.average}/5 ({partner.rating.total_reviews} avis)</span>
+                              <span>{partner.rating.toFixed(1)}/5 ({partner.rating_count} avis)</span>
                             </div>
                           )}
                         </div>
                         <div className="mt-2 pt-2 border-t">
-                          {getStatusBadge(partner.status)}
+                          {getStatusBadge(partner)}
                         </div>
                       </div>
                     )}

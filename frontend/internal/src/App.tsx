@@ -15,7 +15,9 @@ import LoginPage from "./pages/auth/LoginPage";
 
 // Pages principales
 import DashboardOverview from "./pages/admin/DashboardOverview";
-import PartnersOverview from "./pages/partners/PartnersOverview";
+import GaragesOverview from "./pages/partners/GaragesOverview";
+import ControleTechniqueOverview from "./pages/partners/ControleTechniqueOverview";
+import AssurancesOverview from "./pages/partners/AssurancesOverview";
 import PartnersMap from "./pages/partners/PartnersMap";
 import SupportDashboard from "./pages/support/SupportDashboard";
 import EmployeesOverview from "./pages/employees/EmployeesOverview";
@@ -27,6 +29,14 @@ import GlobalSettings from "./pages/settings/GlobalSettings";
 import RolesPermissions from "./pages/permissions/RolesPermissions";
 import APIIntegrations from "./pages/tools/APIIntegrations";
 import DemoDataGenerator from "./components/demo/DemoDataGenerator";
+
+// Pages Finance
+import FinanceRevenues from "./pages/finance/FinanceRevenues";
+import FinanceCommissions from "./pages/finance/FinanceCommissions";
+import FinanceReports from "./pages/finance/FinanceReports";
+
+// Pages Promotions
+import PromotionsOverview from "./pages/promotions/PromotionsOverview";
 
 // Pages existantes (à conserver)
 import AdminRoutes from "./pages/admin/AdminRoutes";
@@ -109,9 +119,9 @@ const App: React.FC = () => {
                       <Route path="/employes" element={<EmployeesOverview />} />
                       
                       {/* Partenaires */}
-                      <Route path="/partenaires/garages" element={<PartnersOverview />} />
-                      <Route path="/partenaires/controle-technique" element={<PartnersOverview />} />
-                      <Route path="/partenaires/assurances" element={<PartnersOverview />} />
+                      <Route path="/partenaires/garages" element={<GaragesOverview />} />
+                      <Route path="/partenaires/controle-technique" element={<ControleTechniqueOverview />} />
+                      <Route path="/partenaires/assurances" element={<AssurancesOverview />} />
                       <Route path="/partenaires/carte" element={<PartnersMap />} />
                       
                       {/* Abonnements */}
@@ -119,32 +129,12 @@ const App: React.FC = () => {
                       <Route path="/abonnements/plans" element={<PlansManagement />} />
                       
                       {/* Promotions */}
-                      <Route path="/promotions" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Offres & Promotions</h2>
-                          <p className="text-gray-600">Codes promo et campagnes marketing</p>
-                        </div>
-                      } />
+                      <Route path="/promotions" element={<PromotionsOverview />} />
                       
                       {/* Finance */}
-                      <Route path="/finance/revenus" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Revenus Globaux</h2>
-                          <p className="text-gray-600">Analyse financière de la plateforme</p>
-                        </div>
-                      } />
-                      <Route path="/finance/commissions" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Commissions Partenaires</h2>
-                          <p className="text-gray-600">Gestion des commissions et paiements</p>
-                        </div>
-                      } />
-                      <Route path="/finance/rapports" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Rapports Financiers</h2>
-                          <p className="text-gray-600">Rapports comptables et exports</p>
-                        </div>
-                      } />
+                      <Route path="/finance/revenus" element={<FinanceRevenues />} />
+                      <Route path="/finance/commissions" element={<FinanceCommissions />} />
+                      <Route path="/finance/rapports" element={<FinanceReports />} />
                       
                       {/* Analytics */}
                       <Route path="/analytics/usage" element={<AnalyticsDashboard />} />

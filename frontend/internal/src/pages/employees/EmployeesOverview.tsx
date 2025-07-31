@@ -48,7 +48,8 @@ import {
   Coffee,
   Globe,
 } from "lucide-react";
-import { Employee, EmployeeFilters, EmployeeStats } from "@/services/employeesService";
+import { employeesService, Employee, EmployeeFilters, EmployeeStats } from "@/services/employeesService";
+import { toast } from "@/components/ui/use-toast";
 
 const EmployeesOverview: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -59,167 +60,41 @@ const EmployeesOverview: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Données simulées pour la démonstration
-  const mockStats: EmployeeStats = {
-    total: 42,
-    by_department: {
-      administration: 8,
-      support: 12,
-      development: 15,
-      marketing: 4,
-      partnerships: 3,
-    },
-    by_role: {
-      super_admin: 2,
-      admin: 5,
-      support: 12,
-      partner_manager: 3,
-      analyst: 6,
-      developer: 14,
-    },
-    by_status: {
-      active: 38,
-      inactive: 2,
-      on_leave: 2,
-      terminated: 0,
-    },
-    by_work_location: {
-      office: 15,
-      remote: 18,
-      hybrid: 9,
-    },
-    average_tenure_months: 24,
-    new_hires_this_month: 3,
-    departures_this_month: 1,
-  };
-
-  const mockEmployees: Employee[] = [
-    {
-      id: 1,
-      first_name: "Sophie",
-      last_name: "Martin",
-      email: "sophie.martin@flotteq.com",
-      phone: "+33 6 12 34 56 78",
-      role: "super_admin",
-      department: "administration",
-      position: "Directrice Technique",
-      hire_date: "2022-01-15",
-      status: "active",
-      permissions: ["all"],
-      avatar: "/images/profiles/sophie.jpg",
-      contract_type: "cdi",
-      work_location: "hybrid",
-      skills: ["Management", "Strategy", "Technology"],
-      certifications: ["PMP", "AWS Solutions Architect"],
-      last_login: "2024-07-28T09:30:00Z",
-      created_at: "2022-01-15T10:00:00Z",
-      updated_at: "2024-07-28T09:30:00Z",
-    },
-    {
-      id: 2,
-      first_name: "Paul",
-      last_name: "Bernard",
-      email: "paul.bernard@flotteq.com",
-      phone: "+33 6 23 45 67 89",
-      role: "support",
-      department: "support",
-      position: "Responsable Support Client",
-      hire_date: "2022-03-10",
-      status: "active",
-      permissions: ["support.read", "support.write", "tickets.manage"],
-      manager_id: 1,
-      manager_name: "Sophie Martin",
-      contract_type: "cdi",
-      work_location: "office",
-      skills: ["Customer Service", "Problem Solving", "Communication"],
-      last_login: "2024-07-28T08:45:00Z",
-      created_at: "2022-03-10T14:00:00Z",
-      updated_at: "2024-07-28T08:45:00Z",
-    },
-    {
-      id: 3,
-      first_name: "Marie",
-      last_name: "Dubois",
-      email: "marie.dubois@flotteq.com",
-      phone: "+33 6 34 56 78 90",
-      role: "developer",
-      department: "development",
-      position: "Développeuse Frontend Senior",
-      hire_date: "2021-09-20",
-      status: "active",
-      permissions: ["development.read", "development.write", "deployment.staging"],
-      manager_id: 1,
-      manager_name: "Sophie Martin",
-      contract_type: "cdi",
-      work_location: "remote",
-      skills: ["React", "TypeScript", "UI/UX", "Tailwind CSS"],
-      certifications: ["React Professional"],
-      last_login: "2024-07-28T10:15:00Z",
-      created_at: "2021-09-20T09:00:00Z",
-      updated_at: "2024-07-28T10:15:00Z",
-    },
-    {
-      id: 4,
-      first_name: "Thomas",
-      last_name: "Leroy",
-      email: "thomas.leroy@flotteq.com",
-      phone: "+33 6 45 67 89 01",
-      role: "partner_manager",
-      department: "partnerships",
-      position: "Responsable Partenariats",
-      hire_date: "2023-01-15",
-      status: "on_leave",
-      permissions: ["partners.read", "partners.write", "contracts.manage"],
-      manager_id: 1,
-      manager_name: "Sophie Martin",
-      contract_type: "cdi",
-      work_location: "hybrid",
-      skills: ["Business Development", "Negotiation", "CRM"],
-      last_login: "2024-07-20T16:30:00Z",
-      created_at: "2023-01-15T11:00:00Z",
-      updated_at: "2024-07-20T16:30:00Z",
-    },
-  ];
 
   useEffect(() => {
     loadData();
   }, [currentPage, filters, searchTerm]);
 
   const loadData = async () => {
-    setLoading(true);
-    // TODO: Remplacer par de vrais appels API
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    let filteredEmployees = [...mockEmployees];
-    
-    // Filtrage par terme de recherche
-    if (searchTerm) {
-      filteredEmployees = filteredEmployees.filter(employee =>
-        `${employee.first_name} ${employee.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.position.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    try {
+      setLoading(true);
+      
+      // Charger les employés avec filtres
+      const searchFilters = {
+        ...filters,
+        search: searchTerm || undefined,
+      };
+      
+      const [employeesResponse, statsResponse] = await Promise.all([
+        employeesService.getEmployees(currentPage, 10, searchFilters),
+        employeesService.getStats()
+      ]);
+      
+      setEmployees(employeesResponse.employees);
+      setTotalPages(employeesResponse.pagination.last_page);
+      setStats(statsResponse);
+    } catch (error) {
+      console.error('Erreur lors du chargement des employés:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger les données des employés',
+        variant: 'destructive',
+      });
+      setEmployees([]);
+      setStats(null);
+    } finally {
+      setLoading(false);
     }
-    
-    // Filtrage par rôle
-    if (filters.role) {
-      filteredEmployees = filteredEmployees.filter(employee => employee.role === filters.role);
-    }
-    
-    // Filtrage par département
-    if (filters.department) {
-      filteredEmployees = filteredEmployees.filter(employee => employee.department === filters.department);
-    }
-    
-    // Filtrage par statut
-    if (filters.status) {
-      filteredEmployees = filteredEmployees.filter(employee => employee.status === filters.status);
-    }
-    
-    setEmployees(filteredEmployees);
-    setStats(mockStats);
-    setTotalPages(Math.ceil(filteredEmployees.length / 10));
-    setLoading(false);
   };
 
   const getStatusBadge = (status: string) => {

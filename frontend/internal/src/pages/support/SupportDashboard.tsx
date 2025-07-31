@@ -45,7 +45,8 @@ import {
   Building2,
   Mail,
 } from "lucide-react";
-import { SupportTicket, SupportFilters, SupportStats } from "@/services/supportService";
+import { supportService, SupportTicket, SupportFilters, SupportStats } from "@/services/supportService";
+import { toast } from "@/components/ui/use-toast";
 
 const SupportDashboard: React.FC = () => {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -56,130 +57,41 @@ const SupportDashboard: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Données simulées pour la démonstration
-  const mockStats: SupportStats = {
-    total: 156,
-    by_status: {
-      open: 23,
-      in_progress: 31,
-      resolved: 67,
-      closed: 35,
-    },
-    by_priority: {
-      low: 45,
-      medium: 78,
-      high: 28,
-      urgent: 5,
-    },
-    average_response_time_hours: 2.4,
-    average_resolution_time_hours: 18.6,
-    open_tickets_older_than_24h: 8,
-    satisfaction_rating: 4.2,
-  };
-
-  const mockTickets: SupportTicket[] = [
-    {
-      id: 1,
-      ticket_number: "SUP-2024-001",
-      subject: "Problème de connexion API",
-      description: "Impossible de se connecter à l'API depuis hier matin...",
-      status: "open",
-      priority: "high",
-      category: "technical",
-      tenant_id: 1,
-      tenant_name: "Entreprise ABC",
-      user_id: 123,
-      user_name: "Jean Dupont",
-      user_email: "jean.dupont@abc.com",
-      assigned_to: 1,
-      assigned_to_name: "Sophie Martin",
-      messages: [],
-      tags: ["api", "connexion"],
-      created_at: "2024-07-28T08:30:00Z",
-      updated_at: "2024-07-28T10:15:00Z",
-      response_time_hours: 1.75,
-    },
-    {
-      id: 2,
-      ticket_number: "SUP-2024-002",
-      subject: "Question sur la facturation",
-      description: "Je souhaiterais comprendre les détails de ma facture du mois dernier...",
-      status: "in_progress",
-      priority: "medium",
-      category: "billing",
-      tenant_id: 2,
-      tenant_name: "Transport XYZ",
-      user_id: 456,
-      user_name: "Marie Leroy",
-      user_email: "marie.leroy@xyz.com",
-      assigned_to: 2,
-      assigned_to_name: "Paul Bernard",
-      messages: [],
-      tags: ["facturation"],
-      created_at: "2024-07-27T14:20:00Z",
-      updated_at: "2024-07-28T09:45:00Z",
-      response_time_hours: 0.5,
-    },
-    {
-      id: 3,
-      ticket_number: "SUP-2024-003",
-      subject: "Demande de fonctionnalité - Export PDF",
-      description: "Serait-il possible d'ajouter un export PDF pour les rapports de maintenance ?",
-      status: "resolved",
-      priority: "low",
-      category: "feature_request",
-      tenant_id: 3,
-      tenant_name: "FleetCorp",
-      user_id: 789,
-      user_name: "Pierre Moreau",
-      user_email: "pierre.moreau@fleetcorp.com",
-      assigned_to: 1,
-      assigned_to_name: "Sophie Martin",
-      messages: [],
-      tags: ["fonctionnalité", "export", "pdf"],
-      created_at: "2024-07-25T11:10:00Z",
-      updated_at: "2024-07-27T16:30:00Z",
-      resolved_at: "2024-07-27T16:30:00Z",
-      response_time_hours: 4.2,
-      resolution_time_hours: 53.3,
-    },
-  ];
 
   useEffect(() => {
     loadData();
   }, [currentPage, filters, searchTerm]);
 
   const loadData = async () => {
-    setLoading(true);
-    // TODO: Remplacer par de vrais appels API
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    let filteredTickets = [...mockTickets];
-    
-    // Filtrage par terme de recherche
-    if (searchTerm) {
-      filteredTickets = filteredTickets.filter(ticket =>
-        ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket.ticket_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ticket.tenant_name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    try {
+      setLoading(true);
+      
+      // Charger les tickets avec filtres
+      const searchFilters = {
+        ...filters,
+        search: searchTerm || undefined,
+      };
+      
+      const [ticketsResponse, statsResponse] = await Promise.all([
+        supportService.getTickets(currentPage, 10, searchFilters),
+        supportService.getStats()
+      ]);
+      
+      setTickets(ticketsResponse.tickets);
+      setTotalPages(ticketsResponse.pagination.last_page);
+      setStats(statsResponse);
+    } catch (error) {
+      console.error('Erreur lors du chargement des données de support:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger les données de support',
+        variant: 'destructive',
+      });
+      setTickets([]);
+      setStats(null);
+    } finally {
+      setLoading(false);
     }
-    
-    // Filtrage par statut
-    if (filters.status) {
-      filteredTickets = filteredTickets.filter(ticket => ticket.status === filters.status);
-    }
-    
-    // Filtrage par priorité
-    if (filters.priority) {
-      filteredTickets = filteredTickets.filter(ticket => ticket.priority === filters.priority);
-    }
-    
-    setTickets(filteredTickets);
-    setStats(mockStats);
-    setTotalPages(Math.ceil(filteredTickets.length / 10));
-    setLoading(false);
   };
 
   const getStatusBadge = (status: string) => {

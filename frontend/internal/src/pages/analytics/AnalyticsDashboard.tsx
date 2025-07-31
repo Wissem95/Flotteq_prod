@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, } from "recharts";
 import { TrendingUp, Users, Globe, Activity, Cpu, HardDrive, Wifi, AlertTriangle, CheckCircle, Clock, Download, RefreshCw, Eye, Target, DollarSign, } from "lucide-react";
-import { PlatformMetrics, UsageAnalytics, PerformanceMetrics, RealtimeMetrics } from "@/services/analyticsService";
+import { analyticsService, PlatformMetrics, UsageAnalytics, PerformanceMetrics, RealtimeMetrics } from "@/services/analyticsService";
+import { toast } from "@/components/ui/use-toast";
 
 const AnalyticsDashboard: React.FC = () => {
   const [platformMetrics, setPlatformMetrics] = useState<PlatformMetrics | null>(null);
@@ -138,17 +139,27 @@ const AnalyticsDashboard: React.FC = () => {
   }, [timeRange]);
 
   const loadAnalyticsData = async () => {
-    setLoading(true);
     try {
-      // Simulation d'appels API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      setLoading(true);
       
-      setPlatformMetrics(mockPlatformMetrics);
-      setUsageAnalytics(mockUsageAnalytics);
-      setPerformanceMetrics(mockPerformanceMetrics);
-      setRealtimeMetrics(mockRealtimeMetrics);
+      const [platformData, usageData, performanceData, realtimeData] = await Promise.all([
+        analyticsService.getPlatformMetrics(timeRange),
+        analyticsService.getUsageAnalytics(timeRange),
+        analyticsService.getPerformanceMetrics(timeRange),
+        analyticsService.getRealtimeMetrics()
+      ]);
+      
+      setPlatformMetrics(platformData);
+      setUsageAnalytics(usageData);
+      setPerformanceMetrics(performanceData);
+      setRealtimeMetrics(realtimeData);
     } catch (error) {
-      console.error("Erreur lors du chargement des analytics:", error);
+      console.error('Erreur lors du chargement des analytics:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger les données analytiques',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -156,13 +167,8 @@ const AnalyticsDashboard: React.FC = () => {
 
   const loadRealtimeData = async () => {
     try {
-      // Simulation de mise à jour temps réel
-      setRealtimeMetrics(prev => prev ? {
-        ...prev,
-        current_online_users: prev.current_online_users + Math.floor(Math.random() * 20 - 10),
-        current_api_rps: prev.current_api_rps + Math.random() * 10 - 5,
-        cpu_usage_percentage: Math.max(20, Math.min(80, prev.cpu_usage_percentage + Math.random() * 10 - 5)),
-      } : null);
+      const realtimeData = await analyticsService.getRealtimeMetrics();
+      setRealtimeMetrics(realtimeData);
     } catch (error) {
       console.error("Erreur lors de la mise à jour temps réel:", error);
     }

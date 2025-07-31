@@ -10,7 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { Plus, Search, Filter, CreditCard, TrendingUp, Users, DollarSign, Calendar, MoreHorizontal, Eye, Edit, Ban, Play, X, Download, Mail, AlertTriangle, CheckCircle, Clock, Building2, } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, } from "recharts";
-import { Subscription, SubscriptionFilters, SubscriptionStats } from "@/services/subscriptionsService";
+import { subscriptionsService, Subscription, SubscriptionFilters, SubscriptionStats } from "@/services/subscriptionsService";
+import { toast } from "@/components/ui/use-toast";
 
 const SubscriptionsOverview: React.FC = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -19,183 +20,37 @@ const SubscriptionsOverview: React.FC = () => {
   const [filters, setFilters] = useState<SubscriptionFilters>({});
   const [loading, setLoading] = useState(true);
 
-  // Données mockées pour la démonstration
-  const mockStats: SubscriptionStats = {
-    total_subscriptions: 2847,
-    active_subscriptions: 2456,
-    trial_subscriptions: 298,
-    expired_subscriptions: 67,
-    suspended_subscriptions: 26,
-    monthly_revenue: 45780,
-    yearly_revenue: 389450,
-    total_revenue: 435230,
-    churn_rate: 2.3,
-    growth_rate: 8.7,
-    average_revenue_per_user: 177,
-    revenue_by_plan: [
-      { plan_name: "Starter", revenue: 89450, subscription_count: 1245 },
-      { plan_name: "Business", revenue: 234500, subscription_count: 856 },
-      { plan_name: "Enterprise", revenue: 111280, subscription_count: 355 },
-    ],
-    revenue_by_month: [
-      { month: "Jan", revenue: 38900, new_subscriptions: 145, cancelled_subscriptions: 23 },
-      { month: "Fév", revenue: 42100, new_subscriptions: 167, cancelled_subscriptions: 18 },
-      { month: "Mar", revenue: 39800, new_subscriptions: 134, cancelled_subscriptions: 29 },
-      { month: "Avr", revenue: 43200, new_subscriptions: 189, cancelled_subscriptions: 15 },
-      { month: "Mai", revenue: 45780, new_subscriptions: 203, cancelled_subscriptions: 22 },
-    ],
-  };
-
-  const mockSubscriptions: Subscription[] = [
-    {
-      id: 1,
-      tenant_id: 101,
-      plan_id: "business",
-      plan: {
-        id: "business",
-        name: "Business",
-        description: "Plan intermédiaire pour PME",
-        price_monthly: 299,
-        price_yearly: 2990,
-        features: ["50 véhicules", "10 utilisateurs", "Support prioritaire"],
-        max_vehicles: 50,
-        max_users: 10,
-        support_level: "premium",
-        is_active: true,
-        is_popular: true,
-        created_at: "2024-01-15",
-        updated_at: "2024-07-20",
-      },
-      tenant: {
-        id: 101,
-        name: "Transport Express SARL",
-        email: "admin@transport-express.fr",
-        status: "active",
-      },
-      status: "active",
-      billing_cycle: "yearly",
-      price: 2990,
-      started_at: "2024-02-01",
-      expires_at: "2025-02-01",
-      next_billing_date: "2025-02-01",
-      auto_renew: true,
-      trial_ends_at: null,
-      is_trial: false,
-      created_at: "2024-02-01",
-      updated_at: "2024-07-25",
-    },
-    {
-      id: 2,
-      tenant_id: 102,
-      plan_id: "starter",
-      plan: {
-        id: "starter",
-        name: "Starter",
-        description: "Plan de base pour petites entreprises",
-        price_monthly: 99,
-        price_yearly: 990,
-        features: ["10 véhicules", "3 utilisateurs", "Support standard"],
-        max_vehicles: 10,
-        max_users: 3,
-        support_level: "basic",
-        is_active: true,
-        is_popular: false,
-        created_at: "2024-01-15",
-        updated_at: "2024-07-20",
-      },
-      tenant: {
-        id: 102,
-        name: "Livraisons Rapides",
-        email: "contact@livraisons-rapides.com",
-        status: "active",
-      },
-      status: "active",
-      billing_cycle: "monthly",
-      price: 99,
-      started_at: "2024-07-15",
-      expires_at: "2024-08-15",
-      next_billing_date: "2024-08-15",
-      auto_renew: true,
-      trial_ends_at: "2024-07-22",
-      is_trial: true,
-      created_at: "2024-07-15",
-      updated_at: "2024-07-25",
-    },
-    {
-      id: 3,
-      tenant_id: 103,
-      plan_id: "enterprise",
-      plan: {
-        id: "enterprise",
-        name: "Enterprise",
-        description: "Plan avancé pour grandes entreprises",
-        price_monthly: 699,
-        price_yearly: 6990,
-        features: ["Véhicules illimités", "Utilisateurs illimités", "Support 24/7"],
-        max_vehicles: -1,
-        max_users: -1,
-        support_level: "enterprise",
-        is_active: true,
-        is_popular: false,
-        created_at: "2024-01-15",
-        updated_at: "2024-07-20",
-      },
-      tenant: {
-        id: 103,
-        name: "FleetCorp International",
-        email: "admin@fleetcorp.com",
-        status: "active",
-      },
-      status: "suspended",
-      billing_cycle: "yearly",
-      price: 6990,
-      started_at: "2024-01-01",
-      expires_at: "2025-01-01",
-      next_billing_date: "2025-01-01",
-      auto_renew: false,
-      trial_ends_at: null,
-      is_trial: false,
-      created_at: "2024-01-01",
-      updated_at: "2024-07-25",
-    },
-  ];
 
   useEffect(() => {
-    loadSubscriptions();
-    setStats(mockStats);
-  }, [filters]);
+    loadData();
+  }, [filters, searchTerm]);
 
-  const loadSubscriptions = async () => {
-    setLoading(true);
+  const loadData = async () => {
     try {
-      // Simulation d'un appel API
-      await new Promise(resolve => setTimeout(resolve, 500));
+      setLoading(true);
       
-      let filteredData = [...mockSubscriptions];
+      // Charger les abonnements avec filtres
+      const searchFilters = {
+        ...filters,
+        search: searchTerm || undefined,
+      };
       
-      if (filters.status) {
-        filteredData = filteredData.filter(sub => sub.status === filters.status);
-      }
+      const [subscriptionsResponse, statsResponse] = await Promise.all([
+        subscriptionsService.getSubscriptions(1, 50, searchFilters),
+        subscriptionsService.getStats()
+      ]);
       
-      if (filters.billing_cycle) {
-        filteredData = filteredData.filter(sub => sub.billing_cycle === filters.billing_cycle);
-      }
-      
-      if (filters.is_trial !== undefined) {
-        filteredData = filteredData.filter(sub => sub.is_trial === filters.is_trial);
-      }
-      
-      if (searchTerm) {
-        filteredData = filteredData.filter(sub => 
-          sub.tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          sub.tenant.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          sub.plan.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
-      
-      setSubscriptions(filteredData);
+      setSubscriptions(subscriptionsResponse.subscriptions);
+      setStats(statsResponse);
     } catch (error) {
-      console.error("Erreur lors du chargement des abonnements:", error);
+      console.error('Erreur lors du chargement des abonnements:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger les données des abonnements',
+        variant: 'destructive',
+      });
+      setSubscriptions([]);
+      setStats(null);
     } finally {
       setLoading(false);
     }
