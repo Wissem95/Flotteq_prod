@@ -130,7 +130,7 @@ export const partnersService = {
     last_page: number;
   }> {
     try {
-      let url = `/internal/partners?page=${page}&per_page=${perPage}`;
+      let url = `/partners?page=${page}&per_page=${perPage}`;
       
       if (filters) {
         const params = new URLSearchParams();
@@ -159,7 +159,7 @@ export const partnersService = {
    */
   async getPartner(id: number): Promise<Partner> {
     try {
-      const response = await api.get(`/internal/partners/${id}`);
+      const response = await api.get(`/partners/${id}`);
       return response.data;
     } catch (error: any) {
       console.error(`Erreur lors de la récupération du partenaire ${id}:`, error);
@@ -172,7 +172,7 @@ export const partnersService = {
    */
   async createPartner(data: CreatePartnerData): Promise<Partner> {
     try {
-      const response = await api.post('/internal/partners', data);
+      const response = await api.post('/partners', data);
       return response.data;
     } catch (error: any) {
       console.error("Erreur lors de la création du partenaire:", error);
@@ -185,7 +185,7 @@ export const partnersService = {
    */
   async updatePartner(id: number, data: Partial<CreatePartnerData>): Promise<Partner> {
     try {
-      const response = await api.put(`/internal/partners/${id}`, data);
+      const response = await api.put(`/partners/${id}`, data);
       return response.data;
     } catch (error: any) {
       console.error(`Erreur lors de la mise à jour du partenaire ${id}:`, error);
@@ -198,7 +198,7 @@ export const partnersService = {
    */
   async deletePartner(id: number): Promise<{ message: string }> {
     try {
-      const response = await api.delete(`/internal/partners/${id}`);
+      const response = await api.delete(`/partners/${id}`);
       return response.data;
     } catch (error: any) {
       console.error(`Erreur lors de la suppression du partenaire ${id}:`, error);
@@ -211,7 +211,7 @@ export const partnersService = {
    */
   async togglePartnerStatus(id: number, isActive: boolean): Promise<Partner> {
     try {
-      const response = await api.put(`/internal/partners/${id}`, { is_active: isActive });
+      const response = await api.put(`/partners/${id}`, { is_active: isActive });
       return response.data;
     } catch (error: any) {
       console.error(`Erreur lors du changement de statut du partenaire ${id}:`, error);
@@ -224,7 +224,7 @@ export const partnersService = {
    */
   async togglePartnerVerification(id: number, isVerified: boolean): Promise<Partner> {
     try {
-      const response = await api.put(`/internal/partners/${id}`, { is_verified: isVerified });
+      const response = await api.put(`/partners/${id}`, { is_verified: isVerified });
       return response.data;
     } catch (error: any) {
       console.error(`Erreur lors du changement de vérification du partenaire ${id}:`, error);
@@ -237,7 +237,7 @@ export const partnersService = {
    */
   async getPartnerStats(): Promise<PartnerStats> {
     try {
-      const response = await api.get('/internal/partners/statistics');
+      const response = await api.get('/partners/statistics');
       return response.data;
     } catch (error: any) {
       console.error("Erreur lors de la récupération des statistiques:", error);

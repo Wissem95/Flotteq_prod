@@ -40,7 +40,7 @@ const SubscriptionsOverview: React.FC = () => {
         subscriptionsService.getStats()
       ]);
       
-      setSubscriptions(subscriptionsResponse.subscriptions);
+      setSubscriptions(subscriptionsResponse.data || []);
       setStats(statsResponse);
     } catch (error) {
       console.error('Erreur lors du chargement des abonnements:', error);
@@ -161,16 +161,16 @@ const SubscriptionsOverview: React.FC = () => {
           />
           <MetricCard
             title="ARPU"
-            value={formatPrice(stats.average_revenue_per_user)}
+            value={formatPrice(stats.average_revenue_per_user || (stats.monthly_revenue / stats.active_subscriptions) || 0)}
             icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
             trend={{ value: 3.2, isPositive: true }}
             description="Revenu moyen par utilisateur"
           />
           <MetricCard
-            title="Taux de désabonnement"
-            value={`${stats.churn_rate}%`}
+            title="Croissance"
+            value={`+${stats.growth_rate || 0}%`}
             icon={<AlertTriangle className="h-4 w-4 text-muted-foreground" />}
-            trend={{ value: 0.8, isPositive: false }}
+            trend={{ value: stats.growth_rate || 0, isPositive: (stats.growth_rate || 0) >= 0 }}
             description="Ce mois-ci"
           />
         </div>
@@ -186,7 +186,7 @@ const SubscriptionsOverview: React.FC = () => {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={stats.revenue_by_month}>
+                <LineChart data={stats.revenue_by_month || []}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" />
                   <YAxis />
@@ -212,16 +212,16 @@ const SubscriptionsOverview: React.FC = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={stats.revenue_by_plan}
+                    data={stats.revenue_by_plan || []}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ plan_name, revenue }) => `${plan_name}: ${formatPrice(revenue)}`}
+                    label={({ plan, revenue }) => `${plan}: ${formatPrice(revenue)}`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="revenue"
                   >
-                    {stats.revenue_by_plan.map((entry, index) => (
+                    {(stats.revenue_by_plan || []).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -326,43 +326,41 @@ const SubscriptionsOverview: React.FC = () => {
                       <div>
                         <div className="font-medium flex items-center gap-2">
                           <Building2 className="w-4 h-4 text-gray-500" />
-                          {subscription.tenant.name}
+                          {subscription.tenant?.name || 'N/A'}
                         </div>
-                        <div className="text-sm text-gray-500">{subscription.tenant.email}</div>
+                        <div className="text-sm text-gray-500">{subscription.tenant?.domain || 'N/A'}</div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{subscription.plan.name}</div>
+                        <div className="font-medium">{subscription.subscription?.name || 'N/A'}</div>
                         <div className="text-sm text-gray-500">
-                          {subscription.plan.max_vehicles === -1 ? "Illimité" : subscription.plan.max_vehicles} véhicules
+                          {subscription.subscription?.limits?.vehicles === -1 ? "Illimité" : subscription.subscription?.limits?.vehicles || 0} véhicules
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      {getStatusBadge(subscription.status, subscription.is_trial)}
+                      {getStatusBadge(subscription.is_active ? 'active' : 'inactive', false)}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4 text-gray-500" />
-                        <span className="capitalize">{subscription.billing_cycle === 'monthly' ? 'Mensuelle' : 'Annuelle'}</span>
-                        {subscription.auto_renew && (
-                          <CheckCircle className="w-4 h-4 text-green-500" title="Renouvellement automatique" />
-                        )}
+                        <span className="capitalize">{subscription.subscription?.billing_cycle === 'monthly' ? 'Mensuelle' : 'Annuelle'}</span>
+                        <CheckCircle className="w-4 h-4 text-green-500" title="Auto-renouvelé" />
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">{formatPrice(subscription.price)}</span>
+                      <span className="font-medium">{formatPrice(Number(subscription.subscription?.price || 0))}</span>
                       <span className="text-sm text-gray-500">
-                        /{subscription.billing_cycle === 'monthly' ? 'mois' : 'an'}
+                        /{subscription.subscription?.billing_cycle === 'monthly' ? 'mois' : 'an'}
                       </span>
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className={`text-sm ${isExpiringSoon(subscription.expires_at) ? 'text-orange-600 font-medium' : ''}`}>
-                          {formatDate(subscription.expires_at)}
+                        <div className={`text-sm ${subscription.end_date && isExpiringSoon(subscription.end_date) ? 'text-orange-600 font-medium' : ''}`}>
+                          {subscription.end_date ? formatDate(subscription.end_date) : 'N/A'}
                         </div>
-                        {isExpiringSoon(subscription.expires_at) && (
+                        {subscription.end_date && isExpiringSoon(subscription.end_date) && (
                           <div className="text-xs text-orange-600 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             Expire bientôt
@@ -391,7 +389,7 @@ const SubscriptionsOverview: React.FC = () => {
                             Envoyer facture
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          {subscription.status === 'active' ? (
+                          {subscription.is_active ? (
                             <DropdownMenuItem className="flex items-center gap-2 text-orange-600">
                               <Ban className="w-4 h-4" />
                               Suspendre

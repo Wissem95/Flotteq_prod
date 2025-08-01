@@ -45,7 +45,7 @@ class Partner extends Model
         'pricing' => 'array',
         'availability' => 'array',
         'service_zone' => 'array',
-        'rating' => 'decimal:2',
+        'rating' => 'float',
         'rating_count' => 'integer',
         'is_active' => 'boolean',
         'is_verified' => 'boolean',

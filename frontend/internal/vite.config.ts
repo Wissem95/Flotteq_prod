@@ -26,7 +26,7 @@ export default defineConfig({
     }
   },
   define: {
-    __WS_TOKEN__: JSON.stringify(process.env.WS_TOKEN || '')
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
   }
 })
 

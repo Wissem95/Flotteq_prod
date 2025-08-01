@@ -16,6 +16,16 @@ export const useNotifications = () => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
+      setError(null); // Reset error state
+      
+      // Vérifier d'abord si l'utilisateur est connecté
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Utilisateur non connecté");
+        setLoading(false);
+        return;
+      }
+      
       const response: NotificationResponse = await notificationService.getNotifications();
       setNotifications(response.notifications);
       
@@ -23,7 +33,10 @@ export const useNotifications = () => {
       const countsResponse = await notificationService.getNotificationCounts();
       setCounts(countsResponse);
     } catch (err: any) {
-      setError(err.message || 'Erreur lors du chargement des notifications');
+      // Si c'est une erreur 401, ne pas afficher d'erreur car l'intercepteur s'en charge
+      if (err.response?.status !== 401) {
+        setError(err.message || 'Erreur lors du chargement des notifications');
+      }
       console.error('Erreur notifications:', err);
     } finally {
       setLoading(false);

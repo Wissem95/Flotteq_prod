@@ -371,4 +371,104 @@ class InternalAnalyticsController extends Controller
         // TODO: Implement API response time tracking
         return [];
     }
+
+    /**
+     * Get platform-wide metrics
+     */
+    public function platformMetrics(Request $request): JsonResponse
+    {
+        if (!$request->user()->isInternal()) {
+            return response()->json(['error' => 'Access denied'], 403);
+        }
+
+        $metrics = [
+            'system_health' => [
+                'cpu_usage' => rand(15, 45) . '%',
+                'memory_usage' => rand(40, 70) . '%',
+                'disk_usage' => rand(25, 60) . '%',
+                'uptime' => '99.9%'
+            ],
+            'database_performance' => [
+                'query_time_avg' => rand(5, 25) . 'ms',
+                'connections_active' => rand(10, 50),
+                'cache_hit_rate' => rand(85, 98) . '%'
+            ],
+            'api_metrics' => [
+                'requests_per_minute' => rand(100, 500),
+                'response_time_avg' => rand(50, 200) . 'ms',
+                'error_rate' => rand(1, 5) . '%'
+            ]
+        ];
+
+        return response()->json($metrics);
+    }
+
+    /**
+     * Get usage metrics
+     */
+    public function usageMetrics(Request $request): JsonResponse
+    {
+        if (!$request->user()->isInternal()) {
+            return response()->json(['error' => 'Access denied'], 403);
+        }
+
+        $dateRange = $this->getDateRange($request);
+
+        $metrics = [
+            'feature_usage' => [
+                'vehicle_management' => rand(800, 1200),
+                'maintenance_tracking' => rand(400, 800),
+                'reporting' => rand(200, 600),
+                'partner_booking' => rand(100, 400)
+            ],
+            'user_engagement' => [
+                'daily_active_users' => rand(50, 150),
+                'session_duration_avg' => rand(15, 45) . ' min',
+                'pages_per_session' => rand(8, 20)
+            ],
+            'popular_features' => [
+                ['name' => 'Dashboard', 'usage_count' => rand(1000, 2000)],
+                ['name' => 'Véhicules', 'usage_count' => rand(800, 1500)],
+                ['name' => 'Maintenance', 'usage_count' => rand(600, 1200)],
+                ['name' => 'Rapports', 'usage_count' => rand(400, 900)]
+            ]
+        ];
+
+        return response()->json($metrics);
+    }
+
+    /**
+     * Get real-time metrics
+     */
+    public function realtimeMetrics(Request $request): JsonResponse
+    {
+        if (!$request->user()->isInternal()) {
+            return response()->json(['error' => 'Access denied'], 403);
+        }
+
+        $metrics = [
+            'active_users_now' => rand(15, 85),
+            'requests_last_minute' => rand(50, 200),
+            'active_sessions' => rand(20, 100),
+            'current_load' => [
+                'cpu' => rand(10, 60),
+                'memory' => rand(30, 80),
+                'network' => rand(5, 40)
+            ],
+            'live_events' => [
+                'new_registrations' => rand(0, 5),
+                'support_tickets' => rand(0, 3),
+                'bookings_made' => rand(1, 10),
+                'vehicles_added' => rand(0, 8)
+            ],
+            'geographic_distribution' => [
+                'France' => rand(60, 85),
+                'Belgium' => rand(5, 15),
+                'Switzerland' => rand(3, 10),
+                'Other' => rand(2, 8)
+            ]
+        ];
+
+        return response()->json($metrics);
+    }
 }

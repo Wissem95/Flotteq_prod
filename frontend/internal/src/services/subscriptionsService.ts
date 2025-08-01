@@ -273,6 +273,11 @@ export const subscriptionsService = {
     return response.data;
   },
 
+  // Alias for compatibility
+  async getStats(): Promise<SubscriptionStats> {
+    return this.getSubscriptionStats();
+  },
+
   async getRevenueReport(startDate: string, endDate: string) {
     const response = await api.get('/subscriptions/revenue-report', {
       params: { start_date: startDate, end_date: endDate }

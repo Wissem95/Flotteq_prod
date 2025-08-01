@@ -49,7 +49,7 @@ API.interceptors.request.use(async (config) => {
   }
 
   // Ajouter l'en-tête Tenant ID requis par le backend multitenancy
-  config.headers['X-Tenant-ID'] = '1';
+  config.headers['X-Tenant-ID'] = '4'; // TransExpress SARL - tenant existant
 
   const token = localStorage.getItem("token");
   if (token) {
@@ -58,6 +58,30 @@ API.interceptors.request.use(async (config) => {
 
   return config;
 });
+
+// Intercepteur pour gérer les erreurs de réponse
+API.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    // Si l'erreur est 401 (Unauthorized), rediriger vers la page de connexion
+    if (error.response?.status === 401) {
+      console.warn("Token expiré ou invalide, redirection vers la page de connexion");
+      
+      // Nettoyer le localStorage
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      
+      // Rediriger vers la page de connexion seulement si on n'y est pas déjà
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login?error=session_expired";
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 export default API;
 export { API as api };

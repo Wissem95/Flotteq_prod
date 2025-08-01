@@ -42,7 +42,7 @@ export const internalAuthService = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
       // Essayer d'abord la connexion réelle
-      const response = await api.post('/internal/auth/login', credentials);
+      const response = await api.post('/auth/login', credentials);
       
       // Stocker les données d'authentification
       if (response.data.token) {
@@ -68,7 +68,7 @@ export const internalAuthService = {
    */
   async checkDatabaseConnection(): Promise<boolean> {
     try {
-      const response = await api.get('/internal/auth/health/database');
+      const response = await api.get('/auth/health/database');
       return response.status === 200 && response.data.status === 'ok';
     } catch (error) {
       console.warn("Base de données non accessible:", error);
@@ -109,7 +109,7 @@ export const internalAuthService = {
       // Seulement si ce n'est pas le mode démo
       const token = localStorage.getItem("internal_token");
       if (token !== "demo_token") {
-        await api.post('/internal/auth/logout');
+        await api.post('/auth/logout');
       }
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error);
@@ -132,7 +132,7 @@ export const internalAuthService = {
         if (user) return user;
       }
 
-      const response = await api.get('/internal/auth/me');
+      const response = await api.get('/auth/me');
       
       // Mettre à jour les données stockées
       localStorage.setItem("internal_user", JSON.stringify(response.data.user));

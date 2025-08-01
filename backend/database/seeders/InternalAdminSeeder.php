@@ -25,7 +25,7 @@ class InternalAdminSeeder extends Seeder
                 'last_name' => 'Administrateur',
                 'email' => 'admin@flotteq.com',
                 'username' => 'superadmin',
-                'password' => Hash::make('FlotteQ2024!'),
+                'password' => Hash::make('demo123'),
                 'role' => 'admin', // Utiliser les rôles existants
                 'role_interne' => 'super_admin',
                 'is_internal' => true,
@@ -106,7 +106,7 @@ class InternalAdminSeeder extends Seeder
         
         $credentialsTable = [
             ['Email', 'Mot de passe', 'Rôle'],
-            ['admin@flotteq.com', 'FlotteQ2024!', 'Super Admin'],
+            ['admin@flotteq.com', 'demo123', 'Super Admin'],
             ['admin.tech@flotteq.com', 'Admin2024!', 'Admin Technique'],
             ['support@flotteq.com', 'Support2024!', 'Support Client'],
             ['partners@flotteq.com', 'Partners2024!', 'Gestionnaire Partenaires'],
@@ -116,7 +116,7 @@ class InternalAdminSeeder extends Seeder
         $this->command->table($credentialsTable[0], array_slice($credentialsTable, 1));
         
         $this->command->info('');
-        $this->command->info('🌐 Interface Internal: http://localhost:8081/');
+        $this->command->info('🌐 Interface Internal: http://localhost:8080/');
         $this->command->info('🔑 Utilisez ces identifiants pour vous connecter à l\'interface d\'administration');
         $this->command->info('');
     }

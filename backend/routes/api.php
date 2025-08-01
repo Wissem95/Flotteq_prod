@@ -173,6 +173,7 @@ Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal'
     Route::prefix('support')->group(function () {
         Route::get('/tickets', [App\Http\Controllers\API\SupportController::class, 'index']);
         Route::get('/statistics', [App\Http\Controllers\API\SupportController::class, 'statistics']);
+        Route::get('/stats', [App\Http\Controllers\API\SupportController::class, 'statistics']); // Alias for statistics
         Route::post('/tickets/{ticket}/assign', [App\Http\Controllers\API\SupportController::class, 'assign']);
         Route::get('/tenants/{tenantId}/metrics', [App\Http\Controllers\API\SupportController::class, 'tenantMetrics']);
     });
@@ -183,7 +184,36 @@ Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal'
         Route::get('/tenants/{tenantId}', [App\Http\Controllers\API\InternalAnalyticsController::class, 'tenantAnalytics']);
         Route::get('/user-behavior', [App\Http\Controllers\API\InternalAnalyticsController::class, 'userBehavior']);
         Route::get('/performance', [App\Http\Controllers\API\InternalAnalyticsController::class, 'performanceMetrics']);
+        Route::get('/platform-metrics', [App\Http\Controllers\API\InternalAnalyticsController::class, 'platformMetrics']);
+        Route::get('/usage', [App\Http\Controllers\API\InternalAnalyticsController::class, 'usageMetrics']);
+        Route::get('/realtime', [App\Http\Controllers\API\InternalAnalyticsController::class, 'realtimeMetrics']);
     });
+    
+    // Subscriptions management (Internal only)
+    Route::prefix('subscriptions')->group(function () {
+        Route::get('/', [App\Http\Controllers\API\SubscriptionsController::class, 'index']);
+        Route::get('/stats', [App\Http\Controllers\API\SubscriptionsController::class, 'getStats']);
+        Route::get('/plans', [App\Http\Controllers\API\SubscriptionsController::class, 'getPlans']);
+        Route::post('/plans', [App\Http\Controllers\API\SubscriptionsController::class, 'createPlan']);
+        Route::put('/plans/{plan}', [App\Http\Controllers\API\SubscriptionsController::class, 'updatePlan']);
+        Route::delete('/plans/{plan}', [App\Http\Controllers\API\SubscriptionsController::class, 'deletePlan']);
+    });
+    
+    // Financial management (Internal only)
+    Route::prefix('financial')->group(function () {
+        Route::get('/revenue', [App\Http\Controllers\API\FinancialController::class, 'getRevenue']);
+        Route::get('/commissions', [App\Http\Controllers\API\FinancialController::class, 'getCommissions']);
+        Route::get('/reports', [App\Http\Controllers\API\FinancialController::class, 'getReports']);
+        Route::post('/reports', [App\Http\Controllers\API\FinancialController::class, 'generateReport']);
+    });
+    
+    // Employees management (Internal only) - alias for employes route
+    Route::get('/employees/stats', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'getStats']);
+    Route::get('/employees', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'index']);
+    Route::get('/employees/{id}', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'show']);
+    Route::post('/employees', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'store']);
+    Route::put('/employees/{id}', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'update']);
+    Route::delete('/employees/{id}', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'destroy']);
 });
 
 // Tenant-specific routes

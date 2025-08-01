@@ -146,7 +146,7 @@ class User extends Authenticatable
      */
     public function isSuperAdmin(): bool
     {
-        return $this->is_internal && $this->role_interne === 'admin';
+        return $this->is_internal && in_array($this->role_interne, ['super_admin', 'admin']);
     }
 
     /**

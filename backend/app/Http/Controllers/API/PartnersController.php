@@ -48,6 +48,13 @@ class PartnersController extends Controller
 
         $partners = $query->paginate($request->get('per_page', 15));
 
+        // Transform the data to ensure rating is a number
+        $partners->getCollection()->transform(function ($partner) {
+            $partner->rating = floatval($partner->rating ?? 0);
+            $partner->rating_count = intval($partner->rating_count ?? 0);
+            return $partner;
+        });
+
         return response()->json($partners);
     }
 

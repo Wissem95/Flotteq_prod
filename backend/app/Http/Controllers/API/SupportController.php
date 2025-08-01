@@ -74,7 +74,15 @@ class SupportController extends Controller
             ->latest()
             ->paginate($request->get('per_page', 15));
 
-        return response()->json($tickets);
+        return response()->json([
+            'tickets' => $tickets->items(),
+            'pagination' => [
+                'current_page' => $tickets->currentPage(),
+                'per_page' => $tickets->perPage(),
+                'total' => $tickets->total(),
+                'last_page' => $tickets->lastPage()
+            ]
+        ]);
     }
 
     /**

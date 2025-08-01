@@ -280,6 +280,13 @@ export const employeesService = {
   },
 
   /**
+   * Alias pour getEmployeeStats (compatibilité)
+   */
+  async getStats(): Promise<EmployeeStats> {
+    return this.getEmployeeStats();
+  },
+
+  /**
    * Récupérer toutes les permissions disponibles
    */
   async getPermissions(): Promise<Permission[]> {

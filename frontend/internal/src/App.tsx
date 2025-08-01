@@ -41,6 +41,16 @@ import PromotionsOverview from "./pages/promotions/PromotionsOverview";
 // Pages existantes (à conserver)
 import AdminRoutes from "./pages/admin/AdminRoutes";
 
+// Pages Dashboard
+import TenantsOverview from "./pages/tenants/TenantsOverview";
+import SystemAlerts from "./pages/alerts/SystemAlerts";
+
+// Pages Nouvelles
+import PaymentMethods from "./pages/payments/PaymentMethods";
+import ReferralProgram from "./pages/referral/ReferralProgram";
+import FeaturesBonus from "./pages/features/FeaturesBonus";
+import ProfilePage from "./pages/profile/ProfilePage";
+
 // Hook d'authentification
 import { useInternalAuth } from "./hooks/useInternalAuth";
 
@@ -99,18 +109,8 @@ const App: React.FC = () => {
                       
                       {/* Dashboard */}
                       <Route path="/dashboard/overview" element={<DashboardOverview />} />
-                      <Route path="/dashboard/tenants" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Page Tenants</h2>
-                          <p className="text-gray-600">Cette page sera développée prochainement</p>
-                        </div>
-                      } />
-                      <Route path="/dashboard/alerts" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Page Alertes Système</h2>
-                          <p className="text-gray-600">Cette page sera développée prochainement</p>
-                        </div>
-                      } />
+                      <Route path="/dashboard/tenants" element={<TenantsOverview />} />
+                      <Route path="/dashboard/alerts" element={<SystemAlerts />} />
                       
                       {/* Support */}
                       <Route path="/support" element={<SupportDashboard />} />
@@ -142,24 +142,9 @@ const App: React.FC = () => {
                       <Route path="/analytics/comportement" element={<AnalyticsDashboard />} />
                       
                       {/* Autres sections */}
-                      <Route path="/paiements" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Modes de Paiement</h2>
-                          <p className="text-gray-600">Configuration des passerelles</p>
-                        </div>
-                      } />
-                      <Route path="/parrainage" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Programme de Parrainage</h2>
-                          <p className="text-gray-600">Gestion des parrainages et récompenses</p>
-                        </div>
-                      } />
-                      <Route path="/features-bonus" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Fonctionnalités Bonus</h2>
-                          <p className="text-gray-600">Features expérimentales et bêta</p>
-                        </div>
-                      } />
+                      <Route path="/paiements" element={<PaymentMethods />} />
+                      <Route path="/parrainage" element={<ReferralProgram />} />
+                      <Route path="/features-bonus" element={<FeaturesBonus />} />
                       <Route path="/permissions" element={<RolesPermissions />} />
                       
                       {/* Outils */}
@@ -170,12 +155,7 @@ const App: React.FC = () => {
                       
                       {/* Paramètres */}
                       <Route path="/parametres" element={<GlobalSettings />} />
-                      <Route path="/profile" element={
-                        <div className="p-8 text-center">
-                          <h2 className="text-xl font-semibold mb-4">Mon Profil</h2>
-                          <p className="text-gray-600">Informations personnelles</p>
-                        </div>
-                      } />
+                      <Route path="/profile" element={<ProfilePage />} />
                       
                       {/* Routes admin existantes (compatibilité) */}
                       <Route path="/admin/*" element={<AdminRoutes />} />

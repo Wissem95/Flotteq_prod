@@ -352,19 +352,19 @@ class ProductionDataSeeder extends Seeder
 
         $companies = [
             [
-                'name' => 'TransExpress SARL',
+                'name' => 'FlotteQ Demo',
                 'domain' => 'transexpress.local',
                 'database' => 'tenant_transexpress',
                 'is_active' => true,
                 'users_data' => [
                     [
-                        'email' => 'direction@transexpress.fr',
-                        'first_name' => 'Marc',
-                        'last_name' => 'Dubois',
+                        'email' => 'wissemkarboubbb@gmail.com',
+                        'first_name' => 'Wissem',
+                        'last_name' => 'Karboub',
                         'role' => 'admin',
-                        'phone' => '01 42 58 96 32',
-                        'company' => 'TransExpress SARL',
-                        'fleet_role' => 'Directeur',
+                        'phone' => '+33 6 12 34 56 78',
+                        'company' => 'FlotteQ Demo',
+                        'fleet_role' => 'Administrateur',
                     ],
                     [
                         'email' => 'flotte@transexpress.fr',
@@ -483,7 +483,7 @@ class ProductionDataSeeder extends Seeder
                     'username' => strtolower($userData['first_name'] . '.' . $userData['last_name']),
                     'first_name' => $userData['first_name'],
                     'last_name' => $userData['last_name'],
-                    'password' => 'password123', // Will be hashed automatically
+                    'password' => Hash::make('demo123'),
                     'role' => $userData['role'],
                     'phone' => $userData['phone'],
                     'company' => $userData['company'],
