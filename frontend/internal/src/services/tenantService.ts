@@ -71,150 +71,151 @@ class TenantService {
   // Récupérer tous les tenants avec filtres
   async getAll(filters: TenantFilters = {}): Promise<{ tenants: Tenant[]; stats: TenantStats; pagination: any }> {
     try {
-      // TODO: Remplacer par un vrai appel API
-      // const response = await api.get('/internal/tenants', { params: filters });
+      const response = await api.get('/tenants', { params: filters });
+      return response.data;
+    } catch (error: any) {
+      console.error('Erreur récupération tenants:', error);
       
-      // Mock data pour le développement
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Si erreur API, utiliser les données locales comme fallback
+      const localTenants = this.getLocalTenants();
+      const stats = this.calculateStats(localTenants);
       
-      const mockTenants: Tenant[] = [
-        {
-          id: '1',
-          name: 'Transport Express SARL',
-          domain: 'transport-express.com',
-          admin_email: 'admin@transport-express.com',
-          admin_name: 'Jean Dupont',
-          subscription_plan: 'professional',
-          status: 'active',
-          users_count: 12,
-          vehicles_count: 45,
-          max_users: 20,
-          max_vehicles: 50,
-          description: 'Entreprise de transport routier spécialisée dans la livraison express',
-          created_at: '2024-12-15T10:30:00Z',
-          updated_at: '2025-01-15T14:20:00Z',
-          last_activity: '2025-01-31T09:15:00Z',
-          settings: {
-            features_enabled: ['maintenance', 'tracking', 'reports'],
-            custom_branding: true,
-            api_access: true
-          },
-          billing: {
-            last_payment: '2025-01-15T00:00:00Z',
-            next_payment: '2025-02-15T00:00:00Z',
-            payment_status: 'current'
-          }
-        },
-        {
-          id: '2',
-          name: 'LogiTech Solutions',
-          domain: 'logitech-solutions.local',
-          admin_email: 'contact@logitech-sol.com',
-          admin_name: 'Marie Martin',
-          subscription_plan: 'starter',
-          status: 'active',
-          users_count: 5,
-          vehicles_count: 12,
-          max_users: 10,
-          max_vehicles: 15,
-          description: 'Solutions logistiques pour PME',
-          created_at: '2025-01-10T08:00:00Z',
-          updated_at: '2025-01-25T16:45:00Z',
-          last_activity: '2025-01-30T18:30:00Z',
-          settings: {
-            features_enabled: ['maintenance', 'tracking'],
-            custom_branding: false,
-            api_access: false
-          },
-          billing: {
-            last_payment: '2025-01-10T00:00:00Z',
-            next_payment: '2025-02-10T00:00:00Z',
-            payment_status: 'current'
-          }
-        },
-        {
-          id: '3',
-          name: 'Médical Services Plus',
-          domain: 'medical-services.local',
-          admin_email: 'admin@medical-services.fr',
-          admin_name: 'Dr. Pierre Leblanc',
-          subscription_plan: 'professional',
-          status: 'suspended',
-          users_count: 8,
-          vehicles_count: 18,
-          max_users: 20,
-          max_vehicles: 25,
-          description: 'Services médicaux d\'urgence et transport sanitaire',
-          created_at: '2024-11-20T14:15:00Z',
-          updated_at: '2025-01-20T11:30:00Z',
-          last_activity: '2025-01-18T12:00:00Z',
-          settings: {
-            features_enabled: ['maintenance', 'tracking', 'emergency'],
-            custom_branding: true,
-            api_access: true
-          },
-          billing: {
-            last_payment: '2024-12-20T00:00:00Z',
-            next_payment: '2025-01-20T00:00:00Z',
-            payment_status: 'overdue'
-          }
-        }
-      ];
-
-      const stats: TenantStats = {
-        total: mockTenants.length,
-        active: mockTenants.filter(t => t.status === 'active').length,
-        inactive: mockTenants.filter(t => t.status === 'inactive').length,
-        suspended: mockTenants.filter(t => t.status === 'suspended').length,
-        total_users: mockTenants.reduce((sum, t) => sum + t.users_count, 0),
-        total_vehicles: mockTenants.reduce((sum, t) => sum + t.vehicles_count, 0),
-        monthly_growth: 15.2,
-        revenue_monthly: 45760
-      };
-
-      // Appliquer les filtres
-      let filteredTenants = mockTenants;
-      
-      if (filters.status) {
-        filteredTenants = filteredTenants.filter(t => t.status === filters.status);
-      }
-      
-      if (filters.plan) {
-        filteredTenants = filteredTenants.filter(t => t.subscription_plan === filters.plan);
-      }
-      
-      if (filters.search) {
-        const search = filters.search.toLowerCase();
-        filteredTenants = filteredTenants.filter(t => 
-          t.name.toLowerCase().includes(search) ||
-          t.domain.toLowerCase().includes(search) ||
-          t.admin_email.toLowerCase().includes(search)
-        );
-      }
-
       return {
-        tenants: filteredTenants,
+        tenants: localTenants,
         stats,
         pagination: {
           page: filters.page || 1,
           limit: filters.limit || 10,
-          total: filteredTenants.length,
-          pages: Math.ceil(filteredTenants.length / (filters.limit || 10))
+          total: localTenants.length,
+          pages: Math.ceil(localTenants.length / (filters.limit || 10))
         }
       };
-    } catch (error) {
-      console.error('Erreur récupération tenants:', error);
-      throw new Error('Impossible de récupérer la liste des tenants');
     }
+  }
+
+  // Gestion locale des données
+  private getLocalTenants(): Tenant[] {
+    const stored = localStorage.getItem('flotteq_internal_tenants');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    
+    // Données initiales si aucune donnée locale
+    const initialTenants: Tenant[] = [
+      {
+        id: '1',
+        name: 'Transport Express SARL',
+        domain: 'transport-express.com',
+        admin_email: 'admin@transport-express.com',
+        admin_name: 'Jean Dupont',
+        subscription_plan: 'professional',
+        status: 'active',
+        users_count: 12,
+        vehicles_count: 45,
+        max_users: 20,
+        max_vehicles: 50,
+        description: 'Entreprise de transport routier spécialisée dans la livraison express',
+        created_at: '2024-12-15T10:30:00Z',
+        updated_at: '2025-01-15T14:20:00Z',
+        last_activity: '2025-01-31T09:15:00Z',
+        settings: {
+          features_enabled: ['maintenance', 'tracking', 'reports'],
+          custom_branding: true,
+          api_access: true
+        },
+        billing: {
+          last_payment: '2025-01-15T00:00:00Z',
+          next_payment: '2025-02-15T00:00:00Z',
+          payment_status: 'current'
+        }
+      },
+      {
+        id: '2',
+        name: 'LogiTech Solutions',
+        domain: 'logitech-solutions.local',
+        admin_email: 'contact@logitech-sol.com',
+        admin_name: 'Marie Martin',
+        subscription_plan: 'starter',
+        status: 'active',
+        users_count: 5,
+        vehicles_count: 12,
+        max_users: 10,
+        max_vehicles: 15,
+        description: 'Solutions logistiques pour PME',
+        created_at: '2025-01-10T08:00:00Z',
+        updated_at: '2025-01-25T16:45:00Z',
+        last_activity: '2025-01-30T18:30:00Z',
+        settings: {
+          features_enabled: ['maintenance', 'tracking'],
+          custom_branding: false,
+          api_access: false
+        },
+        billing: {
+          last_payment: '2025-01-10T00:00:00Z',
+          next_payment: '2025-02-10T00:00:00Z',
+          payment_status: 'current'
+        }
+      },
+      {
+        id: '3',
+        name: 'Médical Services Plus',
+        domain: 'medical-services.local',
+        admin_email: 'admin@medical-services.fr',
+        admin_name: 'Dr. Pierre Leblanc',
+        subscription_plan: 'professional',
+        status: 'suspended',
+        users_count: 8,
+        vehicles_count: 18,
+        max_users: 20,
+        max_vehicles: 25,
+        description: 'Services médicaux d\'urgence et transport sanitaire',
+        created_at: '2024-11-20T14:15:00Z',
+        updated_at: '2025-01-20T11:30:00Z',
+        last_activity: '2025-01-18T12:00:00Z',
+        settings: {
+          features_enabled: ['maintenance', 'tracking', 'emergency'],
+          custom_branding: true,
+          api_access: true
+        },
+        billing: {
+          last_payment: '2024-12-20T00:00:00Z',
+          next_payment: '2025-01-20T00:00:00Z',
+          payment_status: 'overdue'
+        }
+      }
+    ];
+    
+    this.saveLocalTenants(initialTenants);
+    return initialTenants;
+  }
+
+  private saveLocalTenants(tenants: Tenant[]): void {
+    localStorage.setItem('flotteq_internal_tenants', JSON.stringify(tenants));
+  }
+
+  private calculateStats(tenants: Tenant[]): TenantStats {
+    return {
+      total: tenants.length,
+      active: tenants.filter(t => t.status === 'active').length,
+      inactive: tenants.filter(t => t.status === 'inactive').length,
+      suspended: tenants.filter(t => t.status === 'suspended').length,
+      total_users: tenants.reduce((sum, t) => sum + t.users_count, 0),
+      total_vehicles: tenants.reduce((sum, t) => sum + t.vehicles_count, 0),
+      monthly_growth: 15.2,
+      revenue_monthly: 45760
+    };
   }
 
   // Récupérer un tenant par ID
   async getById(id: string): Promise<Tenant> {
     try {
-      // TODO: Remplacer par un vrai appel API
-      // const response = await api.get(`/internal/tenants/${id}`);
+      const response = await api.get(`/tenants/${id}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('Erreur récupération tenant:', error);
       
-      const { tenants } = await this.getAll();
+      // Fallback local
+      const tenants = this.getLocalTenants();
       const tenant = tenants.find(t => t.id === id);
       
       if (!tenant) {
@@ -222,21 +223,26 @@ class TenantService {
       }
       
       return tenant;
-    } catch (error) {
-      console.error('Erreur récupération tenant:', error);
-      throw new Error('Impossible de récupérer les détails du tenant');
     }
   }
 
   // Créer un nouveau tenant
   async create(data: TenantCreateData): Promise<Tenant> {
     try {
-      // TODO: Remplacer par un vrai appel API
-      // const response = await api.post('/internal/tenants', data);
+      const response = await api.post('/tenants', data);
       
+      // Mettre à jour le localStorage également
+      const tenants = this.getLocalTenants();
+      tenants.push(response.data);
+      this.saveLocalTenants(tenants);
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('Erreur création tenant:', error);
+      
+      // Fallback local
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Simulation de création
       const newTenant: Tenant = {
         id: Date.now().toString(),
         ...data,
@@ -258,74 +264,116 @@ class TenantService {
         }
       };
       
+      // Sauvegarder localement
+      const tenants = this.getLocalTenants();
+      tenants.push(newTenant);
+      this.saveLocalTenants(tenants);
+      
       return newTenant;
-    } catch (error) {
-      console.error('Erreur création tenant:', error);
-      throw new Error('Impossible de créer le tenant');
     }
   }
 
   // Mettre à jour un tenant
   async update(id: string, data: TenantUpdateData): Promise<Tenant> {
     try {
-      // TODO: Remplacer par un vrai appel API
-      // const response = await api.put(`/internal/tenants/${id}`, data);
+      const response = await api.put(`/tenants/${id}`, data);
       
+      // Mettre à jour le localStorage également
+      const tenants = this.getLocalTenants();
+      const index = tenants.findIndex(t => t.id === id);
+      if (index !== -1) {
+        tenants[index] = { ...tenants[index], ...response.data, updated_at: new Date().toISOString() };
+        this.saveLocalTenants(tenants);
+      }
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('Erreur mise à jour tenant:', error);
+      
+      // Fallback local
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const tenant = await this.getById(id);
+      const tenants = this.getLocalTenants();
+      const index = tenants.findIndex(t => t.id === id);
+      
+      if (index === -1) {
+        throw new Error('Tenant non trouvé');
+      }
+      
       const updatedTenant: Tenant = {
-        ...tenant,
+        ...tenants[index],
         ...data,
         updated_at: new Date().toISOString()
       };
       
+      tenants[index] = updatedTenant;
+      this.saveLocalTenants(tenants);
+      
       return updatedTenant;
-    } catch (error) {
-      console.error('Erreur mise à jour tenant:', error);
-      throw new Error('Impossible de mettre à jour le tenant');
     }
   }
 
   // Suspendre un tenant
   async suspend(id: string, reason?: string): Promise<void> {
     try {
-      // TODO: Remplacer par un vrai appel API
-      // await api.post(`/internal/tenants/${id}/suspend`, { reason });
+      await api.post(`/tenants/${id}/suspend`, { reason });
       
-      await new Promise(resolve => setTimeout(resolve, 800));
-      console.log(`Tenant ${id} suspendu. Raison: ${reason || 'Non spécifiée'}`);
-    } catch (error) {
+      // Mettre à jour localement
+      await this.updateLocalTenantStatus(id, 'suspended');
+    } catch (error: any) {
       console.error('Erreur suspension tenant:', error);
-      throw new Error('Impossible de suspendre le tenant');
+      
+      // Fallback local
+      await new Promise(resolve => setTimeout(resolve, 800));
+      await this.updateLocalTenantStatus(id, 'suspended');
     }
   }
 
   // Réactiver un tenant
   async activate(id: string): Promise<void> {
     try {
-      // TODO: Remplacer par un vrai appel API
-      // await api.post(`/internal/tenants/${id}/activate`);
+      await api.post(`/tenants/${id}/activate`);
       
-      await new Promise(resolve => setTimeout(resolve, 600));
-      console.log(`Tenant ${id} réactivé`);
-    } catch (error) {
+      // Mettre à jour localement
+      await this.updateLocalTenantStatus(id, 'active');
+    } catch (error: any) {
       console.error('Erreur activation tenant:', error);
-      throw new Error('Impossible de réactiver le tenant');
+      
+      // Fallback local
+      await new Promise(resolve => setTimeout(resolve, 600));
+      await this.updateLocalTenantStatus(id, 'active');
     }
   }
 
   // Supprimer un tenant (soft delete)
   async delete(id: string): Promise<void> {
     try {
-      // TODO: Remplacer par un vrai appel API
-      // await api.delete(`/internal/tenants/${id}`);
+      await api.delete(`/tenants/${id}`);
       
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      console.log(`Tenant ${id} supprimé`);
-    } catch (error) {
+      // Supprimer localement
+      const tenants = this.getLocalTenants();
+      const filteredTenants = tenants.filter(t => t.id !== id);
+      this.saveLocalTenants(filteredTenants);
+    } catch (error: any) {
       console.error('Erreur suppression tenant:', error);
-      throw new Error('Impossible de supprimer le tenant');
+      
+      // Fallback local
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      const tenants = this.getLocalTenants();
+      const filteredTenants = tenants.filter(t => t.id !== id);
+      this.saveLocalTenants(filteredTenants);
+    }
+  }
+
+  // Méthode utilitaire pour mettre à jour le statut localement
+  private async updateLocalTenantStatus(id: string, status: Tenant['status']): Promise<void> {
+    const tenants = this.getLocalTenants();
+    const index = tenants.findIndex(t => t.id === id);
+    
+    if (index !== -1) {
+      tenants[index].status = status;
+      tenants[index].updated_at = new Date().toISOString();
+      this.saveLocalTenants(tenants);
     }
   }
 

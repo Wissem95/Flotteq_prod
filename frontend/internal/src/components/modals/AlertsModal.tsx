@@ -6,8 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
+import { alertsService, type SystemAlert, type AlertConfig } from "@/services/alertsService";
 import { 
   AlertTriangle, 
   CheckCircle, 
@@ -20,26 +24,10 @@ import {
   Wifi,
   Users,
   RefreshCw,
-  FileText
+  FileText,
+  Settings,
+  Plus
 } from "lucide-react";
-
-interface SystemAlert {
-  id: string;
-  type: 'critical' | 'warning' | 'info';
-  category: 'system' | 'performance' | 'security' | 'business';
-  title: string;
-  description: string;
-  timestamp: string;
-  status: 'active' | 'investigating' | 'resolved';
-  affected_services?: string[];
-  metrics?: {
-    cpu_usage?: number;
-    memory_usage?: number;
-    disk_usage?: number;
-    response_time?: number;
-  };
-  resolution_comment?: string;
-}
 
 interface AlertsModalProps {
   isOpen: boolean;
@@ -53,58 +41,16 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onRefresh })
   const [selectedAlert, setSelectedAlert] = useState<SystemAlert | null>(null);
   const [resolutionComment, setResolutionComment] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | SystemAlert['status']>('all');
-
-  // Mock data pour les alertes
-  const mockAlerts: SystemAlert[] = [
-    {
-      id: '1',
-      type: 'critical',
-      category: 'system',
-      title: 'Utilisation CPU élevée',
-      description: 'Le serveur principal affiche une utilisation CPU de 95% depuis 15 minutes',
-      timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-      status: 'active',
-      affected_services: ['API Principal', 'Interface Utilisateur'],
-      metrics: {
-        cpu_usage: 95,
-        memory_usage: 78,
-        response_time: 1500
-      }
-    },
-    {
-      id: '2',
-      type: 'warning',
-      category: 'performance',
-      title: 'Temps de réponse dégradé',
-      description: 'Les temps de réponse API ont augmenté de 40% par rapport à la normale',
-      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      status: 'investigating',
-      affected_services: ['API Véhicules', 'API Maintenance'],
-      metrics: {
-        response_time: 850
-      }
-    },
-    {
-      id: '3',
-      type: 'warning',
-      category: 'business',
-      title: 'Pic de connexions utilisateurs',
-      description: 'Nombre de connexions simultanées inhabituel détecté',
-      timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-      status: 'active',
-      affected_services: ['Authentification']
-    },
-    {
-      id: '4',
-      type: 'info',
-      category: 'system',
-      title: 'Maintenance programmée',
-      description: 'Mise à jour de sécurité prévue dans 2 heures',
-      timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-      status: 'resolved',
-      resolution_comment: 'Maintenance reportée à demain 2h du matin'
-    }
-  ];
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [newConfig, setNewConfig] = useState<Partial<AlertConfig>>({
+    name: '',
+    type: 'cpu',
+    threshold: 80,
+    operator: 'greater_than',
+    duration_minutes: 5,
+    recipients: [],
+    is_active: true
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -115,9 +61,8 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onRefresh })
   const loadAlerts = async () => {
     setLoading(true);
     try {
-      // TODO: Remplacer par un vrai appel API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setAlerts(mockAlerts);
+      const alertsData = await alertsService.getAll();
+      setAlerts(alertsData);
     } catch (error) {
       toast({
         title: "Erreur",
@@ -171,12 +116,30 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onRefresh })
     );
   };
 
-  const handleInvestigate = (alert: SystemAlert) => {
-    // TODO: Implémenter la logique d'investigation
-    toast({
-      title: "Investigation lancée",
-      description: `Investigation de l'alerte "${alert.title}" en cours`,
-    });
+  const handleInvestigate = async (alert: SystemAlert) => {
+    try {
+      const investigationData = await alertsService.investigate(alert.id);
+      
+      // Mettre à jour la liste locale
+      setAlerts(prev => 
+        prev.map(a => 
+          a.id === alert.id 
+            ? { ...a, status: 'investigating' as const }
+            : a
+        )
+      );
+      
+      toast({
+        title: "Investigation lancée",
+        description: `Investigation de l'alerte "${alert.title}" en cours. ${investigationData.recommendations.length} recommandations trouvées.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de lancer l'investigation",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleResolve = async (alert: SystemAlert) => {
@@ -190,11 +153,18 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onRefresh })
     }
 
     try {
-      // TODO: Implémenter la résolution via API
+      await alertsService.resolve(alert.id, resolutionComment);
+      
+      // Mettre à jour la liste locale
       setAlerts(prev => 
         prev.map(a => 
           a.id === alert.id 
-            ? { ...a, status: 'resolved' as const, resolution_comment: resolutionComment }
+            ? { 
+                ...a, 
+                status: 'resolved' as const, 
+                resolution_comment: resolutionComment,
+                resolved_at: new Date().toISOString()
+              }
             : a
         )
       );
@@ -210,6 +180,75 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onRefresh })
       toast({
         title: "Erreur",
         description: "Impossible de résoudre l'alerte",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleRefreshAlerts = async () => {
+    try {
+      const refreshedAlerts = await alertsService.refresh();
+      setAlerts(refreshedAlerts);
+      onRefresh(); // Callback vers le parent
+      toast({
+        title: "Alertes actualisées",
+        description: `${refreshedAlerts.length} alertes chargées`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'actualiser les alertes",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleConfigureAlert = async () => {
+    try {
+      if (!newConfig.name || !newConfig.type) {
+        toast({
+          title: "Champs requis",
+          description: "Veuillez remplir tous les champs obligatoires",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const savedConfig = await alertsService.configure(newConfig as AlertConfig);
+      
+      // Créer une nouvelle alerte basée sur la configuration pour démonstration
+      const newAlert: SystemAlert = {
+        id: Date.now().toString(),
+        type: 'info',
+        category: 'system',
+        title: `Configuration d'alerte: ${newConfig.name}`,
+        description: `Nouvelle règle d'alerte configurée: ${newConfig.name} (seuil: ${newConfig.threshold}%)`,
+        timestamp: new Date().toISOString(),
+        status: 'resolved'
+      };
+
+      // Ajouter l'alerte à la liste locale
+      setAlerts(prev => [newAlert, ...prev]);
+      
+      setShowConfigModal(false);
+      setNewConfig({
+        name: '',
+        type: 'cpu',
+        threshold: 80,
+        operator: 'greater_than',
+        duration_minutes: 5,
+        recipients: [],
+        is_active: true
+      });
+      
+      toast({
+        title: "Configuration sauvegardée",
+        description: `L'alerte "${newConfig.name}" a été configurée avec succès et sera active`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder la configuration",
         variant: "destructive"
       });
     }
@@ -273,15 +312,25 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onRefresh })
               </Button>
             </div>
             
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => { onRefresh(); loadAlerts(); }}
-              disabled={loading}
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Actualiser
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowConfigModal(true)}
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Configurer
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefreshAlerts}
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Actualiser
+              </Button>
+            </div>
           </div>
 
           {/* Liste des alertes */}
@@ -443,6 +492,112 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onRefresh })
             </DialogContent>
           </Dialog>
         )}
+
+        {/* Modal de configuration d'alertes */}
+        <Dialog open={showConfigModal} onOpenChange={setShowConfigModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Configurer une nouvelle alerte</DialogTitle>
+              <DialogDescription>
+                Définissez les paramètres de surveillance et de notification
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="alert-name">Nom de l'alerte *</Label>
+                <Input
+                  id="alert-name"
+                  value={newConfig.name}
+                  onChange={(e) => setNewConfig(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Ex: CPU Usage High"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Type de métrique *</Label>
+                  <Select 
+                    value={newConfig.type} 
+                    onValueChange={(value) => setNewConfig(prev => ({ ...prev, type: value as AlertConfig['type'] }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cpu">CPU Usage</SelectItem>
+                      <SelectItem value="memory">Memory Usage</SelectItem>
+                      <SelectItem value="disk">Disk Usage</SelectItem>
+                      <SelectItem value="response_time">Response Time</SelectItem>
+                      <SelectItem value="error_rate">Error Rate</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Seuil</Label>
+                  <Input
+                    type="number"
+                    value={newConfig.threshold}
+                    onChange={(e) => setNewConfig(prev => ({ ...prev, threshold: Number(e.target.value) }))}
+                    placeholder="80"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Opérateur</Label>
+                  <Select 
+                    value={newConfig.operator} 
+                    onValueChange={(value) => setNewConfig(prev => ({ ...prev, operator: value as AlertConfig['operator'] }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="greater_than">Supérieur à</SelectItem>
+                      <SelectItem value="less_than">Inférieur à</SelectItem>
+                      <SelectItem value="equals">Égal à</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Durée (minutes)</Label>
+                  <Input
+                    type="number"
+                    value={newConfig.duration_minutes}
+                    onChange={(e) => setNewConfig(prev => ({ ...prev, duration_minutes: Number(e.target.value) }))}
+                    placeholder="5"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Destinataires (emails séparés par des virgules)</Label>
+                <Input
+                  value={newConfig.recipients?.join(', ') || ''}
+                  onChange={(e) => setNewConfig(prev => ({ 
+                    ...prev, 
+                    recipients: e.target.value.split(',').map(email => email.trim()).filter(Boolean)
+                  }))}
+                  placeholder="admin@flotteq.com, tech@flotteq.com"
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowConfigModal(false)}>
+                Annuler
+              </Button>
+              <Button onClick={handleConfigureAlert}>
+                <Plus className="h-4 w-4 mr-2" />
+                Créer l'alerte
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );

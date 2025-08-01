@@ -1,101 +1,118 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, AlertCircle, Info, CheckCircle, Clock, Zap, Shield, Database } from 'lucide-react';
-
-interface SystemAlert {
-  id: number;
-  title: string;
-  description: string;
-  type: 'critical' | 'warning' | 'info' | 'success';
-  category: 'security' | 'performance' | 'system' | 'database';
-  status: 'active' | 'resolved' | 'investigating';
-  created_at: string;
-  resolved_at?: string;
-}
+import { AlertTriangle, AlertCircle, Info, CheckCircle, Clock, Zap, Shield, Database, RefreshCw, Settings } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { alertsService, type SystemAlert } from '@/services/alertsService';
+import AlertsModal from '@/components/modals/AlertsModal';
 
 const SystemAlerts: React.FC = () => {
-  // Mock data - replace with real API calls
-  const alerts: SystemAlert[] = [
-    {
-      id: 1,
-      title: 'Utilisation élevée du CPU',
-      description: 'Le serveur principal affiche une utilisation CPU de 85% depuis 10 minutes',
-      type: 'warning',
-      category: 'performance',
-      status: 'active',
-      created_at: '2025-07-31T15:30:00Z'
-    },
-    {
-      id: 2,
-      title: 'Tentative de connexion suspecte',
-      description: 'Plusieurs tentatives de connexion échouées depuis l\'IP 192.168.1.100',
-      type: 'critical',
-      category: 'security',
-      status: 'investigating',
-      created_at: '2025-07-31T14:45:00Z'
-    },
-    {
-      id: 3,
-      title: 'Sauvegarde quotidienne réussie',
-      description: 'La sauvegarde automatique des données s\'est terminée avec succès',
-      type: 'success',
-      category: 'database',
-      status: 'resolved',
-      created_at: '2025-07-31T02:00:00Z',
-      resolved_at: '2025-07-31T02:15:00Z'
-    },
-    {
-      id: 4,
-      title: 'Mise à jour système disponible',
-      description: 'Une nouvelle version de sécurité est disponible pour le serveur',
-      type: 'info',
-      category: 'system',
-      status: 'active',
-      created_at: '2025-07-31T08:00:00Z'
-    }
-  ];
+  const [alerts, setAlerts] = useState<SystemAlert[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAlertsModal, setShowAlertsModal] = useState(false);
 
-  const getAlertIcon = (type: string) => {
+  useEffect(() => {
+    loadAlerts();
+  }, []);
+
+  const loadAlerts = async () => {
+    setLoading(true);
+    try {
+      const alertsData = await alertsService.getAll();
+      setAlerts(alertsData);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les alertes",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInvestigate = async (alert: SystemAlert) => {
+    try {
+      const investigationData = await alertsService.investigate(alert.id);
+      
+      // Mettre à jour la liste locale
+      setAlerts(prev => 
+        prev.map(a => 
+          a.id === alert.id 
+            ? { ...a, status: 'investigating' as const }
+            : a
+        )
+      );
+      
+      toast({
+        title: "Investigation lancée",
+        description: `Investigation de l'alerte "${alert.title}" en cours. ${investigationData.recommendations.length} recommandations trouvées.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de lancer l'investigation",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleRefresh = async () => {
+    try {
+      const refreshedAlerts = await alertsService.refresh();
+      setAlerts(refreshedAlerts);
+      toast({
+        title: "Alertes actualisées",
+        description: `${refreshedAlerts.length} alertes chargées`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'actualiser les alertes",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getAlertIcon = (type: SystemAlert['type']) => {
     switch (type) {
       case 'critical': return <AlertTriangle className="h-5 w-5 text-red-600" />;
       case 'warning': return <AlertCircle className="h-5 w-5 text-yellow-600" />;
       case 'info': return <Info className="h-5 w-5 text-blue-600" />;
-      case 'success': return <CheckCircle className="h-5 w-5 text-green-600" />;
       default: return <Info className="h-5 w-5 text-gray-600" />;
     }
   };
 
-  const getCategoryIcon = (category: string) => {
+  const getCategoryIcon = (category: SystemAlert['category']) => {
     switch (category) {
       case 'security': return <Shield className="h-4 w-4" />;
       case 'performance': return <Zap className="h-4 w-4" />;
-      case 'database': return <Database className="h-4 w-4" />;
+      case 'system': return <AlertCircle className="h-4 w-4" />;
+      case 'business': return <Database className="h-4 w-4" />;
       default: return <AlertCircle className="h-4 w-4" />;
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: SystemAlert['status']) => {
     const variants = {
       active: { variant: 'destructive' as const, text: 'Actif' },
       investigating: { variant: 'secondary' as const, text: 'En cours' },
       resolved: { variant: 'default' as const, text: 'Résolu' }
     };
     
-    const config = variants[status as keyof typeof variants];
+    const config = variants[status];
     return <Badge variant={config.variant}>{config.text}</Badge>;
   };
 
-  const getTypeBadge = (type: string) => {
+  const getTypeBadge = (type: SystemAlert['type']) => {
     const variants = {
       critical: { variant: 'destructive' as const, text: 'Critique' },
       warning: { variant: 'secondary' as const, text: 'Attention' },
-      info: { variant: 'outline' as const, text: 'Info' },
-      success: { variant: 'default' as const, text: 'Succès' }
+      info: { variant: 'outline' as const, text: 'Info' }
     };
     
-    const config = variants[type as keyof typeof variants];
+    const config = variants[type];
     return <Badge variant={config.variant}>{config.text}</Badge>;
   };
 
@@ -115,11 +132,12 @@ const SystemAlerts: React.FC = () => {
           <p className="text-gray-600">Monitoring et surveillance de la plateforme</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <AlertTriangle className="h-4 w-4 mr-2" />
+          <Button variant="outline" onClick={() => setShowAlertsModal(true)}>
+            <Settings className="h-4 w-4 mr-2" />
             Configurer Alertes
           </Button>
-          <Button>
+          <Button onClick={handleRefresh} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Actualiser
           </Button>
         </div>
@@ -181,55 +199,74 @@ const SystemAlerts: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {alerts.map((alert) => (
-              <div key={alert.id} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50">
-                <div className="flex-shrink-0 mt-1">
-                  {getAlertIcon(alert.type)}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-medium text-gray-900">{alert.title}</h3>
-                    {getTypeBadge(alert.type)}
-                    {getStatusBadge(alert.status)}
+          {loading ? (
+            <div className="text-center py-8">
+              <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p>Chargement des alertes...</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {alerts.map((alert) => (
+                <div key={alert.id} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50">
+                  <div className="flex-shrink-0 mt-1">
+                    {getAlertIcon(alert.type)}
                   </div>
                   
-                  <p className="text-sm text-gray-600 mb-2">{alert.description}</p>
-                  
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <div className="flex items-center gap-1">
-                      {getCategoryIcon(alert.category)}
-                      <span className="capitalize">{alert.category}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-medium text-gray-900">{alert.title}</h3>
+                      {getTypeBadge(alert.type)}
+                      {getStatusBadge(alert.status)}
                     </div>
-                    <span>
-                      {new Date(alert.created_at).toLocaleString('fr-FR')}
-                    </span>
-                    {alert.resolved_at && (
-                      <span className="text-green-600">
-                        Résolu le {new Date(alert.resolved_at).toLocaleString('fr-FR')}
+                    
+                    <p className="text-sm text-gray-600 mb-2">{alert.description}</p>
+                    
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <div className="flex items-center gap-1">
+                        {getCategoryIcon(alert.category)}
+                        <span className="capitalize">{alert.category}</span>
+                      </div>
+                      <span>
+                        {new Date(alert.timestamp).toLocaleString('fr-FR')}
                       </span>
+                      {alert.resolved_at && (
+                        <span className="text-green-600">
+                          Résolu le {new Date(alert.resolved_at).toLocaleString('fr-FR')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex-shrink-0">
+                    {alert.status === 'active' && (
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={() => handleInvestigate(alert)}>
+                          Enquêter
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => setShowAlertsModal(true)}>
+                          Résoudre
+                        </Button>
+                      </div>
+                    )}
+                    {alert.status === 'investigating' && (
+                      <Button size="sm" onClick={() => setShowAlertsModal(true)}>
+                        Résoudre
+                      </Button>
                     )}
                   </div>
                 </div>
-                
-                <div className="flex-shrink-0">
-                  {alert.status === 'active' && (
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline">
-                        Enquêter
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        Résoudre
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Modal des alertes */}
+      <AlertsModal 
+        isOpen={showAlertsModal} 
+        onClose={() => setShowAlertsModal(false)}
+        onRefresh={loadAlerts}
+      />
     </div>
   );
 };
