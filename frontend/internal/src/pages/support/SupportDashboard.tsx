@@ -46,7 +46,9 @@ import {
   Mail,
 } from "lucide-react";
 import { supportService, SupportTicket, SupportFilters, SupportStats } from "@/services/supportService";
-import { toast } from "@/components/ui/use-toast";
+import { reportService } from "@/services/reportService";
+import TicketModal from "@/components/modals/TicketModal";
+import { toast } from "@/hooks/use-toast";
 
 const SupportDashboard: React.FC = () => {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -56,6 +58,10 @@ const SupportDashboard: React.FC = () => {
   const [filters, setFilters] = useState<SupportFilters>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
+  const [ticketModalMode, setTicketModalMode] = useState<'view' | 'edit' | 'respond' | 'create'>('view');
+  const [generatingReport, setGeneratingReport] = useState(false);
 
 
   useEffect(() => {
@@ -162,6 +168,98 @@ const SupportDashboard: React.FC = () => {
     return `${diffDays}j`;
   };
 
+  // Gestionnaires d'actions
+  const handleCreateTicket = () => {
+    setSelectedTicket(null);
+    setTicketModalMode('create');
+    setShowTicketModal(true);
+  };
+
+  const handleViewTicket = (ticket: SupportTicket) => {
+    setSelectedTicket(ticket);
+    setTicketModalMode('view');
+    setShowTicketModal(true);
+  };
+
+  const handleEditTicket = (ticket: SupportTicket) => {
+    setSelectedTicket(ticket);
+    setTicketModalMode('edit');
+    setShowTicketModal(true);
+  };
+
+  const handleRespondTicket = (ticket: SupportTicket) => {
+    setSelectedTicket(ticket);
+    setTicketModalMode('respond');
+    setShowTicketModal(true);
+  };
+
+  const handleAssignTicket = async (ticketId: string, agentId: string) => {
+    try {
+      await supportService.assignTicket(ticketId, agentId);
+      toast({
+        title: "Ticket assigné",
+        description: "Le ticket a été assigné avec succès",
+      });
+      loadData();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'assigner le ticket",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleStatusChange = async (ticketId: string, status: SupportTicket['status']) => {
+    try {
+      await supportService.updateTicketStatus(ticketId, status);
+      toast({
+        title: "Statut modifié",
+        description: "Le statut du ticket a été mis à jour",
+      });
+      loadData();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le statut",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    setGeneratingReport(true);
+    try {
+      const blob = await reportService.generateSupportReport({
+        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        endDate: new Date().toISOString().split('T')[0]
+      });
+      
+      // Télécharger le fichier
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rapport-support-${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Rapport généré",
+        description: "Le rapport de support a été téléchargé",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer le rapport",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -171,11 +269,19 @@ const SupportDashboard: React.FC = () => {
           <p className="text-gray-600">Gestion des tickets et support utilisateurs</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
-            Rapports
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={handleGenerateReport}
+            disabled={generatingReport}
+          >
+            <TrendingUp className={`w-4 h-4 ${generatingReport ? 'animate-spin' : ''}`} />
+            {generatingReport ? 'Génération...' : 'Rapport'}
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button 
+            className="flex items-center gap-2"
+            onClick={handleCreateTicket}
+          >
             <Plus className="w-4 h-4" />
             Nouveau ticket
           </Button>
@@ -384,20 +490,20 @@ const SupportDashboard: React.FC = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewTicket(ticket)}>
                             <Eye className="w-4 h-4 mr-2" />
                             Voir les détails
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditTicket(ticket)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Modifier
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditTicket(ticket)}>
                             <User className="w-4 h-4 mr-2" />
                             Assigner
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleRespondTicket(ticket)}>
                             <MessageSquare className="w-4 h-4 mr-2" />
                             Répondre
                           </DropdownMenuItem>
@@ -413,7 +519,7 @@ const SupportDashboard: React.FC = () => {
           {tickets.length === 0 && !loading && (
             <div className="text-center py-8">
               <div className="text-gray-400 mb-2">Aucun ticket trouvé</div>
-              <Button variant="outline">
+              <Button variant="outline" onClick={handleCreateTicket}>
                 <Plus className="w-4 h-4 mr-2" />
                 Créer le premier ticket
               </Button>
@@ -444,6 +550,16 @@ const SupportDashboard: React.FC = () => {
           </Button>
         </div>
       )}
+
+      {/* Modal de gestion des tickets */}
+      <TicketModal
+        isOpen={showTicketModal}
+        onClose={() => setShowTicketModal(false)}
+        ticket={selectedTicket}
+        mode={ticketModalMode}
+        onAssign={handleAssignTicket}
+        onStatusChange={handleStatusChange}
+      />
     </div>
   );
 };

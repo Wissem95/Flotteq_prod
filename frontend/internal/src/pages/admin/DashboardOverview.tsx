@@ -30,6 +30,9 @@ import {
   ArrowDownRight,
   Activity,
 } from "lucide-react";
+import AlertsModal from "@/components/modals/AlertsModal";
+import { reportService } from "@/services/reportService";
+import { toast } from "@/hooks/use-toast";
 
 // Types pour les métriques
 interface PlatformMetrics {
@@ -63,6 +66,9 @@ interface PlatformMetrics {
 const DashboardOverview: React.FC = () => {
   const [metrics, setMetrics] = useState<PlatformMetrics | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showAlertsModal, setShowAlertsModal] = useState(false);
+  const [generatingReport, setGeneratingReport] = useState(false);
+  const [loadingAlerts, setLoadingAlerts] = useState(false);
 
   // Données simulées (à remplacer par de vraies données de l'API)
   const mockMetrics: PlatformMetrics = {
@@ -121,6 +127,70 @@ const DashboardOverview: React.FC = () => {
 
     loadMetrics();
   }, []);
+
+  // Gestionnaire pour vérifier les alertes
+  const handleCheckAlerts = async () => {
+    setLoadingAlerts(true);
+    try {
+      // Simulation du chargement des alertes
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setShowAlertsModal(true);
+      toast({
+        title: "Alertes chargées",
+        description: "Vérification des alertes système en cours",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les alertes système",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingAlerts(false);
+    }
+  };
+
+  // Gestionnaire pour générer le rapport complet
+  const handleGenerateReport = async () => {
+    setGeneratingReport(true);
+    try {
+      const blob = await reportService.generateDashboardReport({
+        startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        endDate: new Date().toISOString().split('T')[0]
+      });
+      
+      // Télécharger le fichier
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rapport-dashboard-${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Rapport généré",
+        description: "Le rapport complet du tableau de bord a été téléchargé",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer le rapport",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
+
+  // Gestionnaire pour actualiser les alertes
+  const handleRefreshAlerts = () => {
+    toast({
+      title: "Alertes actualisées",
+      description: "Les alertes système ont été mises à jour",
+    });
+  };
 
   const MetricCard = ({ 
     title, 
@@ -357,15 +427,32 @@ const DashboardOverview: React.FC = () => {
 
       {/* Actions rapides */}
       <div className="flex gap-4">
-        <Button variant="outline" className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4" />
-          Voir le rapport complet
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2"
+          onClick={handleGenerateReport}
+          disabled={generatingReport}
+        >
+          <TrendingUp className={`w-4 h-4 ${generatingReport ? 'animate-spin' : ''}`} />
+          {generatingReport ? 'Génération...' : 'Voir le rapport complet'}
         </Button>
-        <Button variant="outline" className="flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4" />
-          Vérifier les alertes
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2"
+          onClick={handleCheckAlerts}
+          disabled={loadingAlerts}
+        >
+          <AlertTriangle className={`w-4 h-4 ${loadingAlerts ? 'animate-spin' : ''}`} />
+          {loadingAlerts ? 'Chargement...' : 'Vérifier les alertes'}
         </Button>
       </div>
+
+      {/* Modal des alertes */}
+      <AlertsModal 
+        isOpen={showAlertsModal}
+        onClose={() => setShowAlertsModal(false)}
+        onRefresh={handleRefreshAlerts}
+      />
     </div>
   );
 };

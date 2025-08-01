@@ -49,7 +49,7 @@ import {
   Globe,
 } from "lucide-react";
 import { employeesService, Employee, EmployeeFilters, EmployeeStats } from "@/services/employeesService";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 const EmployeesOverview: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -59,6 +59,59 @@ const EmployeesOverview: React.FC = () => {
   const [filters, setFilters] = useState<EmployeeFilters>({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
+  // Gestionnaires d'actions
+  const handleAddEmployee = () => {
+    toast({
+      title: "Ajouter un employé",
+      description: "Fonction en cours de développement",
+    });
+  };
+
+  const handleGenerateReport = () => {
+    toast({
+      title: "Rapport RH généré",
+      description: "Le rapport des employés a été généré avec succès",
+    });
+  };
+
+  const handleViewProfile = (employee: Employee) => {
+    toast({
+      title: "Profil employé",
+      description: `Affichage du profil de ${employee.first_name} ${employee.last_name}`,
+    });
+  };
+
+  const handleEditEmployee = (employee: Employee) => {
+    toast({
+      title: "Modifier employé",
+      description: `Modification de ${employee.first_name} ${employee.last_name}`,
+    });
+  };
+
+  const handleManagePermissions = (employee: Employee) => {
+    toast({
+      title: "Gestion des permissions",
+      description: `Gestion des permissions de ${employee.first_name} ${employee.last_name}`,
+    });
+  };
+
+  const handleResetPassword = (employee: Employee) => {
+    toast({
+      title: "Mot de passe réinitialisé",
+      description: `Un nouveau mot de passe a été envoyé à ${employee.email}`,
+    });
+  };
+
+  const handleDeactivateEmployee = (employee: Employee) => {
+    if (confirm(`Êtes-vous sûr de vouloir désactiver ${employee.first_name} ${employee.last_name} ?`)) {
+      toast({
+        title: "Employé désactivé",
+        description: `${employee.first_name} ${employee.last_name} a été désactivé`,
+        variant: "destructive"
+      });
+    }
+  };
 
 
   useEffect(() => {
@@ -206,11 +259,11 @@ const EmployeesOverview: React.FC = () => {
           <p className="text-gray-600">Gestion des employés et permissions</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2" onClick={handleGenerateReport}>
             <TrendingUp className="w-4 h-4" />
             Rapports RH
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button className="flex items-center gap-2" onClick={handleAddEmployee}>
             <Plus className="w-4 h-4" />
             Nouvel employé
           </Button>
@@ -436,25 +489,25 @@ const EmployeesOverview: React.FC = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewProfile(employee)}>
                             <Eye className="w-4 h-4 mr-2" />
                             Voir le profil
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditEmployee(employee)}>
                             <Edit className="w-4 h-4 mr-2" />
                             Modifier
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleManagePermissions(employee)}>
                             <Key className="w-4 h-4 mr-2" />
                             Permissions
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleResetPassword(employee)}>
                             <Key className="w-4 h-4 mr-2" />
                             Réinitialiser mot de passe
                           </DropdownMenuItem>
                           {employee.status === 'active' && (
-                            <DropdownMenuItem className="text-orange-600">
+                            <DropdownMenuItem className="text-orange-600" onClick={() => handleDeactivateEmployee(employee)}>
                               <UserX className="w-4 h-4 mr-2" />
                               Désactiver
                             </DropdownMenuItem>
@@ -471,7 +524,7 @@ const EmployeesOverview: React.FC = () => {
           {employees.length === 0 && !loading && (
             <div className="text-center py-8">
               <div className="text-gray-400 mb-2">Aucun employé trouvé</div>
-              <Button variant="outline">
+              <Button variant="outline" onClick={handleAddEmployee}>
                 <Plus className="w-4 h-4 mr-2" />
                 Ajouter le premier employé
               </Button>

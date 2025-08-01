@@ -214,7 +214,7 @@ export const supportService = {
   /**
    * Assigner un ticket à un employé
    */
-  async assignTicket(ticketId: number, employeeId: number): Promise<SupportTicket> {
+  async assignTicket(ticketId: number | string, employeeId: number | string): Promise<SupportTicket> {
     try {
       const response = await api.patch(`/support/tickets/${ticketId}/assign`, {
         assigned_to: employeeId,
@@ -223,6 +223,18 @@ export const supportService = {
     } catch (error: any) {
       console.error("Erreur lors de l'assignation:", error);
       throw new Error(error.response?.data?.message || "Erreur lors de l'assignation");
+    }
+  },
+
+  /**
+   * Mettre à jour le statut d'un ticket
+   */
+  async updateTicketStatus(ticketId: string, status: SupportTicket['status']): Promise<void> {
+    try {
+      await api.patch(`/support/tickets/${ticketId}/status`, { status });
+    } catch (error: any) {
+      console.error("Erreur lors de la mise à jour du statut:", error);
+      throw new Error(error.response?.data?.message || "Erreur lors de la mise à jour");
     }
   },
 
