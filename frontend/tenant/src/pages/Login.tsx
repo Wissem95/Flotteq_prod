@@ -4,6 +4,7 @@ import axios from "@/lib/api";
 import { gsap } from "gsap";
 import { useGSAP } from '@gsap/react';
 import { redirectToGoogle } from "@/services/googleAuthService";
+import { login as authLogin, handleLoginSuccess } from "@/services/authService";
 
 import '/backgrounds/Background_road.svg'
 
@@ -83,7 +84,7 @@ const Login = () => {
         company_name: company_name || `${first_name} ${last_name} Entreprise`,
       };
 
-      const response = await axios.post("/api/auth/register", registrationData);
+      const response = await axios.post("/auth/register", registrationData);
     
       const { token, user } = response.data;
       
@@ -113,27 +114,24 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    // setLoading(true);
+    setLoading(true);
 
     try {
-      const response = await axios.post("/api/auth/login", {
-        login: identifiant,
-        password,
-        domaine,
-      });
-
-      const { user, token } = response.data;
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      navigate("/dashboard");
-
-      // ✅ Utiliser la fonction handleLoginSuccess pour gérer la redirection
-      const { handleLoginSuccess } = await import("@/services/authService");
+      const response = await authLogin(identifiant, password);
+      const { user, token } = response;
+      
+      // Utiliser la fonction handleLoginSuccess pour gérer la redirection
       handleLoginSuccess(user, token);
       
     } catch (err: unknown) {
-      const error = err as { response?: { data?: { error?: string } } };
-      setError(error.response?.data?.error || "Erreur lors de la connexion.");
+      const error = err as { response?: { data?: { error?: string, message?: string, errors?: any } } };
+      if (error.response?.data?.errors) {
+        const validationErrors = error.response.data.errors;
+        const errorMessages = Object.values(validationErrors).flat();
+        setError(errorMessages.join(", "));
+      } else {
+        setError(error.response?.data?.error || error.response?.data?.message || "Erreur lors de la connexion.");
+      }
     } finally {
       setLoading(false);
     }

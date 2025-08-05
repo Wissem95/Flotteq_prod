@@ -103,7 +103,7 @@ class FinancesController extends Controller
                 $query->where('user_id', $userId)->where('tenant_id', $tenantId);
             })
             ->whereBetween('maintenance_date', [$month, $nextMonth])
-            ->sum('total_cost') ?? 0;
+            ->sum('cost') ?? 0;
         
         // Invoices cost
         $invoicesCost = Invoice::whereHas('vehicle', function($query) use ($userId, $tenantId) {
@@ -162,7 +162,7 @@ class FinancesController extends Controller
         $maintenanceCost = Maintenance::whereHas('vehicle', function($query) use ($user, $tenant) {
                 $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
             })
-            ->sum('total_cost') ?? 0;
+            ->sum('cost') ?? 0;
         
         // Réparations
         $repairCost = Repair::whereHas('vehicle', function($query) use ($user, $tenant) {
@@ -232,7 +232,7 @@ class FinancesController extends Controller
         $vehicles = Vehicle::where('user_id', $user->id)
             ->where('tenant_id', $tenant->id)
             ->withSum(['maintenances as maintenance_cost'], 'cost')
-            ->withSum(['repairs as repair_cost'], 'cost')
+            ->withSum(['repairs as repair_cost'], 'total_cost')
             ->withSum(['invoices as invoice_cost'], 'amount')
             ->withCount(['maintenances as interventions_count'])
             ->get()
@@ -375,7 +375,7 @@ class FinancesController extends Controller
                     'plate' => $repair->vehicle->immatriculation,
                     'date' => $repair->created_at->toDateString(),
                     'type' => 'Réparation - ' . ($repair->description ?? 'Non spécifié'),
-                    'amount' => $repair->cost ?? 0,
+                    'amount' => $repair->total_cost ?? 0,
                     'invoice_number' => null,
                 ];
             });
@@ -456,7 +456,7 @@ class FinancesController extends Controller
         $maintenancesCost = Maintenance::whereHas('vehicle', function($query) use ($userId, $tenantId) {
                 $query->where('user_id', $userId)->where('tenant_id', $tenantId);
             })
-            ->sum('total_cost') ?? 0;
+            ->sum('cost') ?? 0;
         
         $invoicesCost = Invoice::whereHas('vehicle', function($query) use ($userId, $tenantId) {
                 $query->where('user_id', $userId)->where('tenant_id', $tenantId);
@@ -491,7 +491,7 @@ class FinancesController extends Controller
         $highestMaintenance = Maintenance::whereHas('vehicle', function($query) use ($userId, $tenantId) {
                 $query->where('user_id', $userId)->where('tenant_id', $tenantId);
             })
-            ->orderByDesc('total_cost')
+            ->orderByDesc('cost')
             ->first();
         
         $highestInvoice = Invoice::whereHas('vehicle', function($query) use ($userId, $tenantId) {
@@ -507,9 +507,9 @@ class FinancesController extends Controller
             ->first();
         
         $candidates = array_filter([
-            $highestMaintenance ? ['cost' => $highestMaintenance->cost, 'type' => 'Entretien'] : null,
-            $highestInvoice ? ['cost' => $highestInvoice->amount, 'type' => 'Facture'] : null,
-            $highestRepair ? ['cost' => $highestRepair->total_cost, 'type' => 'Réparation'] : null,
+            $highestMaintenance ? ['cost' => (float)$highestMaintenance->cost, 'type' => 'Entretien'] : null,
+            $highestInvoice ? ['cost' => (float)$highestInvoice->amount, 'type' => 'Facture'] : null,
+            $highestRepair ? ['cost' => (float)$highestRepair->total_cost, 'type' => 'Réparation'] : null,
         ]);
         
         if (empty($candidates)) {

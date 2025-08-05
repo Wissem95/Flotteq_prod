@@ -25,12 +25,13 @@ class UserPermissionService
 
         // Vérifier et assigner seulement les permissions qui existent et ne sont pas déjà assignées
         foreach ($defaultPermissions as $permissionName) {
-            if (Permission::where('name', $permissionName)->exists() && !$user->hasPermissionTo($permissionName)) {
+            // Utiliser le guard sanctum pour les permissions API
+            if (Permission::where('name', $permissionName)->where('guard_name', 'sanctum')->exists() && !$user->hasPermissionTo($permissionName)) {
                 try {
                     $user->givePermissionTo($permissionName);
                 } catch (\Exception $e) {
                     // Log l'erreur mais continue - les permissions peuvent être assignées plus tard
-                    Log::warning("Impossible d'assigner la permission '{$permissionName}' à l'utilisateur {$user->id}: " . $e->getMessage());
+                    Log::warning("Impossible d'assigner la permission '{$permissionName}' à l'utilisateur {$user->id}: " . $e->getMessage(), ['tenantId' => $user->tenant_id]);
                 }
             }
         }

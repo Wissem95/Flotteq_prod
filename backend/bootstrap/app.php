@@ -22,8 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Custom middleware groups
         $middleware->group('tenant', [
-            \Spatie\Multitenancy\Http\Middleware\NeedsTenant::class,
-            // \Spatie\Multitenancy\Http\Middleware\EnsureValidTenantSession::class, // Désactivé pour les API
+            \App\Http\Middleware\ConditionalTenant::class,
         ]);
 
         // Middleware aliases

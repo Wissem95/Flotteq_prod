@@ -13,7 +13,13 @@ class VehiclePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('view vehicles');
+        // Pour les utilisateurs internes, utiliser les rôles traditionnels
+        if ($user->isInternal()) {
+            return in_array($user->role, ['admin', 'manager', 'support']) || $user->isSuperAdmin();
+        }
+        
+        // Pour les utilisateurs tenants, utiliser Spatie Permission avec fallback sur rôle
+        return $user->hasPermissionTo('view vehicles') || $user->hasRole('admin');
     }
 
     /**
@@ -21,8 +27,13 @@ class VehiclePolicy
      */
     public function view(User $user, Vehicle $vehicle): bool
     {
-        // User must have permission and vehicle must belong to same tenant and same user
-        return $user->hasPermissionTo('view vehicles')
+        // Pour les utilisateurs internes, pas de restriction tenant
+        if ($user->isInternal()) {
+            return in_array($user->role, ['admin', 'manager', 'support']) || $user->isSuperAdmin();
+        }
+        
+        // Pour les utilisateurs tenants, vérifier permission + tenant + propriété
+        return ($user->hasPermissionTo('view vehicles') || $user->hasRole('admin'))
             && $vehicle->tenant_id === $user->tenant_id
             && $vehicle->user_id === $user->id;
     }
@@ -32,7 +43,13 @@ class VehiclePolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasPermissionTo('create vehicles');
+        // Pour les utilisateurs internes
+        if ($user->isInternal()) {
+            return in_array($user->role, ['admin', 'manager']) || $user->isSuperAdmin();
+        }
+        
+        // Pour les utilisateurs tenants
+        return $user->hasPermissionTo('create vehicles') || $user->hasRole('admin');
     }
 
     /**
@@ -40,8 +57,13 @@ class VehiclePolicy
      */
     public function update(User $user, Vehicle $vehicle): bool
     {
-        // User must have permission and vehicle must belong to same tenant and same user
-        return $user->hasPermissionTo('edit vehicles')
+        // Pour les utilisateurs internes, pas de restriction tenant
+        if ($user->isInternal()) {
+            return in_array($user->role, ['admin', 'manager']) || $user->isSuperAdmin();
+        }
+        
+        // Pour les utilisateurs tenants, vérifier permission + tenant + propriété
+        return ($user->hasPermissionTo('edit vehicles') || $user->hasRole('admin'))
             && $vehicle->tenant_id === $user->tenant_id
             && $vehicle->user_id === $user->id;
     }
@@ -51,8 +73,13 @@ class VehiclePolicy
      */
     public function delete(User $user, Vehicle $vehicle): bool
     {
-        // User must have permission and vehicle must belong to same tenant and same user
-        return $user->hasPermissionTo('delete vehicles')
+        // Pour les utilisateurs internes, pas de restriction tenant
+        if ($user->isInternal()) {
+            return in_array($user->role, ['admin']) || $user->isSuperAdmin();
+        }
+        
+        // Pour les utilisateurs tenants, vérifier permission + tenant + propriété
+        return ($user->hasPermissionTo('delete vehicles') || $user->hasRole('admin'))
             && $vehicle->tenant_id === $user->tenant_id
             && $vehicle->user_id === $user->id;
     }

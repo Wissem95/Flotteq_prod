@@ -49,7 +49,7 @@ API.interceptors.request.use(async (config) => {
   }
 
   // Ajouter l'en-tête Tenant ID requis par le backend multitenancy
-  config.headers['X-Tenant-ID'] = '4'; // TransExpress SARL - tenant existant
+  config.headers['X-Tenant-ID'] = '1'; // FlotteQ Demo - tenant pour démonstration
 
   const token = localStorage.getItem("token");
   if (token) {
