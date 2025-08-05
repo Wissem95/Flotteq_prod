@@ -64,7 +64,6 @@ const TrouverGaragePageNew: React.FC = () => {
 
   const handleViewReservation = () => {
     // Ici, on pourrait rediriger vers une page de gestion des réservations
-    console.log('Voir réservation:', reservationData);
     // Pour l'instant, on retourne aux résultats
     setCurrentStep('results');
   };

@@ -71,7 +71,7 @@ const AddMaintenance: React.FC = () => {
         vehicle_id: "",
         facture: null,
       });
-    } catch (err) {
+    } catch (_err) {
       setMessage("❌ Erreur lors de l'enregistrement.");
     }
   };

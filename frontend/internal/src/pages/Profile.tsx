@@ -156,25 +156,16 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    console.log("🔍 Profile: Récupération des données utilisateur...");
     
     // Debug: Vérifier la configuration
-    console.log("🔧 Profile: URL de base API:", import.meta.env.VITE_API_URL);
-    console.log("🔑 Profile: Token dans localStorage:", localStorage.getItem("token") ? "✅ Présent" : "❌ Absent");
-    console.log("📡 Profile: URL complète de l'appel:", axios.defaults.baseURL + "/api/profile/me");
     
     axios
       .get("/api/profile/me")
       .then(res => {
-        console.log("✅ Profile: Données reçues du backend:", res.data);
-        console.log("👤 Profile: Utilisateur extrait:", res.data.user || res.data);
-        console.log("🔍 Profile: Structure des données user:", Object.keys(res.data.user || res.data || {}));
         
         const userData = res.data.user || res.data;
         setUser(userData);
         
-        console.log("📋 Profile: État utilisateur après setUser:", userData);
-        console.log("🎯 Profile: Champs clés à vérifier:", {
           first_name: userData.first_name,
           last_name: userData.last_name,
           email: userData.email,
@@ -192,7 +183,6 @@ const Profile = () => {
   }, []);
 
   const handleFieldSave = async (name: string, value: string) => {
-    console.log(`🔄 Profile: Sauvegarde du champ "${name}" avec la valeur "${value}"`);
     setLoading(true);
     try {
       // Mapping des noms de champs pour correspondre au backend
@@ -205,19 +195,14 @@ const Profile = () => {
       const backendFieldName = fieldMapping[name] || name;
       const updated = { ...user, [name]: value };
       
-      console.log("📤 Profile: Données envoyées au backend:", { [backendFieldName]: value });
-      console.log("🔄 Profile: Mapping: frontend '"+name+"' -> backend '"+backendFieldName+"'");
       
       const response = await axios.put("/api/profile/me", { [backendFieldName]: value });
-      console.log("✅ Profile: Réponse du backend:", response.data);
       
       // Mettre à jour l'état local avec les données du backend
       if (response.data.user) {
         setUser(response.data.user);
-        console.log("🔄 Profile: État utilisateur mis à jour depuis le backend:", response.data.user);
       } else {
         setUser(updated);
-        console.log("🔄 Profile: État utilisateur mis à jour localement:", updated);
       }
     } catch (error) {
       console.error("❌ Profile: Erreur lors de la sauvegarde:", error);
@@ -228,8 +213,6 @@ const Profile = () => {
   };
 
   // Debug: Log de l'état utilisateur au moment du rendu
-  console.log("🎨 Profile: Rendu avec état utilisateur:", user);
-  console.log("🎨 Profile: Valeurs à afficher:", {
     "Prénom (first_name)": user.first_name || user.prenom || "",
     "Nom (last_name)": user.last_name || user.nom || "",
     "Email": user.email || "",

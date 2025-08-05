@@ -50,12 +50,10 @@ const InsuranceProposal: React.FC<InsuranceProposalProps> = ({
 
   const handleRequestQuote = (offerId: string) => {
     toast.success('Demande de devis envoyée ! Vous serez contacté sous 24h.');
-    console.log(`Quote requested for offer ${offerId} and vehicle ${vehicleId}`);
   };
 
   const handleRequestCallback = (offerId: string) => {
     toast.success('Demande de rappel enregistrée ! Vous serez contacté rapidement.');
-    console.log(`Callback requested for offer ${offerId} and vehicle ${vehicleId}`);
   };
 
   if (context === 'add-vehicle') {

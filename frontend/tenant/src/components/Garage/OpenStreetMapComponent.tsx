@@ -122,7 +122,6 @@ const OpenStreetMapComponent: React.FC<OpenStreetMapComponentProps> = ({
             ctx.drawImage(tile, pixel.x - TILE_SIZE / 2, pixel.y - TILE_SIZE / 2);
             loadedTilesCount++;
           } catch (error) {
-            console.log('Erreur de chargement de tuile:', error);
             loadedTilesCount++;
           }
         } else {
@@ -152,7 +151,6 @@ const OpenStreetMapComponent: React.FC<OpenStreetMapComponentProps> = ({
 
     // Dessiner TOUS les marqueurs de garages
     garages.forEach((garage, index) => {
-      console.log(`Dessin du garage ${index + 1}/${garages.length}:`, garage.name, garage.coordinates);
       const pixel = latLngToPixel(garage.coordinates.lat, garage.coordinates.lng);
       
       // Vérifier si le marqueur est visible sur la carte
@@ -175,13 +173,10 @@ const OpenStreetMapComponent: React.FC<OpenStreetMapComponentProps> = ({
         ctx.textAlign = 'center';
         ctx.fillText(`${garage.priceForService}€`, pixel.x, pixel.y + 3);
         
-        console.log(`Marqueur dessiné pour ${garage.name} à la position (${pixel.x}, ${pixel.y})`);
       } else {
-        console.log(`Marqueur hors écran pour ${garage.name}: (${pixel.x}, ${pixel.y})`);
       }
     });
 
-    console.log(`Total garages à afficher: ${garages.length}`);
   };
 
   // Gérer les événements de souris
@@ -228,7 +223,6 @@ const OpenStreetMapComponent: React.FC<OpenStreetMapComponentProps> = ({
       const distance = Math.sqrt(Math.pow(x - pixel.x, 2) + Math.pow(y - pixel.y, 2));
       if (distance <= 16) { // Augmenter la zone de clic
         setSelectedGarage(garage);
-        console.log('Garage sélectionné:', garage.name);
         return;
       }
     }
@@ -265,7 +259,6 @@ const OpenStreetMapComponent: React.FC<OpenStreetMapComponentProps> = ({
           });
         },
         (error) => {
-          console.log('Géolocalisation non disponible:', error);
         }
       );
     }
@@ -273,7 +266,6 @@ const OpenStreetMapComponent: React.FC<OpenStreetMapComponentProps> = ({
 
   // Redessiner la carte quand les paramètres changent
   useEffect(() => {
-    console.log('Redessinage de la carte - Garages:', garages.length, 'Centre:', mapCenter, 'Zoom:', zoom);
     drawMap();
   }, [mapCenter, zoom, garages, userLocation, tilesLoaded]);
 

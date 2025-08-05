@@ -74,11 +74,9 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
         for (const maintenance of maintenances) {
           await updateMaintenanceStatus(maintenance.id, "completed");
         }
-        
-        console.log(`✅ ${maintenances.length} maintenance(s) marquée(s) comme terminée(s)`);
       }
-    } catch (error) {
-      console.error("Erreur lors de la finalisation des maintenances:", error);
+    } catch {
+      // Handle error silently or show user-friendly message
     }
   };
 

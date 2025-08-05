@@ -80,22 +80,18 @@ const MesProcesVerbauxPage: React.FC = () => {
   ];
 
   const handleSearch = () => {
-    console.log('Recherche:', searchTerm);
     toast.success(`Recherche mise à jour pour "${searchTerm}"`);
   };
 
   const handleDownload = (pv: ProcesVerbal) => {
-    console.log('Téléchargement PV:', pv.fileName);
     toast.success(`Téléchargement de ${pv.fileName} initié`);
   };
 
   const handleView = (pv: ProcesVerbal) => {
-    console.log('Visualisation PV:', pv.fileName);
     toast.success(`Ouverture de ${pv.fileName}`);
   };
 
   const handleUpload = () => {
-    console.log('Upload nouveau PV');
     toast.success('Fonctionnalité d\'upload en cours de développement');
   };
 

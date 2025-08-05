@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "@/lib/api";
 
 import { getMaintenances, deleteMaintenance } from "@/services/maintenanceService";
 import { Button } from "@/components/ui/button";
@@ -31,11 +30,10 @@ const Maintenances: React.FC = () => {
   const fetchMaintenances = async () => {
     try {
       const data = await getMaintenances();
-      console.log("✅ Données reçues :", data); // ✅ Debug
       setMaintenances(data);
       setFiltered(data);
-    } catch (err) {
-      console.error("❌ Erreur de chargement :", err); // ✅ Debug
+    } catch (_err) {
+      console.error("❌ Erreur de chargement :", _err); // ✅ Debug
       setMessage("Erreur lors du chargement des maintenances.");
     }
   };
@@ -46,7 +44,7 @@ const Maintenances: React.FC = () => {
         await deleteMaintenance(id);
         setMessage("Maintenance supprimée.");
         fetchMaintenances();
-      } catch (err) {
+      } catch (_err) {
         setMessage("Erreur lors de la suppression.");
       }
     }

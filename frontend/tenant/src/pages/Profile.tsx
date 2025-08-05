@@ -194,9 +194,6 @@ const Profile = () => {
         setInitialUser(frontendData);
         // Mettre à jour le localStorage pour synchroniser l'état global
         localStorage.setItem("user", JSON.stringify(response.data.user));
-        // DEBUG : Afficher la réponse backend et le localStorage
-        console.log("[DEBUG] Réponse backend user:", response.data.user);
-        console.log("[DEBUG] localStorage user:", localStorage.getItem("user"));
       }
       setSuccess(true);
       setIsEditing(false);

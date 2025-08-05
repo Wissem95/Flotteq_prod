@@ -117,7 +117,6 @@ const VehicleSalesPage: React.FC = () => {
   const handleUpdateMarketValue = (vehicleId: string) => {
     if (newMarketValue && parseFloat(newMarketValue) > 0) {
       // Ici, vous pourriez mettre à jour la valeur dans votre état ou base de données
-      console.log(`Mise à jour de la valeur marchande du véhicule ${vehicleId}: ${newMarketValue}€`);
       setEditingMarketValue(null);
       setNewMarketValue('');
     }

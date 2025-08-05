@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "@/lib/api";
 
 import { getMaintenancesWithFilters, deleteMaintenance } from "@/services/maintenanceService";
 import { Button } from "@/components/ui/button";
@@ -40,8 +39,6 @@ const Maintenances: React.FC = () => {
         status: "scheduled" 
       });
       
-      console.log("✅ Données reçues :", data); // ✅ Debug
-      
       // Combiner les maintenances en cours et planifiées
       const inProgressArray = Array.isArray(data) ? data : [];
       const scheduledArray = Array.isArray(scheduledData) ? scheduledData : [];
@@ -49,8 +46,8 @@ const Maintenances: React.FC = () => {
       
       setMaintenancesEnCours(enCours);
       setFilteredEnCours(enCours);
-    } catch (err) {
-      console.error("❌ Erreur de chargement :", err); // ✅ Debug
+    } catch (_err) {
+      console.error("❌ Erreur de chargement :", _err); // ✅ Debug
       setMessage("Erreur lors du chargement des maintenances.");
       setMaintenancesEnCours([]);
       setFilteredEnCours([]);
@@ -63,7 +60,7 @@ const Maintenances: React.FC = () => {
         await deleteMaintenance(id);
         setMessage("Maintenance supprimée.");
         fetchMaintenances();
-      } catch (err) {
+      } catch {
         setMessage("Erreur lors de la suppression.");
       }
     }

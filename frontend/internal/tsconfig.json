@@ -14,12 +14,11 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Désactiver les checks stricts par défaut */
-    "strict": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitAny": false,
-    "noFallthroughCasesInSwitch": false,
+    /* Activer les checks stricts pour une meilleure qualité de code */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
 
     /* Alias @ → src */
     "baseUrl": ".",

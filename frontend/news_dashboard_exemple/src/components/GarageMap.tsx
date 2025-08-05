@@ -98,12 +98,10 @@ const GarageMap: React.FC<GarageMapProps> = ({ vehicleId, alertType, location })
 
   const handleContactGarage = (garage: Garage) => {
     toast.success(`Contact envoyé à ${garage.name} ! Vous serez rappelé rapidement.`);
-    console.log(`Contacting garage ${garage.id} for vehicle ${vehicleId}`);
   };
 
   const handleBookService = (garage: Garage) => {
     toast.success(`Demande de réservation envoyée à ${garage.name} !`);
-    console.log(`Booking service at garage ${garage.id} for vehicle ${vehicleId}`);
   };
 
   const getAvailabilityColor = (availability: string) => {

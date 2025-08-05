@@ -80,7 +80,6 @@ const TrouverCentreCTPage: React.FC = () => {
   ];
 
   const handleSearch = () => {
-    console.log('Recherche pour:', searchLocation);
     toast.success(`Recherche mise à jour pour ${searchLocation}`);
   };
 
@@ -95,13 +94,11 @@ const TrouverCentreCTPage: React.FC = () => {
   };
 
   const handleReserveCT = (center: CTCenter) => {
-    console.log('Réservation centre CT:', center);
     toast.success(`Demande de réservation envoyée à ${center.name} !`);
   };
 
   const handleMapMove = (center: { lat: number; lng: number }, zoom: number) => {
     setMapCenter(center);
-    console.log('Carte déplacée vers:', center, 'zoom:', zoom);
   };
 
   return (

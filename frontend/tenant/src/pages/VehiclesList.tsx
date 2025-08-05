@@ -26,7 +26,6 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 
 import AddVehicleModal from "@/components/vehicles/AddVehicleModal";
 import EditVehicleModal from "@/components/vehicles/EditVehicleModal";
@@ -48,16 +47,9 @@ const VehiclesList: React.FC = () => {
 
   const loadVehicles = async () => {
     try {
-      console.log("🔄 Rechargement de la liste des véhicules...");
       const data = await fetchVehicles();
-      console.log("📋 Véhicules chargés :", data);
-      console.log("📋 Détail des véhicules :");
-      data.forEach((v, i) => {
-        console.log(`  [${i}] ID: ${v.id} - ${v.marque} ${v.modele} (${v.immatriculation}) - Année: ${v.annee}`);
-      });
       setVehicles(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("❌ Erreur chargement véhicules :", err);
+    } catch {
       setVehicles([]);
     }
   };
@@ -73,14 +65,7 @@ const VehiclesList: React.FC = () => {
     return okSearch && okStatus;
   });
 
-  const fmtDate = (d?: string | null) =>
-    d ? new Intl.DateTimeFormat("fr-FR").format(new Date(d)) : "-";
 
-  const isCtSoon = (d?: string | null) => {
-    if (!d) return false;
-    const diff = (new Date(d).getTime() - Date.now()) / (1000*60*60*24);
-    return diff <= 30;
-  };
 
   // Fonction pour mettre à jour le statut d'un véhicule
   const handleStatusChange = async (vehicleId: number, newStatus: string) => {
@@ -92,8 +77,8 @@ const VehiclesList: React.FC = () => {
           v.id === vehicleId ? { ...v, status: newStatus } : v
         )
       );
-    } catch (error) {
-      console.error("Erreur lors du changement de statut:", error);
+    } catch {
+      // Handle error silently or show user-friendly message
     }
   };
 
@@ -246,7 +231,6 @@ const VehiclesList: React.FC = () => {
           onClose={() => setEditVehicleId(null)}
           vehicleId={editVehicleId}
           onUpdated={() => {
-            console.log("🔄 Véhicule modifié, rechargement de la liste...");
             loadVehicles();
             setEditVehicleId(null);
           }}

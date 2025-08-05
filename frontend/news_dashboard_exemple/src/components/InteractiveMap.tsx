@@ -88,7 +88,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
           });
         },
         (error) => {
-          console.log('Géolocalisation refusée ou non disponible:', error);
         }
       );
     }

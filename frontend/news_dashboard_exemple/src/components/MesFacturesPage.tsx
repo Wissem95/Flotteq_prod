@@ -112,22 +112,18 @@ const MesFacturesPage: React.FC = () => {
   ];
 
   const handleSearch = () => {
-    console.log('Recherche:', searchTerm);
     toast.success(`Recherche mise à jour pour "${searchTerm}"`);
   };
 
   const handleDownload = (facture: Facture) => {
-    console.log('Téléchargement facture:', facture.fileName);
     toast.success(`Téléchargement de ${facture.fileName} initié`);
   };
 
   const handleView = (facture: Facture) => {
-    console.log('Visualisation facture:', facture.fileName);
     toast.success(`Ouverture de ${facture.fileName}`);
   };
 
   const handleUpload = () => {
-    console.log('Upload nouvelle facture');
     toast.success('Fonctionnalité d\'upload en cours de développement');
   };
 

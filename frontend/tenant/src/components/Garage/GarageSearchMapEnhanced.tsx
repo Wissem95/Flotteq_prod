@@ -114,21 +114,18 @@ const GarageSearchMapEnhanced: React.FC<GarageSearchMapEnhancedProps> = ({
   ];
 
   useEffect(() => {
-    console.log('Initialisation des garages');
     setGarages(mockGarages);
     setFilteredGarages(mockGarages);
   }, []);
 
   useEffect(() => {
     if (coordinates) {
-      console.log('Coordonnées détectées:', coordinates);
       setMapCenter(coordinates);
       toast.success('Position détectée automatiquement');
     }
   }, [coordinates]);
 
   useEffect(() => {
-    console.log('Application des filtres...');
     let filtered = [...garages];
 
     // Filtre par distance
@@ -155,12 +152,10 @@ const GarageSearchMapEnhanced: React.FC<GarageSearchMapEnhancedProps> = ({
       filtered.sort((a, b) => b.rating - a.rating);
     }
 
-    console.log('Garages filtrés:', filtered.length);
     setFilteredGarages(filtered);
   }, [garages, searchRadius, sortBy, specialtyFilter]);
 
   const handleLocationSearch = async () => {
-    console.log('handleLocationSearch appelée avec:', locationSearch);
     
     if (!locationSearch || !locationSearch.trim()) {
       console.error('Recherche vide');
@@ -169,13 +164,11 @@ const GarageSearchMapEnhanced: React.FC<GarageSearchMapEnhancedProps> = ({
     }
 
     const searchTerm = locationSearch.trim();
-    console.log('Terme de recherche nettoyé:', searchTerm);
     
     setIsSearching(true);
     
     try {
       const apiUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchTerm)}&limit=1&countrycodes=fr`;
-      console.log('Appel API:', apiUrl);
       
       const response = await fetch(apiUrl, {
         method: 'GET',
@@ -185,14 +178,12 @@ const GarageSearchMapEnhanced: React.FC<GarageSearchMapEnhancedProps> = ({
         }
       });
       
-      console.log('Réponse reçue:', response.status);
       
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('Données API:', data);
       
       if (data && data.length > 0) {
         const location = data[0];
@@ -201,7 +192,6 @@ const GarageSearchMapEnhanced: React.FC<GarageSearchMapEnhancedProps> = ({
         
         if (!isNaN(lat) && !isNaN(lng)) {
           const newCenter = { lat, lng };
-          console.log('Nouveau centre de carte:', newCenter);
           setMapCenter(newCenter);
           toast.success(`Position trouvée: ${location.display_name}`);
         } else {
@@ -209,7 +199,6 @@ const GarageSearchMapEnhanced: React.FC<GarageSearchMapEnhancedProps> = ({
           toast.error('Coordonnées invalides reçues');
         }
       } else {
-        console.log('Aucun résultat trouvé');
         toast.error('Lieu non trouvé');
       }
       
@@ -222,12 +211,10 @@ const GarageSearchMapEnhanced: React.FC<GarageSearchMapEnhancedProps> = ({
   };
 
   const handleGetCurrentLocation = () => {
-    console.log('Demande de géolocalisation');
     getCurrentLocation();
   };
 
   const handleMapMove = (center: { lat: number; lng: number }, zoom: number) => {
-    console.log('Carte déplacée vers:', center, 'zoom:', zoom);
     setMapCenter(center);
   };
 
@@ -256,12 +243,10 @@ const GarageSearchMapEnhanced: React.FC<GarageSearchMapEnhancedProps> = ({
   };
 
   const handleContact = (garage: Garage) => {
-    console.log('Contact garage:', garage.name);
     toast.success(`Appel en cours vers ${garage.name}...`);
   };
 
   const handleReserve = (garage: Garage) => {
-    console.log('Réservation garage:', garage.name);
     onReservationRequest(garage);
   };
 

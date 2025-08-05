@@ -49,8 +49,8 @@ const VehiclesList: React.FC = () => {
     try {
       const data = await fetchVehicles();
       setVehicles(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("❌ Erreur chargement véhicules :", err);
+    } catch (_err) {
+      console.error("❌ Erreur chargement véhicules :", _err);
       setVehicles([]);
     }
   };
@@ -66,14 +66,7 @@ const VehiclesList: React.FC = () => {
     return okSearch && okStatus;
   });
 
-  const fmtDate = (d?: string | null) =>
-    d ? new Intl.DateTimeFormat("fr-FR").format(new Date(d)) : "-";
 
-  const isCtSoon = (d?: string | null) => {
-    if (!d) return false;
-    const diff = (new Date(d).getTime() - Date.now()) / (1000*60*60*24);
-    return diff <= 30;
-  };
 
   const getBadge = (status?: string | null) => {
     switch (status) {
@@ -167,11 +160,9 @@ const VehiclesList: React.FC = () => {
                   <td className="py-3 px-4">
                     <Calendar
                       size={16}
-                      className={`inline mr-1 ${
-                        isCtSoon(v.next_ct_date) ? "text-orange-500" : "text-slate-500"
-                      }`}
+                      className="inline mr-1 text-slate-500"
                     />
-                    {fmtDate(v.next_ct_date)}
+                    {v.next_ct_date ? new Intl.DateTimeFormat("fr-FR").format(new Date(v.next_ct_date)) : "-"}
                   </td>
                   <td className="py-3 px-4">
                     {v.kilometrage?.toLocaleString("fr-FR")} km

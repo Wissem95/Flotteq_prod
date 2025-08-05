@@ -23,7 +23,6 @@ interface Vehicle {
 
 const AddMaintenance: React.FC = () => {
   const { toast } = useToast();
-  console.log('Component AddMaintenance rendered'); // Debug
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [formData, setFormData] = useState({
     maintenance_date: "",
@@ -44,13 +43,11 @@ const AddMaintenance: React.FC = () => {
     axios
       .get("/api/vehicles")
       .then((res) => {
-        console.log("✅ Véhicules reçus :", res.data);
         // S'assurer que data est un tableau
         const vehicleArray = Array.isArray(res.data) ? res.data : (res.data.data || []);
         setVehicles(vehicleArray);
       })
-      .catch((err) => {
-        console.error("❌ Erreur récupération véhicules :", err);
+      .catch(() => {
         setVehicles([]);
       });
   }, []);
@@ -137,8 +134,6 @@ const AddMaintenance: React.FC = () => {
       cost: parseFloat(formData.cost),
       workshop: formData.workshop
     };
-
-    console.log('Données envoyées:', dataToSend); // Debug
 
     try {
       await axios.post("/api/maintenances", dataToSend, {

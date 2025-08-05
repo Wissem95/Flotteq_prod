@@ -25,7 +25,6 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
   onCancel,
 }) => {
   const isEditing = Boolean(initialData);
-  console.log("🔍 Mode édition détecté :", isEditing, "initialData présent :", !!initialData);
   const [isFunction, setIsFunction] = useState(
     initialData?.status === "function"
   );
@@ -60,7 +59,6 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
   // Initialisation en édition
   useEffect(() => {
     if (initialData) {
-      console.log("🚗 Initialisation du formulaire avec les données :", initialData);
       setIsFunction(initialData.status === "active");
       setFormData({
         immatriculation: initialData.immatriculation || "",
@@ -160,19 +158,13 @@ export const VehicleForm: React.FC<VehicleFormProps> = ({
         }
       });
 
-      let result;
       if (isEditing && initialData) {
-        console.log("📝 Mise à jour du véhicule ID:", initialData.id);
-        result = await updateVehicle(initialData.id, data as any);
-        console.log("✅ Véhicule mis à jour :", result);
+        await updateVehicle(initialData.id, data as any);
       } else {
-        console.log("➕ Création d'un nouveau véhicule");
-        result = await createVehicle(data as any);
-        console.log("✅ Véhicule créé :", result);
+        await createVehicle(data as any);
       }
       onSuccess?.();
     } catch (err: any) {
-      console.error("❌ Erreur lors de l’enregistrement :", err);
       setError(err.response?.data?.error ?? "Erreur serveur");
     } finally {
       setLoading(false);

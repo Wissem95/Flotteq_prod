@@ -23,12 +23,9 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({
 
   useEffect(() => {
     if (!isOpen || !vehicleId) return;
-    console.log("🔍 Chargement du véhicule ID:", vehicleId);
     setLoading(true);
     fetchVehicleById(String(vehicleId))
       .then((vehicle) => {
-        console.log("🚗 Véhicule chargé pour édition :", vehicle);
-        console.log("🔧 Type des données reçues :", typeof vehicle, Object.keys(vehicle));
         setVehicleData(vehicle);
       })
       .catch((err) => {
@@ -50,7 +47,6 @@ const EditVehicleModal: React.FC<EditVehicleModalProps> = ({
               initialData={vehicleData}
               onCancel={onClose}
               onSuccess={() => {
-                console.log("✅ Véhicule modifié avec succès");
                 onUpdated?.();
                 onClose();
               }}

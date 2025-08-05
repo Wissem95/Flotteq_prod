@@ -140,8 +140,6 @@ export async function createVehicle(
     }
   }
   
-  console.log("🔧 Données JSON converties pour create :", jsonData);
-  
   const { data } = await api.post<{message: string, vehicle: Vehicle}>("/vehicles", jsonData, {
     headers: { "Content-Type": "application/json" },
   });
@@ -166,8 +164,6 @@ export async function updateVehicle(
       jsonData[key] = value.toString();
     }
   }
-  
-  console.log("🔧 Données JSON converties pour update :", jsonData);
   
   const { data } = await api.put<{message: string, vehicle: Vehicle}>(`/vehicles/${id}`, jsonData, {
     headers: { "Content-Type": "application/json" },
