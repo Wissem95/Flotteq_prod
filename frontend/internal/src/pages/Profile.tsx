@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Input } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
+import { Label } from "@flotteq/shared";
 import { Pencil, User, Mail, Phone, Calendar, MapPin, Globe, Landmark, UserCircle2 } from "lucide-react";
 import axios from "@/lib/api";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@flotteq/shared";
 
 // Types pour l'utilisateur
 interface UserProfile {

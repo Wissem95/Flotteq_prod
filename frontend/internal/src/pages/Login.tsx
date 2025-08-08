@@ -1,9 +1,9 @@
 // 📁 clients/src/pages/Login.tsx
 
 import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
+import { Label } from "@flotteq/shared";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "@/lib/api";
 

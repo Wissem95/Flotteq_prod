@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Car, Bell, Settings, X, ChevronDown, ChevronRight, Activity, TrendingUp, List, Wrench, History, BarChart3, Users, FileText, Shield, UserCheck, MapPin, Calendar, TrendingDown, ClipboardCheck, Receipt } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { cn } from '@flotteq/shared';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@flotteq/shared';
 import { useCollapsibleState } from '@/hooks/useCollapsibleState';
 
 interface SidebarProps {

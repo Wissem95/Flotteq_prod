@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
+import { Button } from '@flotteq/shared';
+import { Badge } from '@flotteq/shared';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@flotteq/shared';
+import { Input } from '@flotteq/shared';
 import { MapPin, Filter, Navigation, Star, Clock, Euro, Search, Maximize2, Heart, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import OpenStreetMapComponent from './OpenStreetMapComponent';

@@ -1,7 +1,7 @@
 // InternalTopNav.tsx - Barre de navigation supérieure pour l'interface d'administration
 
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@flotteq/shared";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,9 +9,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+} from "@flotteq/shared";
+import { Avatar, AvatarFallback, AvatarImage } from "@flotteq/shared";
+import { Badge } from "@flotteq/shared";
 import {
   Bell,
   Settings,

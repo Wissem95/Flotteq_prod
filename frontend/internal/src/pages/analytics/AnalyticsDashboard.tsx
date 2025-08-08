@@ -1,15 +1,15 @@
 // AnalyticsDashboard.tsx - Tableau de bord principal des analytics FlotteQ
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
+import { Badge } from "@flotteq/shared";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@flotteq/shared";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flotteq/shared";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area, } from "recharts";
 import { TrendingUp, Users, Globe, Activity, Cpu, HardDrive, Wifi, AlertTriangle, CheckCircle, Clock, Download, RefreshCw, Eye, Target, DollarSign, } from "lucide-react";
 import { analyticsService, PlatformMetrics, UsageAnalytics, PerformanceMetrics, RealtimeMetrics } from "@/services/analyticsService";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@flotteq/shared";
 
 const AnalyticsDashboard: React.FC = () => {
   const [platformMetrics, setPlatformMetrics] = useState<PlatformMetrics | null>(null);

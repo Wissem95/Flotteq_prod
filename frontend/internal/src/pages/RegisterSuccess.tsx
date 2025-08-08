@@ -1,7 +1,7 @@
 // Clients/src/pages/RegisterSuccess.tsx
 
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@flotteq/shared";
 import { useNavigate } from "react-router-dom";
 
 const RegisterSuccess = () => {

@@ -1,10 +1,10 @@
 // Clients/src/pages/Dashboard.tsx
 
 import React from "react";
-import { Label } from "@/components/ui/label";
+import { Label } from "@flotteq/shared";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@flotteq/shared";
+import { Progress } from "@flotteq/shared";
 import { 
   AlertTriangle, 
   Car, 
@@ -13,7 +13,7 @@ import {
   Calendar,
   ArrowRight
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@flotteq/shared";
 
 const Dashboard: React.FC = () => {
   return (

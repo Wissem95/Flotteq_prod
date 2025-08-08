@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
 import { Car, Users, AlertTriangle, TrendingUp, MapPin, Wrench, FileText, TrendingDown, Calendar, DollarSign, Clock } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@flotteq/shared';
 
 const Dashboard: React.FC = () => {
   const stats = [

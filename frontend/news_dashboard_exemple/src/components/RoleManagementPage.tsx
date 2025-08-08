@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
+import { Button } from '@flotteq/shared';
+import { Input } from '@flotteq/shared';
+import { Label } from '@flotteq/shared';
+import { Switch } from '@flotteq/shared';
+import { Badge } from '@flotteq/shared';
 import { Shield, Plus, Edit, Trash2, Users, Settings } from 'lucide-react';
 
 interface Permission {

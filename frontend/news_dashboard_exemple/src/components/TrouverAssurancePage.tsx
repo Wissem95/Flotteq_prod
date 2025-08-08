@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
 import { Shield, TrendingUp } from 'lucide-react';
 import InsuranceOfferCard from './InsuranceOfferCard';
 import { toast } from 'sonner';

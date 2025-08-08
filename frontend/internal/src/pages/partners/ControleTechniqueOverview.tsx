@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button } from '@flotteq/shared';
+import { Badge, Input } from '@flotteq/shared';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@flotteq/shared';
 import {
   Table,
   TableBody,
@@ -17,14 +15,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@flotteq/shared';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@flotteq/shared';
 import {
   Plus,
   Search,
@@ -47,7 +45,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { partnersService } from '@/services/partnersService';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@flotteq/shared';
 
 interface Partner {
   id: number;

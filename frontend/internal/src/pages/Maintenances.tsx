@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { getMaintenances, deleteMaintenance } from "@/services/maintenanceService";
-import { Button } from "@/components/ui/button";
+import { Button } from "@flotteq/shared";
 
 interface Maintenance {
   id: number;

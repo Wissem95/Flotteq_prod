@@ -1,17 +1,17 @@
 // TicketModal.tsx - Modal pour la gestion des tickets support
 
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { toast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
+import { Label } from "@flotteq/shared";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@flotteq/shared";
+import { Textarea } from "@flotteq/shared";
+import { Badge } from "@flotteq/shared";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@flotteq/shared";
+import { Separator } from "@flotteq/shared";
+import { Avatar, AvatarFallback, AvatarImage } from "@flotteq/shared";
+import { toast } from "@flotteq/shared";
 import { 
   MessageSquare, 
   User, 

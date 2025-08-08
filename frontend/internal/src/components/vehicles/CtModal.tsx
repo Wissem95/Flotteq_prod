@@ -1,7 +1,7 @@
 // 📁 src/components/vehicles/CtModal.tsx
 import React, { useState } from "react";
 import Modal from "@/components/Modal";
-import { Button } from "@/components/ui/button";
+import { Button } from "@flotteq/shared";
 import DatePicker from "@/components/DatePicker";
 import { updateVehicle } from "@/services/vehicleService";
 

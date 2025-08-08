@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
+import { Button } from '@flotteq/shared';
 import { Target, ChevronDown, ChevronUp } from 'lucide-react';
 import InsuranceOfferCard from './InsuranceOfferCard';
 import { toast } from 'sonner';

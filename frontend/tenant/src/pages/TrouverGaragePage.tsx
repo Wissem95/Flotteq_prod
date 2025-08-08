@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@flotteq/shared';
 import { MapPin, Car, Wrench, ArrowLeft } from 'lucide-react';
 import VehicleSearchFormEnhanced from '../components/Garage/VehicleSearchFormEnhanced';
 import GarageSearchMapEnhanced from '../components/Garage/GarageSearchMapEnhanced';

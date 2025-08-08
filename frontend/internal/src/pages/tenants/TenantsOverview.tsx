@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Badge } from '@flotteq/shared';
+import { Button } from '@flotteq/shared';
 import { Building2, Users, TrendingUp, AlertCircle, CheckCircle, Clock, MoreVertical, Eye, Settings, Pause, Play, Trash2 } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@flotteq/shared';
 import TenantModal from '@/components/modals/TenantModal';
 import { tenantService, type Tenant, type TenantCreateData } from '@/services/tenantService';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@flotteq/shared';
 
 const TenantsOverview: React.FC = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);

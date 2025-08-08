@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
+import { Input } from '@flotteq/shared';
+import { Button } from '@flotteq/shared';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@flotteq/shared';
+import { Badge } from '@flotteq/shared';
 import { Car, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { useVehicleSearchPersistence } from '@/hooks/useVehicleSearchPersistence';

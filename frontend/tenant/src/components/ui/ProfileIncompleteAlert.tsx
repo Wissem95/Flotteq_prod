@@ -1,8 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, X, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button, Alert, AlertDescription } from '@flotteq/shared';
 
 interface ProfileIncompleteAlertProps {
   isVisible: boolean;

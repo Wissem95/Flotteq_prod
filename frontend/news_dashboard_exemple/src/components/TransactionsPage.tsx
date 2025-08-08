@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
+import { Button } from '@flotteq/shared';
+import { Input } from '@flotteq/shared';
+import { Label } from '@flotteq/shared';
+import { Badge } from '@flotteq/shared';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@flotteq/shared';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@flotteq/shared';
+import { Textarea } from '@flotteq/shared';
 import { Calendar, Plus, Car, FileText, TrendingUp, TrendingDown } from 'lucide-react';
 
 // Define proper types for transactions

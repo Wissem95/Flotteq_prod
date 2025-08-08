@@ -1,7 +1,7 @@
 // 📁 src/components/vehicles/DeleteVehicleModal.tsx
 import React, { useEffect, useState } from "react";
 import Modal from "@/components/Modal";
-import { Button } from "@/components/ui/button";
+import { Button } from "@flotteq/shared";
 import { fetchVehicleById, deleteVehicle } from "@/services/vehicleService";
 
 interface DeleteVehicleModalProps {

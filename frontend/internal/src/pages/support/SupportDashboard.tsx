@@ -1,17 +1,17 @@
 // SupportDashboard.tsx - Tableau de bord principal du support client FlotteQ
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
+import { Badge } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@flotteq/shared";
 import {
   Table,
   TableBody,
@@ -19,14 +19,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@flotteq/shared";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@flotteq/shared";
 import {
   Plus,
   Search,
@@ -48,7 +48,7 @@ import {
 import { supportService, SupportTicket, SupportFilters, SupportStats } from "@/services/supportService";
 import { reportService } from "@/services/reportService";
 import TicketModal from "@/components/modals/TicketModal";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@flotteq/shared";
 
 const SupportDashboard: React.FC = () => {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);

@@ -12,18 +12,18 @@ import {
   Wrench,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@flotteq/shared";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flotteq/shared";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Label } from "@/components/ui/label";
+} from "@flotteq/shared";
+import { Badge } from "@flotteq/shared";
+import { Separator } from "@flotteq/shared";
+import { Label } from "@flotteq/shared";
 
 import { fetchVehicleById, Vehicle } from "@/services/vehicleService";
 import { CtModal } from "@/components/vehicles/CtModal";

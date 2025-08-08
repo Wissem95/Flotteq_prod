@@ -2,11 +2,11 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
+import { Label } from "@flotteq/shared";
+import { Alert, AlertDescription } from "@flotteq/shared";
 import { Building2, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useInternalAuth } from "@/hooks/useInternalAuth";
 import { internalAuthService } from "@/services/internalAuthService";

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
+import { Button } from '@flotteq/shared';
+import { Badge } from '@flotteq/shared';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@flotteq/shared';
 import { Bell, AlertTriangle, Calendar, Car, FileText, Settings, TrendingUp, Clock, CheckCircle } from 'lucide-react';
 
 const NotificationsPage: React.FC = () => {

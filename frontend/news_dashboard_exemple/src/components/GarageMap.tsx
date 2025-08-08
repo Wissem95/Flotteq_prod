@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
+import { Button } from '@flotteq/shared';
+import { Badge } from '@flotteq/shared';
+import { Input } from '@flotteq/shared';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@flotteq/shared';
 import { MapPin, Wrench, Clock, Phone, Star, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 

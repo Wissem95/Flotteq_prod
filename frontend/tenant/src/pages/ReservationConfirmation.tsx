@@ -1,9 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@flotteq/shared';
 import { CheckCircle, MapPin, Car, Wrench, Clock, Phone, Calendar } from 'lucide-react';
 
 interface ReservationConfirmationProps {

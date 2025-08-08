@@ -1,12 +1,12 @@
 // DemoDataGenerator.tsx - Générateur de données de test FlotteQ
 
 import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
+import { Badge } from "@flotteq/shared";
+import { Progress } from "@flotteq/shared";
+import { Alert, AlertDescription } from "@flotteq/shared";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flotteq/shared";
 import { Database, Users, Building2, Car, FileText, CheckCircle, AlertTriangle, Loader2, Play, Trash2, } from "lucide-react";
 
 interface GenerationTask {

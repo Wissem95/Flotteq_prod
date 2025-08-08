@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@flotteq/shared';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@flotteq/shared';
 import { Wrench } from 'lucide-react';
 import GarageMap from './GarageMap';
 

@@ -1,17 +1,17 @@
 // SubscriptionsOverview.tsx - Vue d'ensemble de la gestion des abonnements FlotteQ
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
+import { Badge } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@flotteq/shared";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@flotteq/shared";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@flotteq/shared";
 import { Plus, Search, Filter, CreditCard, TrendingUp, Users, DollarSign, Calendar, MoreHorizontal, Eye, Edit, Ban, Play, X, Download, Mail, AlertTriangle, CheckCircle, Clock, Building2, } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, } from "recharts";
 import { subscriptionsService, Subscription, SubscriptionFilters, SubscriptionStats } from "@/services/subscriptionsService";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@flotteq/shared";
 
 const SubscriptionsOverview: React.FC = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);

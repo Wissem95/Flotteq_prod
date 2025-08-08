@@ -1,7 +1,7 @@
 // 📁 clients/src/pages/admin/tools/ScanUsers.tsx
 import React from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
+import { Button } from "@flotteq/shared";
 
 const ScanUsersTool: React.FC = () => {
   const { user } = useAuth();

@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 // useInternalAuth.ts - Hook d'authentification pour l'interface d'administration
 
 import { useState, useEffect } from 'react';

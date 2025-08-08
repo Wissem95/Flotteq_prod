@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
 import { ClipboardCheck, Calendar, Clock, MapPin, CheckCircle, AlertCircle } from 'lucide-react';
 
 const CTReservationsPage: React.FC = () => {

@@ -1,17 +1,17 @@
 // PartnersMap.tsx - Carte interactive des partenaires FlotteQ
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
+import { Badge } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@flotteq/shared";
 import {
   MapPin,
   Search,

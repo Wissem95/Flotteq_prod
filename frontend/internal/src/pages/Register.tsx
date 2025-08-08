@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Input } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
+import { Label } from "@flotteq/shared";
 import axios from "@/lib/api";
 import { useNavigate, Link } from "react-router-dom";
 

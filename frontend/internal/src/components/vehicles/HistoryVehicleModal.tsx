@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Modal from "@/components/Modal";
-import { Button } from "@/components/ui/button";
+import { Button } from "@flotteq/shared";
 import { fetchVehicleHistory } from "@/services/vehicleService";
 
 import {
@@ -12,7 +12,7 @@ import {
   TableRow,
   TableHead,
   TableCell,
-} from "@/components/ui/table";
+} from "@flotteq/shared";
 
 interface HistoryVehicleModalProps {
   isOpen: boolean;

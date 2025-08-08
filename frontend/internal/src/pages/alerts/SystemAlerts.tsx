@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Badge } from '@flotteq/shared';
+import { Button } from '@flotteq/shared';
 import { AlertTriangle, AlertCircle, Info, CheckCircle, Clock, Zap, Shield, Database, RefreshCw, Settings } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@flotteq/shared';
 import { alertsService, type SystemAlert } from '@/services/alertsService';
 import AlertsModal from '@/components/modals/AlertsModal';
 

@@ -9,13 +9,13 @@ import {
   Settings as SettingsIcon,
   List,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@flotteq/shared";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@flotteq/shared";
 import { useNavigate } from "react-router-dom";
 
 interface TopNavProps {

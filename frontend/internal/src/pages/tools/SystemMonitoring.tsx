@@ -1,13 +1,13 @@
 // SystemMonitoring.tsx - Monitoring système et logs FlotteQ
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
+import { Badge } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@flotteq/shared";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@flotteq/shared";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flotteq/shared";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, } from "recharts";
 import { AlertTriangle, CheckCircle, XCircle, Activity, Cpu, HardDrive, Wifi, Search, RefreshCw, Download, Bell, Settings, Server, Database, Cloud, } from "lucide-react";
 

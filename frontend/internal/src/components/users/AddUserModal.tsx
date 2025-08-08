@@ -4,10 +4,10 @@
 
 import React, { useState } from "react";
 import axios from "@/lib/api";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
+import { Label } from "@flotteq/shared";
 
 interface Props {
   onClose: () => void;

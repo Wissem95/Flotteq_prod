@@ -1,17 +1,17 @@
 // APIIntegrations.tsx - Gestion des intégrations API externes FlotteQ
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
+import { Badge } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
+import { Label } from "@flotteq/shared";
+import { Textarea } from "@flotteq/shared";
+import { Switch } from "@flotteq/shared";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flotteq/shared";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, } from "@flotteq/shared";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@flotteq/shared";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@flotteq/shared";
 import { Plus, Edit, Trash2, MoreHorizontal, Key, Globe, Zap, CheckCircle, XCircle, AlertTriangle, Play, Pause, Eye, Copy, } from "lucide-react";
 
 interface APIKey {

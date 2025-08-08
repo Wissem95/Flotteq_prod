@@ -3,18 +3,18 @@
 import React, { useEffect, useState } from "react";
 import Modal from "@/components/Modal";
 import { fetchVehicleById, updateVehicle, VehiclePayload } from "@/services/vehicleService";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
+import { Label } from "@flotteq/shared";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select";
+} from "@flotteq/shared";
 import DatePicker from "@/components/DatePicker";   // ← import par défaut
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "@flotteq/shared";
 import { Save } from "lucide-react";
 
 interface EditVehicleModalProps {

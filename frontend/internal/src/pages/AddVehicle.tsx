@@ -1,24 +1,24 @@
 // 📁 src/pages/AddVehicle.tsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
+import { Label } from "@flotteq/shared";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@flotteq/shared";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
+} from "@flotteq/shared";
+import { Separator } from "@flotteq/shared";
 import { ArrowLeft, Save } from "lucide-react";
 import { createVehicle, VehiclePayload } from "@/services/vehicleService";
 import DatePicker from "@/components/DatePicker";

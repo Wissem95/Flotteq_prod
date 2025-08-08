@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
+import { Button } from '@flotteq/shared';
+import { Input } from '@flotteq/shared';
+import { Label } from '@flotteq/shared';
+import { Badge } from '@flotteq/shared';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@flotteq/shared';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@flotteq/shared';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@flotteq/shared';
 import { TrendingDown, TrendingUp, Euro, Calculator, Edit, Car, Wrench, Shield, Fuel } from 'lucide-react';
 
 interface VehicleExpense {

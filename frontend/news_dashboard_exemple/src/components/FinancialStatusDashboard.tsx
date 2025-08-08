@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@flotteq/shared';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@flotteq/shared';
+import { Button } from '@flotteq/shared';
 import { DollarSign, TrendingUp, TrendingDown, FileText, Calculator, AlertTriangle, Download, Wrench, Users } from 'lucide-react';
 
 const FinancialStatusDashboard: React.FC = () => {

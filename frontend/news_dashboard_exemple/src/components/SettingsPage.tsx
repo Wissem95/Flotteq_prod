@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
+import { Button } from '@flotteq/shared';
+import { Input } from '@flotteq/shared';
+import { Label } from '@flotteq/shared';
+import { Switch } from '@flotteq/shared';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@flotteq/shared';
 import { Settings, Bell, Users, FileText, Shield, Palette, Database, Car } from 'lucide-react';
 
 const SettingsPage: React.FC = () => {

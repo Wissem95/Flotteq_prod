@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Button } from '@/components/ui/button';
+import { Button } from '@flotteq/shared';
 import { MapPin, Star, Euro, Navigation } from 'lucide-react';
 
 // Fix pour les icônes Leaflet

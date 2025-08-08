@@ -4,7 +4,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "@/lib/api"; // ✅ Utilise le bon fichier de service
-import { Button } from "@/components/ui/button";
+import { Button } from "@flotteq/shared";
 import {
   Table,
   TableBody,
@@ -12,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@flotteq/shared";
 import { PlusCircle, Trash2, Pencil } from "lucide-react";
 import AddUserModal from "@/components/users/AddUserModal";
 import EditUserModal from "@/components/users/EditUserModal"; // ✅ Ajout

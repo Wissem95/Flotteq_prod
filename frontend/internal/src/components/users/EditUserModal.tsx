@@ -8,17 +8,17 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+} from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
+import { Label } from "@flotteq/shared";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select";
+} from "@flotteq/shared";
 import axios from "@/lib/api";
 
 interface EditUserModalProps {

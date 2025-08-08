@@ -1,8 +1,8 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
+import { Progress } from '@flotteq/shared';
 import { Car, Users, AlertTriangle, TrendingUp, MapPin, Wrench, FileText, TrendingDown, Calendar, DollarSign, Clock, Activity, CheckCircle, Check } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@flotteq/shared';
 
 const FleetStatusDashboard: React.FC = () => {
   // 1. Zone haute - tuiles résumé avec icônes et barres de progression

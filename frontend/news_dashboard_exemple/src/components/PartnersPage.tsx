@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@flotteq/shared';
 import { Shield, Wrench, Users, TrendingUp } from 'lucide-react';
 import InsuranceOfferCard from './InsuranceOfferCard';
 import GarageMap from './GarageMap';

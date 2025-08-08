@@ -1,9 +1,9 @@
 // DashboardOverview.tsx - Vue d'ensemble du tableau de bord administrateur FlotteQ
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@flotteq/shared";
+import { Badge } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
 import {
   BarChart,
   Bar,
@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import AlertsModal from "@/components/modals/AlertsModal";
 import { reportService } from "@/services/reportService";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@flotteq/shared";
 
 // Types pour les métriques
 interface PlatformMetrics {

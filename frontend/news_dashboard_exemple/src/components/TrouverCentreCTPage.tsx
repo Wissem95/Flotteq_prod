@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@flotteq/shared';
+import { Button } from '@flotteq/shared';
+import { Input } from '@flotteq/shared';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@flotteq/shared';
 import { ClipboardCheck, Users, TrendingUp, MapPin, Search } from 'lucide-react';
 import OpenStreetMapComponent from './OpenStreetMapComponent';
 import { useGeolocation } from '@/hooks/useGeolocation';

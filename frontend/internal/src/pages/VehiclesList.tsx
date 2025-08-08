@@ -11,22 +11,22 @@ import {
   BarChart2,        // j'utilise BarChart2 pour la stat
   // Tool,          // ← supprimé, ce n'existe pas dans lucide-react
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@flotteq/shared";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+} from "@flotteq/shared";
+import { Badge } from "@flotteq/shared";
 
 import AddVehicleModal from "@/components/vehicles/AddVehicleModal";
 import EditVehicleModal from "@/components/vehicles/EditVehicleModal";

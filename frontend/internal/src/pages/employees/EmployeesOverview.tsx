@@ -1,17 +1,17 @@
 // EmployeesOverview.tsx - Vue d'ensemble de la gestion des employés FlotteQ
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
+import { Badge } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@flotteq/shared";
 import {
   Table,
   TableBody,
@@ -19,14 +19,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@flotteq/shared";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@flotteq/shared";
 import {
   Plus,
   Search,
@@ -49,7 +49,7 @@ import {
   Globe,
 } from "lucide-react";
 import { employeesService, Employee, EmployeeFilters, EmployeeStats } from "@/services/employeesService";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@flotteq/shared";
 
 const EmployeesOverview: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);

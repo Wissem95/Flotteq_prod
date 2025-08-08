@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { useInternalUsers } from "@/hooks/useInternalUsers";
-import { Button } from "@/components/ui/button";
+import { Button } from "@flotteq/shared";
 
 const InternalUsersPage: React.FC = () => {
   const { users, loading, error, addUser, updateUser, deleteUser } = useInternalUsers();

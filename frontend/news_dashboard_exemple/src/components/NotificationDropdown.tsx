@@ -1,16 +1,16 @@
 
 import React from 'react';
 import { Bell, Calendar, Car, FileText, Settings, TrendingUp, X, Clock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@flotteq/shared';
+import { Badge } from '@flotteq/shared';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { ScrollArea } from '@/components/ui/scroll-area';
+} from '@flotteq/shared';
+import { ScrollArea } from '@flotteq/shared';
 import { useNotifications, type Notification } from '@/hooks/useNotifications';
 
 const NotificationDropdown: React.FC = () => {

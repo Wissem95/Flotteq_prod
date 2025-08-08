@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "@/lib/api";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
 
 interface Employe {
   id: number;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Input } from "@flotteq/shared";
+import { Button } from "@flotteq/shared";
 import { Link } from "react-router-dom"; // Import Link
 
 const backgroundImages = [

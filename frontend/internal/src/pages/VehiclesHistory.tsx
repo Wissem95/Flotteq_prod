@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "@/lib/api";
-import { Button } from "@/components/ui/button";
+import { Button } from "@flotteq/shared";
 
 interface HistoryEntry {
   id: number;

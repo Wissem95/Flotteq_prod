@@ -13,23 +13,23 @@ import {
   Settings, 
   Wrench
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@flotteq/shared";
+import { Input } from "@flotteq/shared";
 import { 
   Card, 
   CardContent, 
   CardDescription, 
   CardHeader, 
   CardTitle 
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
+} from "@flotteq/shared";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@flotteq/shared";
+import { Badge } from "@flotteq/shared";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
+} from "@flotteq/shared";
 
 // Sample notification data
 const notificationsData = [

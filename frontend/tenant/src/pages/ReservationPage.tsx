@@ -1,9 +1,6 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Calendar } from '@/components/ui/calendar';
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Calendar } from '@flotteq/shared';
 import { ArrowLeft, MapPin, Car, Wrench, Clock, Euro, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 
