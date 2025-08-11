@@ -20,16 +20,8 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'http://localhost:9092',
-        'http://127.0.0.1:9092',
-        'http://172.20.10.3:9092',
-        'http://localhost:8000',
-        'http://127.0.0.1:8000',
-        'http://172.20.10.3:8000',
-        'http://localhost:8080',
-        'http://127.0.0.1:8080',
-        'https://internal-2gpdqwo5p-wissem95s-projects.vercel.app',
-        'https://tenant-qi0nvkf5j-wissem95s-projects.vercel.app',
+        'https://internal-rust.vercel.app',
+        'https://tenant-black.vercel.app',
     ],
 
     'allowed_origins_patterns' => [],

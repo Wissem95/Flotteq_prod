@@ -4,7 +4,7 @@ import axios from "axios";
 
 // Configuration API pour l'interface d'administration FlotteQ
 const InternalAPI = axios.create({
-  baseURL: "/api/internal", // Endpoint spécifique à l'administration
+  baseURL: import.meta.env.VITE_API_URL + '/internal', // Endpoint spécifique à l'administration
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -16,7 +16,9 @@ const InternalAPI = axios.create({
 // Fonction pour récupérer le token CSRF
 const getCsrfToken = async () => {
   try {
-    await axios.get('http://localhost:8000/sanctum/csrf-cookie', {
+    const baseURL = import.meta.env.VITE_API_URL;
+    const csrfUrl = baseURL.replace('/api', '/sanctum/csrf-cookie');
+    await axios.get(csrfUrl, {
       withCredentials: true
     });
   } catch (error) {

@@ -3,7 +3,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "/api", // Utiliser le proxy configuré dans Vite
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true, // Important : inclure les cookies pour CSRF
   headers: {
     'Content-Type': 'application/json',
@@ -17,7 +17,9 @@ const API = axios.create({
 // Fonction pour récupérer le token CSRF
 const getCsrfToken = async () => {
   try {
-    await axios.get('http://localhost:8000/sanctum/csrf-cookie', {
+    const baseURL = import.meta.env.VITE_API_URL;
+    const csrfUrl = baseURL.replace('/api', '/sanctum/csrf-cookie');
+    await axios.get(csrfUrl, {
       withCredentials: true
     });
   } catch (error) {
