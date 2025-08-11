@@ -165,10 +165,10 @@ Route::middleware(['auth:sanctum'])->prefix('internal')->group(function () {
     });
 });
 
-// Internal admin routes (FlotteQ employees only) 
+// Internal admin routes (FlotteQ employees only)
 Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal')->group(function () {
     Route::apiResource('employes', App\Http\Controllers\API\Admin\InternalEmployeeController::class);
-    
+
     // Partners management (Internal only)
     Route::prefix('partners')->group(function () {
         Route::get('/', [App\Http\Controllers\API\PartnersController::class, 'index']);
@@ -178,7 +178,7 @@ Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal'
         Route::put('/{partner}', [App\Http\Controllers\API\PartnersController::class, 'update']);
         Route::delete('/{partner}', [App\Http\Controllers\API\PartnersController::class, 'destroy']);
     });
-    
+
     // Support management (Internal only)
     Route::prefix('support')->group(function () {
         Route::get('/tickets', [App\Http\Controllers\API\SupportController::class, 'index']);
@@ -187,7 +187,7 @@ Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal'
         Route::post('/tickets/{ticket}/assign', [App\Http\Controllers\API\SupportController::class, 'assign']);
         Route::get('/tenants/{tenantId}/metrics', [App\Http\Controllers\API\SupportController::class, 'tenantMetrics']);
     });
-    
+
     // Analytics (Internal only)
     Route::prefix('analytics')->group(function () {
         Route::get('/global', [App\Http\Controllers\API\InternalAnalyticsController::class, 'globalMetrics']);
@@ -198,7 +198,7 @@ Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal'
         Route::get('/usage', [App\Http\Controllers\API\InternalAnalyticsController::class, 'usageMetrics']);
         Route::get('/realtime', [App\Http\Controllers\API\InternalAnalyticsController::class, 'realtimeMetrics']);
     });
-    
+
     // Subscriptions management (Internal only)
     Route::prefix('subscriptions')->group(function () {
         Route::get('/', [App\Http\Controllers\API\SubscriptionsController::class, 'index']);
@@ -208,7 +208,7 @@ Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal'
         Route::put('/plans/{plan}', [App\Http\Controllers\API\SubscriptionsController::class, 'updatePlan']);
         Route::delete('/plans/{plan}', [App\Http\Controllers\API\SubscriptionsController::class, 'deletePlan']);
     });
-    
+
     // Financial management (Internal only)
     Route::prefix('financial')->group(function () {
         Route::get('/revenue', [App\Http\Controllers\API\FinancialController::class, 'getRevenue']);
@@ -216,7 +216,7 @@ Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal'
         Route::get('/reports', [App\Http\Controllers\API\FinancialController::class, 'getReports']);
         Route::post('/reports', [App\Http\Controllers\API\FinancialController::class, 'generateReport']);
     });
-    
+
     // Employees management (Internal only) - alias for employes route
     Route::get('/employees/stats', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'getStats']);
     Route::get('/employees', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'index']);
@@ -234,7 +234,7 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
         Route::post('/{partner}/rate', [App\Http\Controllers\API\PartnersController::class, 'rate']);
         Route::post('/{partner}/book', [App\Http\Controllers\API\PartnersController::class, 'book']);
     });
-    
+
     // Support for tenants
     Route::prefix('support')->group(function () {
         Route::get('/tickets', [App\Http\Controllers\API\SupportController::class, 'index']);
