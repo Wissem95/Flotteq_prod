@@ -22,6 +22,7 @@ return [
     'allowed_origins' => [
         'https://internal-rust.vercel.app',
         'https://tenant-black.vercel.app',
+        'https://flotteq-backend-v2-production.up.railway.app',
     ],
 
     'allowed_origins_patterns' => [],

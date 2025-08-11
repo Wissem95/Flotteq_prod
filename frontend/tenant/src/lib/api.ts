@@ -18,7 +18,7 @@ const API = axios.create({
 const getCsrfToken = async () => {
   try {
     const baseURL = import.meta.env.VITE_API_URL;
-    const csrfUrl = baseURL.replace('/api', '/sanctum/csrf-cookie');
+    const csrfUrl = baseURL.replace('/api', '') + '/sanctum/csrf-cookie';
     await axios.get(csrfUrl, {
       withCredentials: true
     });
@@ -51,7 +51,9 @@ API.interceptors.request.use(async (config) => {
   }
 
   // Ajouter l'en-tête Tenant ID requis par le backend multitenancy
-  config.headers['X-Tenant-ID'] = '1'; // FlotteQ Demo - tenant pour démonstration
+  // Récupérer le tenant_id depuis l'utilisateur connecté ou utiliser 1 par défaut
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  config.headers['X-Tenant-ID'] = user.tenant_id?.toString() || '1';
 
   const token = localStorage.getItem("token");
   if (token) {

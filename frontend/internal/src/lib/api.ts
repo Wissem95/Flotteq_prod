@@ -17,7 +17,7 @@ const InternalAPI = axios.create({
 const getCsrfToken = async () => {
   try {
     const baseURL = import.meta.env.VITE_API_URL;
-    const csrfUrl = baseURL.replace('/api', '/sanctum/csrf-cookie');
+    const csrfUrl = baseURL.replace('/api', '') + '/sanctum/csrf-cookie';
     await axios.get(csrfUrl, {
       withCredentials: true
     });
