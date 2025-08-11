@@ -3,8 +3,11 @@
 import axios from "axios";
 
 // Configuration API pour l'interface d'administration FlotteQ
+// URL API corrigée - plus de caractères étranges
+const API_BASE_URL = 'https://flotteq-backend-v2-production.up.railway.app/api';
+
 const InternalAPI = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + '/internal', // Endpoint spécifique à l'administration
+  baseURL: API_BASE_URL + '/internal', // Endpoint spécifique à l'administration
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -16,8 +19,8 @@ const InternalAPI = axios.create({
 // Fonction pour récupérer le token CSRF
 const getCsrfToken = async () => {
   try {
-    const baseURL = import.meta.env.VITE_API_URL;
-    const csrfUrl = baseURL.replace('/api', '') + '/sanctum/csrf-cookie';
+    // URL correcte pour récupérer le cookie CSRF
+    const csrfUrl = 'https://flotteq-backend-v2-production.up.railway.app/sanctum/csrf-cookie';
     await axios.get(csrfUrl, {
       withCredentials: true
     });
@@ -37,7 +40,7 @@ function getCookieValue(name: string): string | null {
 }
 
 // Intercepteur pour ajouter le token d'authentification admin
-InternalAPI.interceptors.request.use(async (config) => {
+InternalAPI.interceptors.request.use(async (config: any) => {
   // Pour les requêtes POST/PUT/DELETE, récupérer le token CSRF d'abord
   if (['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase() || '')) {
     await getCsrfToken();
@@ -63,8 +66,8 @@ InternalAPI.interceptors.request.use(async (config) => {
 
 // Intercepteur pour gérer les erreurs d'authentification
 InternalAPI.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  (response: any) => response,
+  (error: any) => {
     if (error.response?.status === 401) {
       // Token expiré ou invalide, rediriger vers la connexion
       localStorage.removeItem("internal_token");
