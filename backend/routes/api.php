@@ -19,6 +19,16 @@ use Illuminate\Support\Facades\Route;
 // Health check
 Route::get('/health', fn() => ['status' => 'ok', 'timestamp' => now()]);
 
+// Test database connection
+Route::get('/test-db', function() {
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        return ['database' => 'connected', 'tables' => \Illuminate\Support\Facades\DB::select("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")];
+    } catch (\Exception $e) {
+        return ['database' => 'error', 'message' => $e->getMessage()];
+    }
+});
+
 // Public auth routes
 Route::prefix('auth')->group(function () {
     Route::post('/login', [App\Http\Controllers\API\AuthController::class, 'login']);
