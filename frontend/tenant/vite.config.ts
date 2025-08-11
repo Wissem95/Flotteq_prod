@@ -4,23 +4,13 @@ import path from "path";
 
 export default defineConfig(({ mode }) => ({
   server: {
-    host: "localhost", // Utiliser 127.0.0.1 au lieu de "::" pour éviter les problèmes WebSocket
+    host: "localhost",
     port: 9092,
     hmr: {
       port: 9093,
       host: "localhost",
-      overlay: false // Désactive l'overlay d'erreur pour les warnings WebSocket
-    },
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        secure: false
-      },
-    },
-  },
-  define: {
-    'import.meta.env.VITE_API_URL': '"http://localhost:8000"',
+      overlay: false
+    }
   },
   optimizeDeps: {
     include: ['react', 'react-dom']

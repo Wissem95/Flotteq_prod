@@ -39,3 +39,4 @@ coverage/
 
 # macOS / Linux swap files
 *.swp
+.vercel
