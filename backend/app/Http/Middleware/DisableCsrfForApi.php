@@ -12,13 +12,18 @@ class DisableCsrfForApi
 {
     /**
      * Handle an incoming request.
+     * Désactive complètement la vérification CSRF pour les routes API
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Désactiver la vérification CSRF pour les routes API
-        // Les routes API utilisent l'authentification Bearer token via Sanctum
-        $request->session()->put('_token', $request->header('X-CSRF-TOKEN', 'disabled'));
+        // Marquer la requête comme exempte de vérification CSRF
+        $request->session()->put('_token', 'api-disabled');
+        $request->session()->regenerateToken();
         
-        return $next($request);
+        // Ajouter un header pour identifier que CSRF est désactivé
+        $response = $next($request);
+        $response->headers->set('X-CSRF-Protection', 'disabled-for-api');
+        
+        return $response;
     }
 }
