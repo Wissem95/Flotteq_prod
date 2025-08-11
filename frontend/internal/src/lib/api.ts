@@ -5,7 +5,7 @@ import axios from "axios";
 // Configuration API pour l'interface d'administration FlotteQ
 const InternalAPI = axios.create({
   baseURL: import.meta.env.VITE_API_URL + '/internal', // Endpoint spécifique à l'administration
-  withCredentials: true,
+  withCredentials: false, // Désactivé pour éviter les problèmes CSRF cross-origin
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -38,17 +38,6 @@ function getCookieValue(name: string): string | null {
 
 // Intercepteur pour ajouter le token d'authentification admin
 InternalAPI.interceptors.request.use(async (config) => {
-  // Pour les requêtes POST/PUT/DELETE, récupérer le token CSRF d'abord
-  if (['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase() || '')) {
-    await getCsrfToken();
-    
-    // Extraire le token CSRF du cookie XSRF-TOKEN
-    const csrfToken = getCookieValue('XSRF-TOKEN');
-    if (csrfToken) {
-      config.headers['X-XSRF-TOKEN'] = decodeURIComponent(csrfToken);
-    }
-  }
-
   // Ajouter l'en-tête d'authentification admin
   const token = localStorage.getItem("internal_token");
   if (token) {

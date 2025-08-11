@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'tenant-black.vercel.app,internal-rust.vercel.app')),
+    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'tenant-k2dk8g8h5-wissem95s-projects.vercel.app,internal-4wjbe9t67-wissem95s-projects.vercel.app,tenant-black.vercel.app,internal-rust.vercel.app')),
 
     /*
     |--------------------------------------------------------------------------
