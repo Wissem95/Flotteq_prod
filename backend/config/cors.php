@@ -22,8 +22,6 @@ return [
     'allowed_origins' => [
         'https://internal-rust.vercel.app',
         'https://tenant-black.vercel.app',
-        'https://internal-rna3vmjf3-wissem95s-projects.vercel.app',
-        'https://tenant-q6szwmk97-wissem95s-projects.vercel.app',
     ],
 
     'allowed_origins_patterns' => [],
