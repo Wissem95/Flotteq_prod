@@ -13,28 +13,8 @@ const InternalAPI = axios.create({
   },
 });
 
-// Fonction pour récupérer le token CSRF
-const getCsrfToken = async () => {
-  try {
-    const baseURL = import.meta.env.VITE_API_URL;
-    const csrfUrl = baseURL.replace('/api', '') + '/sanctum/csrf-cookie';
-    await axios.get(csrfUrl, {
-      withCredentials: true
-    });
-  } catch (error) {
-    console.warn("Erreur lors de la récupération du token CSRF:", error);
-  }
-};
-
-// Fonction utilitaire pour extraire un cookie
-function getCookieValue(name: string): string | null {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    return parts.pop()?.split(';').shift() || null;
-  }
-  return null;
-}
+// CSRF complètement désactivé pour l'authentification cross-origin
+// Utilisation exclusive des Bearer tokens pour l'authentification
 
 // Intercepteur pour ajouter le token d'authentification admin
 InternalAPI.interceptors.request.use(async (config) => {
