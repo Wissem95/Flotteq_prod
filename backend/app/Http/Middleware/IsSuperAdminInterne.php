@@ -22,28 +22,24 @@ class IsSuperAdminInterne
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Temporarily bypass all checks for debugging
-        return $next($request);
-        
-        /*
         try {
             $user = $request->user();
             if (!$user) {
-                return response()->json(['error' => 'No user found'], 403);
+                return response()->json(['debug' => 'No user found'], 403);
             }
             
-            if (!$user->isInternal()) {
-                return response()->json(['error' => 'User not internal'], 403);
+            // Just check if user has the required fields, without calling methods
+            if (!isset($user->is_internal) || !$user->is_internal) {
+                return response()->json(['debug' => 'User not internal', 'user_id' => $user->id], 403);
             }
             
-            if (!$user->isSuperAdmin()) {
-                return response()->json(['error' => 'User not super admin'], 403);
+            if (!isset($user->role_interne) || !in_array($user->role_interne, ['super_admin', 'admin'])) {
+                return response()->json(['debug' => 'User not admin', 'role_interne' => $user->role_interne], 403);
             }
             
             return $next($request);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Middleware error: ' . $e->getMessage()], 500);
+            return response()->json(['debug' => 'Middleware error', 'error' => $e->getMessage(), 'line' => $e->getLine()], 500);
         }
-        */
     }
 }
