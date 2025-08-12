@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,35 +15,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Health check
+// Health check endpoint for monitoring
 Route::get('/health', fn() => ['status' => 'ok', 'timestamp' => now()]);
-
-// Debug auth endpoint
-Route::middleware(['auth:sanctum'])->get('/debug-auth', function(Request $request) {
-    try {
-        $user = $request->user();
-        return [
-            'user_id' => $user->id ?? null,
-            'user_email' => $user->email ?? null,
-            'is_internal' => $user->is_internal ?? null,
-            'role' => $user->role ?? null,
-            'auth_working' => true
-        ];
-    } catch (\Exception $e) {
-        return ['error' => $e->getMessage(), 'auth_working' => false];
-    }
-});
-
-
-// Test database connection
-Route::get('/test-db', function() {
-    try {
-        \Illuminate\Support\Facades\DB::connection()->getPdo();
-        return ['database' => 'connected', 'tables' => \Illuminate\Support\Facades\DB::select("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")];
-    } catch (\Exception $e) {
-        return ['database' => 'error', 'message' => $e->getMessage()];
-    }
-});
 
 // Public auth routes
 Route::prefix('auth')->group(function () {
