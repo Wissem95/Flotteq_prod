@@ -28,6 +28,51 @@ Route::get('/debug-no-auth', function() {
     ]);
 });
 
+// Manual token verification to bypass Sanctum
+Route::get('/debug-manual-auth', function(Request $request) {
+    try {
+        $header = $request->header('Authorization');
+        if (!$header || !str_starts_with($header, 'Bearer ')) {
+            return response()->json(['error' => 'No Bearer token'], 401);
+        }
+        
+        $token = substr($header, 7); // Remove "Bearer "
+        [$id, $hash] = explode('|', $token);
+        
+        $accessToken = DB::table('personal_access_tokens')
+            ->where('id', $id)
+            ->first();
+            
+        if (!$accessToken) {
+            return response()->json(['error' => 'Token not found in database'], 401);
+        }
+        
+        $user = DB::table('users')
+            ->where('id', $accessToken->tokenable_id)
+            ->first();
+            
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 401);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Manual auth successful',
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'is_internal' => $user->is_internal,
+            'role_interne' => $user->role_interne
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Manual auth failed',
+            'message' => $e->getMessage(),
+            'line' => $e->getLine()
+        ], 500);
+    }
+});
+
 // Debug endpoint to test auth - ultra simple
 Route::middleware(['auth:sanctum'])->get('/debug-auth', function(Request $request) {
     try {
