@@ -8,6 +8,9 @@ import TenantModal from '@/components/modals/TenantModal';
 import { tenantService, type Tenant, type TenantCreateData } from '@/services/tenantService';
 import { toast } from '@/hooks/use-toast';
 
+// Utilitaires sécurisés
+import { safeArray, safeMap } from '@/utils/safeData';
+
 const TenantsOverview: React.FC = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -220,7 +223,7 @@ const TenantsOverview: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {stats?.total_users || tenants.reduce((sum, tenant) => sum + tenant.users_count, 0)}
+              {stats?.total_users || safeArray(tenants).reduce((sum, tenant) => sum + tenant.users_count, 0)}
             </div>
             <p className="text-xs text-muted-foreground">Tous tenants confondus</p>
           </CardContent>
@@ -233,7 +236,7 @@ const TenantsOverview: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {stats?.total_vehicles || tenants.reduce((sum, tenant) => sum + tenant.vehicles_count, 0)}
+              {stats?.total_vehicles || safeArray(tenants).reduce((sum, tenant) => sum + tenant.vehicles_count, 0)}
             </div>
             <p className="text-xs text-muted-foreground">Total flotte</p>
           </CardContent>
@@ -264,7 +267,7 @@ const TenantsOverview: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {tenants.map((tenant) => (
+                {safeMap(tenants, (tenant) => (
                   <tr key={tenant.id} className="border-b hover:bg-gray-50">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">

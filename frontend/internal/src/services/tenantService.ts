@@ -2,6 +2,9 @@
 
 import { api } from '@/lib/api';
 
+// Utilitaires sécurisés
+import { safeArray, safeFilter } from '@/utils/safeData';
+
 export interface Tenant {
   id: string;
   name: string;
@@ -194,13 +197,14 @@ class TenantService {
   }
 
   private calculateStats(tenants: Tenant[]): TenantStats {
+    const safeTenants = safeArray(tenants);
     return {
-      total: tenants.length,
-      active: tenants.filter(t => t.status === 'active').length,
-      inactive: tenants.filter(t => t.status === 'inactive').length,
-      suspended: tenants.filter(t => t.status === 'suspended').length,
-      total_users: tenants.reduce((sum, t) => sum + t.users_count, 0),
-      total_vehicles: tenants.reduce((sum, t) => sum + t.vehicles_count, 0),
+      total: safeTenants.length,
+      active: safeFilter(safeTenants, t => t.status === 'active').length,
+      inactive: safeFilter(safeTenants, t => t.status === 'inactive').length,
+      suspended: safeFilter(safeTenants, t => t.status === 'suspended').length,
+      total_users: safeTenants.reduce((sum, t) => sum + t.users_count, 0),
+      total_vehicles: safeTenants.reduce((sum, t) => sum + t.vehicles_count, 0),
       monthly_growth: 15.2,
       revenue_monthly: 45760
     };
@@ -216,7 +220,7 @@ class TenantService {
       
       // Fallback local
       const tenants = this.getLocalTenants();
-      const tenant = tenants.find(t => t.id === id);
+      const tenant = safeArray(tenants).find(t => t.id === id);
       
       if (!tenant) {
         throw new Error('Tenant non trouvé');
@@ -352,7 +356,7 @@ class TenantService {
       
       // Supprimer localement
       const tenants = this.getLocalTenants();
-      const filteredTenants = tenants.filter(t => t.id !== id);
+      const filteredTenants = safeFilter(tenants, t => t.id !== id);
       this.saveLocalTenants(filteredTenants);
     } catch (error: any) {
       console.error('Erreur suppression tenant:', error);
@@ -360,7 +364,7 @@ class TenantService {
       // Fallback local
       await new Promise(resolve => setTimeout(resolve, 1200));
       const tenants = this.getLocalTenants();
-      const filteredTenants = tenants.filter(t => t.id !== id);
+      const filteredTenants = safeFilter(tenants, t => t.id !== id);
       this.saveLocalTenants(filteredTenants);
     }
   }
@@ -368,7 +372,7 @@ class TenantService {
   // Méthode utilitaire pour mettre à jour le statut localement
   private async updateLocalTenantStatus(id: string, status: Tenant['status']): Promise<void> {
     const tenants = this.getLocalTenants();
-    const index = tenants.findIndex(t => t.id === id);
+    const index = safeArray(tenants).findIndex(t => t.id === id);
     
     if (index !== -1) {
       tenants[index].status = status;
