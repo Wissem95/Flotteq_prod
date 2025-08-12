@@ -60,9 +60,18 @@ coverage/
 # Composer (PHP)
 vendor/
 
-# Laravel specific
-storage/
-bootstrap/cache/
+# Laravel specific - ignore content but allow directories
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/app/*
+!storage/app/public/
+!storage/framework/
+!storage/logs/
+!storage/app/
+bootstrap/cache/*
+!bootstrap/cache/
 
 # Docker
 .dockerignore
