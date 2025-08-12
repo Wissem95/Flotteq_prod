@@ -78,7 +78,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         // Préparer les données utilisateur avec le statut du profil
-        $userProfileData = $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'role']);
+        $userProfileData = $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'role', 'is_internal', 'role_interne']);
         // Temporairement désactivé pour diagnostic erreurs 500
         try {
             $userProfileData['profile_incomplete'] = $user->hasIncompleteProfile();
@@ -171,7 +171,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         // Préparer les données utilisateur avec le statut du profil
-        $userProfileData = $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'role']);
+        $userProfileData = $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'role', 'is_internal', 'role_interne']);
         // Temporairement désactivé pour diagnostic erreurs 500
         try {
             $userProfileData['profile_incomplete'] = $user->hasIncompleteProfile();
