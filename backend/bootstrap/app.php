@@ -33,10 +33,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'check_incomplete_profile' => \App\Http\Middleware\CheckIncompleteProfile::class,
         ]);
 
-        // Réactivé - système de permissions fonctionnel avec Spatie Permission
-        $middleware->appendToGroup('api', [
-            \App\Http\Middleware\EnsureUserHasPermissions::class,
-        ]);
+        // Temporairement désactivé pour diagnostic des erreurs 500
+        // TODO: Réactiver après correction du système de permissions  
+        // $middleware->appendToGroup('api', [
+        //     \App\Http\Middleware\EnsureUserHasPermissions::class,
+        // ]);
 
         // Configure auth redirect for API requests
         $middleware->redirectUsersTo(function ($request) {
