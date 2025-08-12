@@ -124,9 +124,13 @@ class AuthController extends Controller
 
         // Now validate user credentials
         $validated = $request->validate([
-            'login' => ['required', 'string'],
+            'login' => ['required_without:email', 'string'],
+            'email' => ['required_without:login', 'string'],
             'password' => ['required', 'string'],
         ]);
+
+        // Support both 'login' and 'email' fields
+        $login = $validated['login'] ?? $validated['email'];
 
         // Find user by email or username
         $user = User::where(function ($query) use ($login) {

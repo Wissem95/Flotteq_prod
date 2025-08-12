@@ -4,7 +4,7 @@ import axios from "axios";
 
 // Configuration API pour l'interface d'administration FlotteQ
 const InternalAPI = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + '/internal', // Endpoint spécifique à l'administration
+  baseURL: import.meta.env.VITE_API_URL, // Utiliser l'API standard, pas /internal
   withCredentials: false, // Désactivé pour éviter les problèmes CSRF cross-origin
   headers: {
     'Content-Type': 'application/json',
@@ -24,8 +24,9 @@ InternalAPI.interceptors.request.use(async (config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  // En-tête pour identifier les requêtes internes
+  // En-têtes pour identifier les requêtes internes
   config.headers['X-Internal-Request'] = 'true';
+  config.headers['X-Admin-Panel'] = 'true';
 
   return config;
 });
