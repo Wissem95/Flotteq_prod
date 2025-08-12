@@ -19,6 +19,15 @@ use Illuminate\Support\Facades\Route;
 // Health check
 Route::get('/health', fn() => ['status' => 'ok', 'timestamp' => now()]);
 
+// Test endpoint without any middleware
+Route::get('/debug-no-auth', function() {
+    return response()->json([
+        'success' => true,
+        'message' => 'No auth required - this should work',
+        'timestamp' => now()
+    ]);
+});
+
 // Debug endpoint to test auth - ultra simple
 Route::middleware(['auth:sanctum'])->get('/debug-auth', function(Request $request) {
     return response()->json([
