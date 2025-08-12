@@ -169,6 +169,30 @@ Route::middleware(['auth:sanctum'])->prefix('internal')->group(function () {
 Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal')->group(function () {
     Route::apiResource('employes', App\Http\Controllers\API\Admin\InternalEmployeeController::class);
 
+    // Tenants management (Internal only)
+    Route::prefix('tenants')->group(function () {
+        Route::get('/', [App\Http\Controllers\API\TenantController::class, 'index']);
+        Route::get('/stats', [App\Http\Controllers\API\TenantController::class, 'getStats']);
+        Route::get('/{tenant}', [App\Http\Controllers\API\TenantController::class, 'show']);
+        Route::post('/', [App\Http\Controllers\API\TenantController::class, 'store']);
+        Route::put('/{tenant}', [App\Http\Controllers\API\TenantController::class, 'update']);
+        Route::delete('/{tenant}', [App\Http\Controllers\API\TenantController::class, 'destroy']);
+    });
+
+    // System alerts management
+    Route::prefix('alerts')->group(function () {
+        Route::get('/', [App\Http\Controllers\API\AlertsController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\API\AlertsController::class, 'store']);
+        Route::put('/{alert}', [App\Http\Controllers\API\AlertsController::class, 'update']);
+        Route::delete('/{alert}', [App\Http\Controllers\API\AlertsController::class, 'destroy']);
+    });
+
+    // Additional internal routes
+    Route::get('/tickets', [App\Http\Controllers\API\SupportController::class, 'index']);
+    Route::get('/employees', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'index']);
+    Route::get('/stats', [App\Http\Controllers\API\InternalAnalyticsController::class, 'getStats']);
+    Route::get('/statistics', [App\Http\Controllers\API\InternalAnalyticsController::class, 'getStatistics']);
+
     // Partners management (Internal only)
     Route::prefix('partners')->group(function () {
         Route::get('/', [App\Http\Controllers\API\PartnersController::class, 'index']);

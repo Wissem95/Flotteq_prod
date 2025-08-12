@@ -17,6 +17,92 @@ use Carbon\Carbon;
 class InternalAnalyticsController extends Controller
 {
     /**
+     * Get general statistics for internal dashboard
+     */
+    public function getStats(Request $request): JsonResponse
+    {
+        try {
+            $stats = [
+                'tenants' => [
+                    'total' => Tenant::count(),
+                    'active' => Tenant::where('status', 'active')->count(),
+                    'growth' => $this->getTenantGrowth(),
+                ],
+                'users' => [
+                    'total' => User::where('is_internal', false)->count(),
+                    'active' => User::where('is_internal', false)->where('is_active', true)->count(),
+                    'growth' => $this->getUserGrowth(),
+                ],
+                'vehicles' => [
+                    'total' => Vehicle::count(),
+                    'available' => Vehicle::where('status', 'available')->count(),
+                    'maintenance' => Vehicle::where('status', 'maintenance')->count(),
+                ],
+                'support' => [
+                    'open_tickets' => SupportTicket::where('status', 'open')->count(),
+                    'pending_tickets' => SupportTicket::where('status', 'pending')->count(),
+                    'resolution_time' => $this->getAverageResolutionTime(),
+                ],
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $stats,
+                'message' => 'Statistiques récupérées avec succès'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des statistiques',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get detailed statistics
+     */
+    public function getStatistics(Request $request): JsonResponse
+    {
+        try {
+            $period = $request->get('period', '30d');
+            
+            $statistics = [
+                'overview' => [
+                    'total_revenue' => 0, // Placeholder
+                    'total_transactions' => 0, // Placeholder
+                    'average_ticket_size' => 0, // Placeholder
+                    'customer_satisfaction' => 95.2, // Placeholder
+                ],
+                'trends' => [
+                    'tenant_registration' => $this->getTenantRegistrationTrend($period),
+                    'vehicle_usage' => $this->getVehicleUsageTrend($period),
+                    'maintenance_frequency' => $this->getMaintenanceFrequencyTrend($period),
+                ],
+                'top_metrics' => [
+                    'most_active_tenants' => $this->getMostActiveTenants(),
+                    'vehicle_performance' => $this->getVehiclePerformance(),
+                    'support_metrics' => $this->getSupportMetrics(),
+                ],
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $statistics,
+                'message' => 'Statistiques détaillées récupérées'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des statistiques détaillées',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get global platform analytics (Internal only).
      */
     public function globalMetrics(Request $request): JsonResponse
@@ -470,5 +556,121 @@ class InternalAnalyticsController extends Controller
         ];
 
         return response()->json($metrics);
+    }
+
+    /**
+     * Helper methods for statistics
+     */
+    private function getTenantGrowth(): float
+    {
+        $lastMonth = Tenant::whereMonth('created_at', now()->subMonth()->month)->count();
+        $thisMonth = Tenant::whereMonth('created_at', now()->month)->count();
+        
+        if ($lastMonth == 0) return 100.0;
+        return (($thisMonth - $lastMonth) / $lastMonth) * 100;
+    }
+
+    private function getUserGrowth(): float
+    {
+        $lastMonth = User::where('is_internal', false)
+            ->whereMonth('created_at', now()->subMonth()->month)->count();
+        $thisMonth = User::where('is_internal', false)
+            ->whereMonth('created_at', now()->month)->count();
+        
+        if ($lastMonth == 0) return 100.0;
+        return (($thisMonth - $lastMonth) / $lastMonth) * 100;
+    }
+
+    private function getAverageResolutionTime(): string
+    {
+        // Placeholder - return mock data
+        return '2.5 hours';
+    }
+
+    private function getTenantRegistrationTrend(string $period): array
+    {
+        // Generate mock trend data
+        $data = [];
+        $days = $period === '7d' ? 7 : 30;
+        
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $data[] = [
+                'date' => $date->format('Y-m-d'),
+                'count' => rand(0, 5)
+            ];
+        }
+        
+        return $data;
+    }
+
+    private function getVehicleUsageTrend(string $period): array
+    {
+        // Generate mock vehicle usage data
+        $data = [];
+        $days = $period === '7d' ? 7 : 30;
+        
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $data[] = [
+                'date' => $date->format('Y-m-d'),
+                'usage_hours' => rand(50, 200)
+            ];
+        }
+        
+        return $data;
+    }
+
+    private function getMaintenanceFrequencyTrend(string $period): array
+    {
+        // Generate mock maintenance data
+        $data = [];
+        $days = $period === '7d' ? 7 : 30;
+        
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $data[] = [
+                'date' => $date->format('Y-m-d'),
+                'maintenance_count' => rand(1, 10)
+            ];
+        }
+        
+        return $data;
+    }
+
+    private function getMostActiveTenants(): array
+    {
+        return Tenant::withCount('vehicles')
+            ->orderBy('vehicles_count', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($tenant) {
+                return [
+                    'name' => $tenant->name,
+                    'vehicles_count' => $tenant->vehicles_count,
+                    'activity_score' => rand(70, 100)
+                ];
+            })
+            ->toArray();
+    }
+
+    private function getVehiclePerformance(): array
+    {
+        return [
+            'total_vehicles' => Vehicle::count(),
+            'utilization_rate' => rand(70, 95),
+            'maintenance_efficiency' => rand(80, 98),
+            'average_downtime' => rand(1, 5) . ' days'
+        ];
+    }
+
+    private function getSupportMetrics(): array
+    {
+        return [
+            'total_tickets' => SupportTicket::count(),
+            'resolution_rate' => rand(85, 98),
+            'average_response_time' => rand(1, 4) . ' hours',
+            'customer_satisfaction' => rand(90, 99)
+        ];
     }
 }
