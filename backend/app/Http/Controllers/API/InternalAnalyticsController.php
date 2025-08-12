@@ -26,7 +26,7 @@ class InternalAnalyticsController extends Controller
                 'tenants' => [
                     'total' => Tenant::count(),
                     'active' => Tenant::where('status', 'active')->count(),
-                    'growth' => $this->getTenantGrowth(),
+                    'growth' => $this->getTenantGrowthPercentage(),
                 ],
                 'users' => [
                     'total' => User::where('is_internal', false)->count(),
@@ -81,7 +81,7 @@ class InternalAnalyticsController extends Controller
                     'maintenance_frequency' => $this->getMaintenanceFrequencyTrend($period),
                 ],
                 'top_metrics' => [
-                    'most_active_tenants' => $this->getMostActiveTenants(),
+                    'most_active_tenants' => $this->getTopActiveTenants(),
                     'vehicle_performance' => $this->getVehiclePerformance(),
                     'support_metrics' => $this->getSupportMetrics(),
                 ],
@@ -561,7 +561,7 @@ class InternalAnalyticsController extends Controller
     /**
      * Helper methods for statistics
      */
-    private function getTenantGrowth(): float
+    private function getTenantGrowthPercentage(): float
     {
         $lastMonth = Tenant::whereMonth('created_at', now()->subMonth()->month)->count();
         $thisMonth = Tenant::whereMonth('created_at', now()->month)->count();
@@ -638,7 +638,7 @@ class InternalAnalyticsController extends Controller
         return $data;
     }
 
-    private function getMostActiveTenants(): array
+    private function getTopActiveTenants(): array
     {
         return Tenant::withCount('vehicles')
             ->orderBy('vehicles_count', 'desc')
