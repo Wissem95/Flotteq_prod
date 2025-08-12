@@ -2,6 +2,13 @@
 
 echo "🚀 Starting FLOTTEQ Backend..."
 
+# Create necessary storage directories first
+mkdir -p storage/framework/{views,cache,sessions}
+mkdir -p storage/app/public
+mkdir -p bootstrap/cache
+chmod -R 775 storage
+chmod -R 775 bootstrap/cache
+
 # Clear caches first
 php artisan config:clear
 php artisan route:clear
