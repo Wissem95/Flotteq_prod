@@ -64,7 +64,12 @@ class AuthController extends Controller
         ]);
 
         // Assigner les permissions par défaut au nouvel utilisateur
-        UserPermissionService::assignDefaultPermissions($user);
+        try {
+            UserPermissionService::assignDefaultPermissions($user);
+        } catch (\Exception $e) {
+            // Log l'erreur mais continue - ne pas bloquer l'enregistrement
+            Log::warning("Impossible d'assigner les permissions lors de l'enregistrement pour l'utilisateur {$user->id}: " . $e->getMessage());
+        }
 
         // Make tenant current
         $tenant->makeCurrent();
@@ -144,8 +149,14 @@ class AuthController extends Controller
         }
 
         // Assigner les permissions par défaut si l'utilisateur n'en a pas
-        if ($user->permissions()->count() === 0) {
-            UserPermissionService::assignDefaultPermissions($user);
+        // Temporairement désactivé pour éviter les erreurs 500 si les permissions n'existent pas
+        try {
+            if ($user->permissions()->count() === 0) {
+                UserPermissionService::assignDefaultPermissions($user);
+            }
+        } catch (\Exception $e) {
+            // Log l'erreur mais continue - ne pas bloquer la connexion
+            Log::warning("Impossible d'assigner les permissions lors du login pour l'utilisateur {$user->id}: " . $e->getMessage());
         }
 
         // Create token
