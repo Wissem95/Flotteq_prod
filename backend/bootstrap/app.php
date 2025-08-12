@@ -17,8 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Global API middleware
         $middleware->api(prepend: [
             \Illuminate\Http\Middleware\HandleCors::class,
-            \App\Http\Middleware\DisableCsrfForApi::class,
-            // Désactivé temporairement pour éviter les problèmes CSRF cross-origin
+            // Désactivé pour éviter les problèmes CSRF cross-origin - utilisation pure Bearer token
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
