@@ -42,7 +42,16 @@ export const internalAuthService = {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
       // Essayer d'abord la connexion réelle
-      const response = await api.post('/auth/login', credentials);
+      // Utiliser FormData au lieu de JSON car l'API attend du form data
+      const formData = new FormData();
+      formData.append('login', credentials.email);
+      formData.append('password', credentials.password);
+      
+      const response = await api.post('/auth/login', formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
       
       // Stocker les données d'authentification
       if (response.data.token) {

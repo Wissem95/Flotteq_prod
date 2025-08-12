@@ -2,9 +2,15 @@
 import { api } from "@/lib/api";
 
 export const login = async (email: string, password: string) => {
-  const response = await api.post("/auth/login", {
-    login: email,
-    password: password,
+  // Utiliser FormData au lieu de JSON car l'API attend du form data
+  const formData = new FormData();
+  formData.append('login', email);
+  formData.append('password', password);
+  
+  const response = await api.post("/auth/login", formData, {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
   });
   return response.data;
 };
