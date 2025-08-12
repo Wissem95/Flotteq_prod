@@ -28,7 +28,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Middleware aliases
         $middleware->alias([
-            'auth:sanctum' => \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'is_super_admin_interne' => IsSuperAdminInterne::class,
             'ensure_permissions' => \App\Http\Middleware\EnsureUserHasPermissions::class,
             'check_incomplete_profile' => \App\Http\Middleware\CheckIncompleteProfile::class,
