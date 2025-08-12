@@ -79,8 +79,16 @@ class AuthController extends Controller
 
         // Préparer les données utilisateur avec le statut du profil
         $userProfileData = $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'role']);
-        $userProfileData['profile_incomplete'] = $user->hasIncompleteProfile();
-        $userProfileData['missing_fields'] = $user->getMissingProfileFields();
+        // Temporairement désactivé pour diagnostic erreurs 500
+        try {
+            $userProfileData['profile_incomplete'] = $user->hasIncompleteProfile();
+            $userProfileData['missing_fields'] = $user->getMissingProfileFields();
+        } catch (\Exception $e) {
+            // Valeurs par défaut si erreur
+            Log::warning("Erreur lors de la vérification du profil pour l'utilisateur {$user->id}: " . $e->getMessage());
+            $userProfileData['profile_incomplete'] = true;
+            $userProfileData['missing_fields'] = [];
+        }
 
         return response()->json([
             'message' => 'Registration successful',
@@ -164,8 +172,16 @@ class AuthController extends Controller
 
         // Préparer les données utilisateur avec le statut du profil
         $userProfileData = $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'role']);
-        $userProfileData['profile_incomplete'] = $user->hasIncompleteProfile();
-        $userProfileData['missing_fields'] = $user->getMissingProfileFields();
+        // Temporairement désactivé pour diagnostic erreurs 500
+        try {
+            $userProfileData['profile_incomplete'] = $user->hasIncompleteProfile();
+            $userProfileData['missing_fields'] = $user->getMissingProfileFields();
+        } catch (\Exception $e) {
+            // Valeurs par défaut si erreur
+            Log::warning("Erreur lors de la vérification du profil pour l'utilisateur {$user->id}: " . $e->getMessage());
+            $userProfileData['profile_incomplete'] = true;
+            $userProfileData['missing_fields'] = [];
+        }
 
         return response()->json([
             'message' => 'Login successful',
@@ -291,8 +307,17 @@ class AuthController extends Controller
             'phone', 'birthdate', 'gender', 'address', 'postalCode', 'city', 'country',
             'company', 'fleet_role', 'license_number'
         ]);
-        $userProfileData['profile_incomplete'] = $user->hasIncompleteProfile();
-        $userProfileData['missing_fields'] = $user->getMissingProfileFields();
+        
+        // Temporairement désactivé pour diagnostic erreurs 500
+        try {
+            $userProfileData['profile_incomplete'] = $user->hasIncompleteProfile();
+            $userProfileData['missing_fields'] = $user->getMissingProfileFields();
+        } catch (\Exception $e) {
+            // Valeurs par défaut si erreur
+            Log::warning("Erreur lors de la vérification du profil pour l'utilisateur {$user->id}: " . $e->getMessage());
+            $userProfileData['profile_incomplete'] = true;
+            $userProfileData['missing_fields'] = [];
+        }
 
         return response()->json([
             'user' => $userProfileData,
