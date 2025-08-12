@@ -2,15 +2,10 @@
 import axios from "@/lib/api";
 
 export const login = async (email: string, password: string) => {
-  // Utiliser FormData au lieu de JSON car l'API attend du form data
-  const formData = new FormData();
-  formData.append('login', email);
-  formData.append('password', password);
-  
-  const response = await axios.post("/auth/login", formData, {
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
+  // L'API interne attend email et password en JSON
+  const response = await axios.post("/auth/login", {
+    email: email,
+    password: password,
   });
   return response.data;
 };
