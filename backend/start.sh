@@ -18,6 +18,10 @@ php artisan cache:clear
 echo "📦 Running database migrations..."
 php artisan migrate --force
 
+# Create missing tables if needed
+echo "🔧 Creating missing tables..."
+php artisan db:seed --class=CreateMissingTablesSeeder --force
+
 # Check if database is empty and seed if needed
 USER_COUNT=$(php artisan tinker --execute="echo App\Models\User::count();")
 if [ "$USER_COUNT" = "0" ]; then
