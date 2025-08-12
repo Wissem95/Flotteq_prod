@@ -19,6 +19,26 @@ use Illuminate\Support\Facades\Route;
 // Health check
 Route::get('/health', fn() => ['status' => 'ok', 'timestamp' => now()]);
 
+// Debug endpoint to test auth
+Route::middleware(['auth:sanctum'])->get('/debug-auth', function(Request $request) {
+    try {
+        $user = $request->user();
+        return response()->json([
+            'success' => true,
+            'user_id' => $user?->id,
+            'user_email' => $user?->email,
+            'is_internal' => $user?->is_internal,
+            'role_interne' => $user?->role_interne
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
+
 // Test database connection
 Route::get('/test-db', function() {
     try {
