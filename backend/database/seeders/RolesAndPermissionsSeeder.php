@@ -78,7 +78,7 @@ class RolesAndPermissionsSeeder extends Seeder
         );
 
         foreach ($allPermissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::create(['name' => $permission, 'guard_name' => 'sanctum']);
         }
 
         // Update cache to know about the newly created permissions
@@ -87,11 +87,11 @@ class RolesAndPermissionsSeeder extends Seeder
         // Create roles and assign permissions
 
         // Super Admin - all permissions
-        $superAdmin = Role::create(['name' => 'super-admin']);
+        $superAdmin = Role::create(['name' => 'super-admin', 'guard_name' => 'sanctum']);
         $superAdmin->givePermissionTo(Permission::all());
 
         // Admin - company management permissions
-        $admin = Role::create(['name' => 'admin']);
+        $admin = Role::create(['name' => 'admin', 'guard_name' => 'sanctum']);
         $admin->givePermissionTo([
             ...$vehiclePermissions,
             ...$userPermissions,
@@ -104,7 +104,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // Manager - vehicle and user management
-        $manager = Role::create(['name' => 'manager']);
+        $manager = Role::create(['name' => 'manager', 'guard_name' => 'sanctum']);
         $manager->givePermissionTo([
             ...$vehiclePermissions,
             'view users',
@@ -115,7 +115,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // Employee - basic vehicle operations
-        $employee = Role::create(['name' => 'employee']);
+        $employee = Role::create(['name' => 'employee', 'guard_name' => 'sanctum']);
         $employee->givePermissionTo([
             'view vehicles',
             'create vehicles',
@@ -126,7 +126,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // Viewer - read-only access
-        $viewer = Role::create(['name' => 'viewer']);
+        $viewer = Role::create(['name' => 'viewer', 'guard_name' => 'sanctum']);
         $viewer->givePermissionTo([
             'view vehicles',
             'view users',

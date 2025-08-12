@@ -18,14 +18,20 @@ class ComprehensiveVehicleSeeder extends Seeder
      */
     public function run(): void
     {
-        // Récupérer le premier tenant et utilisateur disponibles
+        // SEEDER DÉSACTIVÉ EN PRODUCTION
+        // Ce seeder créait des véhicules factices pour les démonstrations
+        // et ne doit pas être utilisé en environnement de production.
+        
+        $this->command->warn('ComprehensiveVehicleSeeder désactivé en production.');
+        return;
+        
+        // Ancien code commenté pour référence
+        /*
         $tenant = Tenant::first();
         $user = User::where('tenant_id', $tenant->id)->first();
-
-        if (!$tenant || !$user) {
-            $this->command->warn('Aucun tenant ou utilisateur trouvé. Veuillez d\'abord créer des données de base.');
-            return;
-        }
+        
+        // ... reste du code de génération de véhicules fictifs
+        */
 
         $vehicles = [
             [

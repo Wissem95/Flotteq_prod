@@ -19,14 +19,20 @@ class FinancialDemoSeeder extends Seeder
      */
     public function run(): void
     {
-        // Récupérer un utilisateur et tenant existants
+        // SEEDER DÉSACTIVÉ EN PRODUCTION
+        // Ce seeder créait des transactions et données financières fictives
+        // pour les démonstrations et ne doit pas être utilisé en production.
+        
+        $this->command->warn('FinancialDemoSeeder désactivé en production.');
+        return;
+        
+        // Ancien code commenté pour référence
+        /*
         $user = User::first();
         $tenant = Tenant::first();
         
-        if (!$user || !$tenant) {
-            $this->command->info('Aucun utilisateur ou tenant trouvé. Veuillez d\'abord créer des utilisateurs.');
-            return;
-        }
+        // ... reste du code de génération de données financières fictives
+        */
 
         // Créer quelques véhicules supplémentaires si nécessaire
         $vehicles = Vehicle::where('user_id', $user->id)->where('tenant_id', $tenant->id)->get();

@@ -17,8 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Global API middleware
         $middleware->api(prepend: [
             \Illuminate\Http\Middleware\HandleCors::class,
-            // Désactivé pour éviter les problèmes CSRF cross-origin - utilisation pure Bearer token
-            // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            // Réactivé pour la sécurité complète avec Bearer tokens
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
         // Custom middleware groups
@@ -33,10 +33,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'check_incomplete_profile' => \App\Http\Middleware\CheckIncompleteProfile::class,
         ]);
 
-        // Temporairement désactivé - cause des erreurs 500 avec Spatie Permission
-        // $middleware->appendToGroup('api', [
-        //     \App\Http\Middleware\EnsureUserHasPermissions::class,
-        // ]);
+        // Réactivé - système de permissions fonctionnel avec Spatie Permission
+        $middleware->appendToGroup('api', [
+            \App\Http\Middleware\EnsureUserHasPermissions::class,
+        ]);
 
         // Configure auth redirect for API requests
         $middleware->redirectUsersTo(function ($request) {

@@ -13,14 +13,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'first_name' => 'Test',
-            'last_name' => 'User',
-            'email' => 'test@example.com',
-        ]);
-        
-        $this->call(\Database\Seeders\CreateVehiclePermissionSeeder::class);
+        // Seeder de production - uniquement les permissions et rôles de base
+        $this->call(\Database\Seeders\RolesAndPermissionsSeeder::class);
+        $this->call(\Database\Seeders\CleanProductionSeeder::class);
     }
 }
