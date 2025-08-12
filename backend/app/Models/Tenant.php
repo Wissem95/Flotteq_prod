@@ -16,6 +16,10 @@ class Tenant extends BaseTenant
 
     protected $fillable = [
         'name',
+        'email',
+        'phone',
+        'address',
+        'status',
         'domain',
         'database',
         'is_active',
@@ -58,6 +62,14 @@ class Tenant extends BaseTenant
                 'custom_pricing'
             ])
             ->withTimestamps();
+    }
+
+    /**
+     * Get partner relations for this tenant.
+     */
+    public function partnerRelations(): HasMany
+    {
+        return $this->hasMany(TenantPartnerRelation::class);
     }
 
     /**
