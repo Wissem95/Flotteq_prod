@@ -57,3 +57,45 @@ export function isValidArray<T>(data: T[] | null | undefined): data is T[] {
 export function safeProp<T>(obj: any, key: string, fallback: T): T {
   return obj && typeof obj === 'object' && obj[key] !== undefined ? obj[key] : fallback;
 }
+
+/**
+ * Find sécurisé sur un tableau
+ */
+export function safeFind<T>(data: T[] | null | undefined, predicate: (item: T) => boolean): T | undefined {
+  return Array.isArray(data) ? data.find(predicate) : undefined;
+}
+
+/**
+ * FindIndex sécurisé sur un tableau
+ */
+export function safeFindIndex<T>(data: T[] | null | undefined, predicate: (item: T) => boolean): number {
+  return Array.isArray(data) ? data.findIndex(predicate) : -1;
+}
+
+/**
+ * Reduce sécurisé sur un tableau
+ */
+export function safeReduce<T, R>(data: T[] | null | undefined, reducer: (acc: R, item: T, index: number) => R, initialValue: R): R {
+  return Array.isArray(data) ? data.reduce(reducer, initialValue) : initialValue;
+}
+
+/**
+ * Some sécurisé sur un tableau
+ */
+export function safeSome<T>(data: T[] | null | undefined, predicate: (item: T) => boolean): boolean {
+  return Array.isArray(data) ? data.some(predicate) : false;
+}
+
+/**
+ * Every sécurisé sur un tableau
+ */
+export function safeEvery<T>(data: T[] | null | undefined, predicate: (item: T) => boolean): boolean {
+  return Array.isArray(data) ? data.every(predicate) : true;
+}
+
+/**
+ * Slice sécurisé sur un tableau
+ */
+export function safeSlice<T>(data: T[] | null | undefined, start?: number, end?: number): T[] {
+  return Array.isArray(data) ? data.slice(start, end) : [];
+}

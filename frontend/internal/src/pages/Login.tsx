@@ -7,6 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "@/lib/api";
 
+// Utilitaires sécurisés
+import { safeArray, safeLength, safeFind, safeFilter, safeMap } from '@/utils/safeData';
+
 const backgroundImages = [
   "/backgrounds/fleet1.jpg",
   "/backgrounds/fleet2.jpg",
@@ -25,12 +28,12 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const bg = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
+    const bg = backgroundImages[Math.floor(Math.random() * safeLength(backgroundImages))];
     setBgImage(bg);
     const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
     setUsers(localUsers);
-    if (localUsers.length > 0) {
-      const lastUser = localUsers[localUsers.length - 1];
+    if (safeLength(localUsers) > 0) {
+      const lastUser = localUsers[safeLength(localUsers) - 1];
       setCurrentUser(lastUser);
       setIdentifiant(lastUser?.email || lastUser?.username || "");
     }
@@ -62,7 +65,7 @@ const Login = () => {
       const { user, token } = response.data;
 
       localStorage.setItem("token", token);
-      const updatedUsers = [...users.filter((u) => u.email !== user.email), user];
+      const updatedUsers = [...safeFilter(users, (u) => u.email !== user.email), user];
       localStorage.setItem("localUsers", JSON.stringify(updatedUsers));
 
       handleLoginSuccess();
@@ -72,14 +75,14 @@ const Login = () => {
   };
 
   const handleUserSelect = (email: string) => {
-    const selected = users.find((u) => u.email === email);
+    const selected = safeFind(users, (u) => u.email === email);
     setCurrentUser(selected);
     setIdentifiant(selected?.email || selected?.username || "");
     setChangeUser(false);
   };
 
   const handleRemoveUser = (email: string) => {
-    const updated = users.filter((u) => u.email !== email);
+    const updated = safeFilter(users, (u) => u.email !== email);
     localStorage.setItem("localUsers", JSON.stringify(updated));
     setUsers(updated);
     setCurrentUser(null);
@@ -147,10 +150,10 @@ const Login = () => {
           </div>
         )}
 
-        {changeUser && users.length > 0 && (
+        {changeUser && safeLength(users) > 0 && (
           <div className="mt-4 text-left space-y-2">
             <p className="text-sm text-slate-600">Choisir un utilisateur :</p>
-            {users.map((u) => (
+            {safeMap(users, (u) => (
               <div
                 key={u.email}
                 className="flex justify-between items-center text-sm bg-slate-100 rounded p-2"

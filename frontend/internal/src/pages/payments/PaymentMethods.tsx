@@ -4,6 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CreditCard, Smartphone, Building, Globe, Settings, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 
+// Utilitaires sécurisés
+import { safeArray, safeLength, safeReduce, safeFilter, safeMap } from '@/utils/safeData';
+
 interface PaymentGateway {
   id: number;
   name: string;
@@ -101,9 +104,9 @@ const PaymentMethods: React.FC = () => {
     );
   };
 
-  const totalVolume = paymentGateways.reduce((sum, gateway) => sum + gateway.volume_monthly, 0);
-  const totalTransactions = paymentGateways.reduce((sum, gateway) => sum + gateway.transactions_count, 0);
-  const activeGateways = paymentGateways.filter(g => g.status === 'active').length;
+  const totalVolume = safeReduce(paymentGateways, (sum, gateway) => sum + gateway.volume_monthly, 0);
+  const totalTransactions = safeReduce(paymentGateways, (sum, gateway) => sum + gateway.transactions_count, 0);
+  const activeGateways = safeLength(safeFilter(paymentGateways, g => g.status === 'active'));
 
   return (
     <div className="space-y-6">
@@ -134,7 +137,7 @@ const PaymentMethods: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{activeGateways}</div>
-            <p className="text-xs text-muted-foreground">Sur {paymentGateways.length} configurées</p>
+            <p className="text-xs text-muted-foreground">Sur {safeLength(paymentGateways)} configurées</p>
           </CardContent>
         </Card>
 
@@ -182,7 +185,7 @@ const PaymentMethods: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {paymentGateways.map((gateway) => (
+            {safeMap(paymentGateways, (gateway) => (
               <div key={gateway.id} className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50">
                 <div className="flex-shrink-0">
                   {getTypeIcon(gateway.type)}

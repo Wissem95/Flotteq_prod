@@ -7,6 +7,9 @@ import { toast } from '@/hooks/use-toast';
 import { alertsService, type SystemAlert } from '@/services/alertsService';
 import AlertsModal from '@/components/modals/AlertsModal';
 
+// Utilitaires sécurisés
+import { safeArray, safeLength, safeFilter, safeMap } from '@/utils/safeData';
+
 const SystemAlerts: React.FC = () => {
   const [alerts, setAlerts] = useState<SystemAlert[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +41,7 @@ const SystemAlerts: React.FC = () => {
       
       // Mettre à jour la liste locale
       setAlerts(prev => 
-        prev.map(a => 
+        safeMap(prev, a => 
           a.id === alert.id 
             ? { ...a, status: 'investigating' as const }
             : a
@@ -47,7 +50,7 @@ const SystemAlerts: React.FC = () => {
       
       toast({
         title: "Investigation lancée",
-        description: `Investigation de l'alerte "${alert.title}" en cours. ${investigationData.recommendations.length} recommandations trouvées.`,
+        description: `Investigation de l'alerte "${alert.title}" en cours. ${safeLength(investigationData.recommendations)} recommandations trouvées.`,
       });
     } catch (error) {
       toast({
@@ -64,7 +67,7 @@ const SystemAlerts: React.FC = () => {
       setAlerts(refreshedAlerts);
       toast({
         title: "Alertes actualisées",
-        description: `${refreshedAlerts.length} alertes chargées`,
+        description: `${safeLength(refreshedAlerts)} alertes chargées`,
       });
     } catch (error) {
       toast({
@@ -117,10 +120,10 @@ const SystemAlerts: React.FC = () => {
   };
 
   const alertCounts = {
-    critical: alerts.filter(a => a.type === 'critical' && a.status === 'active').length,
-    warning: alerts.filter(a => a.type === 'warning' && a.status === 'active').length,
-    active: alerts.filter(a => a.status === 'active').length,
-    resolved: alerts.filter(a => a.status === 'resolved').length
+    critical: safeLength(safeFilter(alerts, a => a.type === 'critical' && a.status === 'active')),
+    warning: safeLength(safeFilter(alerts, a => a.type === 'warning' && a.status === 'active')),
+    active: safeLength(safeFilter(alerts, a => a.status === 'active')),
+    resolved: safeLength(safeFilter(alerts, a => a.status === 'resolved'))
   };
 
   return (
@@ -206,7 +209,7 @@ const SystemAlerts: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {alerts.map((alert) => (
+              {safeMap(alerts, (alert) => (
                 <div key={alert.id} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-gray-50">
                   <div className="flex-shrink-0 mt-1">
                     {getAlertIcon(alert.type)}

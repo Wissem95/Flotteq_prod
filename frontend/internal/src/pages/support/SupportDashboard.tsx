@@ -48,6 +48,9 @@ import {
 import { supportService, SupportTicket, SupportFilters, SupportStats } from "@/services/supportService";
 import { reportService } from "@/services/reportService";
 import TicketModal from "@/components/modals/TicketModal";
+
+// Utilitaires sécurisés
+import { safeArray, safeLength, safeMap } from "@/utils/safeData";
 import { toast } from "@/hooks/use-toast";
 
 const SupportDashboard: React.FC = () => {
@@ -400,7 +403,7 @@ const SupportDashboard: React.FC = () => {
       {/* Liste des tickets */}
       <Card>
         <CardHeader>
-          <CardTitle>Tickets récents ({tickets.length})</CardTitle>
+          <CardTitle>Tickets récents ({safeLength(tickets)})</CardTitle>
           <CardDescription>
             Derniers tickets de support client
           </CardDescription>
@@ -408,7 +411,7 @@ const SupportDashboard: React.FC = () => {
         <CardContent>
           {loading ? (
             <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
+              {safeMap([1, 2, 3], (i) => (
                 <div key={i} className="animate-pulse flex space-x-4 p-4 border rounded">
                   <div className="rounded-full bg-gray-200 h-10 w-10"></div>
                   <div className="flex-1 space-y-2">
@@ -432,7 +435,7 @@ const SupportDashboard: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tickets.map((ticket) => (
+                {safeMap(tickets, (ticket) => (
                   <TableRow key={ticket.id}>
                     <TableCell>
                       <div>
@@ -516,7 +519,7 @@ const SupportDashboard: React.FC = () => {
             </Table>
           )}
           
-          {tickets.length === 0 && !loading && (
+          {safeLength(tickets) === 0 && !loading && (
             <div className="text-center py-8">
               <div className="text-gray-400 mb-2">Aucun ticket trouvé</div>
               <Button variant="outline" onClick={handleCreateTicket}>

@@ -14,6 +14,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { Plus, Edit, Trash2, MoreHorizontal, Key, Globe, Zap, CheckCircle, XCircle, AlertTriangle, Play, Pause, Eye, Copy, } from "lucide-react";
 
+// Utilitaires sécurisés
+import { safeArray, safeLength, safeMap, safeSlice } from '@/utils/safeData';
+
 interface APIKey {
   id: string;
   name: string;
@@ -320,9 +323,9 @@ const APIIntegrations: React.FC = () => {
       {/* Onglets */}
       <Tabs defaultValue="api-keys" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="api-keys">Clés API ({apiKeys.length})</TabsTrigger>
-          <TabsTrigger value="webhooks">Webhooks ({webhooks.length})</TabsTrigger>
-          <TabsTrigger value="integrations">Intégrations ({integrations.length})</TabsTrigger>
+          <TabsTrigger value="api-keys">Clés API ({safeLength(apiKeys)})</TabsTrigger>
+          <TabsTrigger value="webhooks">Webhooks ({safeLength(webhooks)})</TabsTrigger>
+          <TabsTrigger value="integrations">Intégrations ({safeLength(integrations)})</TabsTrigger>
         </TabsList>
 
         {/* Clés API */}
@@ -348,7 +351,7 @@ const APIIntegrations: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {apiKeys.map((key) => (
+                  {safeMap(apiKeys, (key) => (
                     <TableRow key={key.id}>
                       <TableCell>
                         <div>
@@ -373,7 +376,7 @@ const APIIntegrations: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          {key.permissions.map((perm) => (
+                          {safeMap(key.permissions, (perm) => (
                             <Badge key={perm} variant="outline" className="text-xs">
                               {perm}
                             </Badge>
@@ -458,7 +461,7 @@ const APIIntegrations: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {webhooks.map((webhook) => (
+                  {safeMap(webhooks, (webhook) => (
                     <TableRow key={webhook.id}>
                       <TableCell>
                         <div className="font-medium">{webhook.name}</div>
@@ -540,7 +543,7 @@ const APIIntegrations: React.FC = () => {
         {/* Intégrations */}
         <TabsContent value="integrations">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {integrations.map((integration) => (
+            {safeMap(integrations, (integration) => (
               <Card key={integration.id}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
