@@ -20,6 +20,9 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { fetchVehicles } from "@/services/vehicleService";
 import { toast } from "@/hooks/use-toast";
 
+// Utilitaires sécurisés
+import { safeArray, safeLength, safeFilter, safePercentage, safeNumber } from "@/utils/safeData";
+
 interface DashboardStats {
   overview: {
     total_vehicles: number;
@@ -151,7 +154,7 @@ const FleetStatus: React.FC = () => {
         date.setMonth(date.getMonth() - i);
         activityData.push({
           month: date.toLocaleDateString('fr-FR', { month: 'short' }),
-          vehicles: Math.max(0, vehiclesData.length - i + Math.floor(Math.random() * 3)),
+          vehicles: Math.max(0, safeLength(vehiclesData) - i + Math.floor(Math.random() * 3)),
           maintenances: Math.floor(Math.random() * 10) + 2,
         });
       }
@@ -159,9 +162,9 @@ const FleetStatus: React.FC = () => {
 
       // Préparer les données de statut
       const statusMapping = [
-        { status: "En service", count: vehiclesData.filter(v => v.status === "active").length, color: "#10B981" },
-        { status: "Hors service", count: vehiclesData.filter(v => v.status === "hors_service").length, color: "#EF4444" },
-        { status: "En maintenance", count: vehiclesData.filter(v => v.status === "en_maintenance" || v.status === "en_reparation").length, color: "#F59E0B" },
+        { status: "En service", count: safeFilter(vehiclesData, v => v.status === "active").length, color: "#10B981" },
+        { status: "Hors service", count: safeFilter(vehiclesData, v => v.status === "hors_service").length, color: "#EF4444" },
+        { status: "En maintenance", count: safeFilter(vehiclesData, v => v.status === "en_maintenance" || v.status === "en_reparation").length, color: "#F59E0B" },
         { status: "À inspecter", count: 0, color: "#3B82F6" },
       ];
       setStatusData(statusMapping);
@@ -236,8 +239,8 @@ const FleetStatus: React.FC = () => {
     loadFleetData();
   };
 
-  // Calculs dérivés des véhicules
-  const valideVehicles = vehicles.filter(v => v.status === "active");
+  // Calculs dérivés des véhicules (sécurisés)
+  const valideVehicles = safeFilter(vehicles, v => v.status === "active");
 
   return (
     <div className="space-y-6">
@@ -251,13 +254,13 @@ const FleetStatus: React.FC = () => {
         <FleetStatusCard
           title="Véhicules"
           description="État de votre flotte"
-          value={dashboardStats?.overview.total_vehicles || vehicles.length}
-          subtitle={`${dashboardStats?.overview.active_vehicles || valideVehicles.length} actif(s)${((dashboardStats?.overview.total_vehicles || vehicles.length) > (dashboardStats?.overview.active_vehicles || valideVehicles.length)) ? ` • ${(dashboardStats?.overview.total_vehicles || vehicles.length) - (dashboardStats?.overview.active_vehicles || valideVehicles.length)} en maintenance` : ''}`}
+          value={safeNumber(dashboardStats?.overview.total_vehicles, safeLength(vehicles))}
+          subtitle={`${safeNumber(dashboardStats?.overview.active_vehicles, safeLength(valideVehicles))} actif(s)${(safeNumber(dashboardStats?.overview.total_vehicles, safeLength(vehicles)) > safeNumber(dashboardStats?.overview.active_vehicles, safeLength(valideVehicles))) ? ` • ${safeNumber(dashboardStats?.overview.total_vehicles, safeLength(vehicles)) - safeNumber(dashboardStats?.overview.active_vehicles, safeLength(valideVehicles))} en maintenance` : ''}`}
           progress={
-            vehicles.length > 0 
-              ? Math.round((valideVehicles.length / vehicles.length) * 100)
+            safeLength(vehicles) > 0 
+              ? safePercentage(safeLength(valideVehicles), safeLength(vehicles))
               : dashboardStats?.overview.total_vehicles 
-                ? Math.round((dashboardStats.overview.active_vehicles / dashboardStats.overview.total_vehicles) * 100) 
+                ? safePercentage(safeNumber(dashboardStats.overview.active_vehicles, 0), safeNumber(dashboardStats.overview.total_vehicles, 1)) 
                 : 0
           }
           icon={Car}
@@ -267,10 +270,9 @@ const FleetStatus: React.FC = () => {
         <FleetStatusCard
           title="Contrôles techniques"
           description="Prochaines échéances"
-          value={counts?.total || 0}
-          subtitle={`${counts?.unread || 0} non lue(s)`}
-          progress={counts?.total ? 
-            Math.round((counts.unread / counts.total) * 100) : 0}
+          value={safeNumber(counts?.total, 0)}
+          subtitle={`${safeNumber(counts?.unread, 0)} non lue(s)`}
+          progress={safePercentage(safeNumber(counts?.unread, 0), safeNumber(counts?.total, 1))}
           icon={Calendar}
           isLoading={isLoading}
         />
@@ -278,10 +280,9 @@ const FleetStatus: React.FC = () => {
         <FleetStatusCard
           title="Alertes"
           description="Problèmes à résoudre"
-          value={counts?.total || 0}
-          subtitle={`${counts?.unread || 0} non lue(s)`}
-          progress={counts?.total ? 
-            Math.round((counts.unread / counts.total) * 100) : 0}
+          value={safeNumber(counts?.total, 0)}
+          subtitle={`${safeNumber(counts?.unread, 0)} non lue(s)`}
+          progress={safePercentage(safeNumber(counts?.unread, 0), safeNumber(counts?.total, 1))}
           icon={AlertTriangle}
           isLoading={isLoading}
         />

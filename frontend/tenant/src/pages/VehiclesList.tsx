@@ -35,6 +35,9 @@ import HistoryVehicleModal from "@/components/vehicles/HistoryVehicleModal";
 import { fetchVehicles, updateVehicleStatus, Vehicle } from "@/services/vehicleService";
 import StatusDropdown from "@/components/vehicles/StatusDropdown";
 
+// Utilitaires sécurisés
+import { safeArray, safeLength, safeFilter } from "@/utils/safeData";
+
 const VehiclesList: React.FC = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -58,7 +61,7 @@ const VehiclesList: React.FC = () => {
     loadVehicles();
   }, []);
 
-  const filtered = vehicles.filter((v) => {
+  const filtered = safeFilter(vehicles, (v) => {
     const txt = `${v.marque} ${v.modele} ${v.immatriculation}`.toLowerCase();
     const okSearch = txt.includes(searchTerm.toLowerCase());
     const okStatus = statusFilter === "all" || v.status === statusFilter;
@@ -142,7 +145,7 @@ const VehiclesList: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {filtered.length === 0 ? (
+            {safeLength(filtered) === 0 ? (
               <tr>
                 <td colSpan={6} className="py-6 text-center text-slate-500">
                   Aucun véhicule trouvé.

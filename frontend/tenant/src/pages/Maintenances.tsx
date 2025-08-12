@@ -5,6 +5,9 @@ import { getMaintenancesWithFilters, deleteMaintenance } from "@/services/mainte
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+// Utilitaires sécurisés
+import { safeArray, safeLength } from "@/utils/safeData";
+
 interface Maintenance {
   id: number;
   date: string;
@@ -40,8 +43,8 @@ const Maintenances: React.FC = () => {
       });
       
       // Combiner les maintenances en cours et planifiées
-      const inProgressArray = Array.isArray(data) ? data : [];
-      const scheduledArray = Array.isArray(scheduledData) ? scheduledData : [];
+      const inProgressArray = safeArray(data);
+      const scheduledArray = safeArray(scheduledData);
       const enCours = [...inProgressArray, ...scheduledArray];
       
       setMaintenancesEnCours(enCours);

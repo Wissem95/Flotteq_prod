@@ -27,6 +27,9 @@ import { notificationService } from "@/services/notificationService";
 import { fetchVehicles } from "@/services/vehicleService";
 import { toast } from "@/hooks/use-toast";
 
+// Utilitaires sécurisés
+import { safeArray, safeLength, safeFilter, safePercentage, safeNumber } from "@/utils/safeData";
+
 interface DashboardStats {
   overview: {
     total_vehicles: number;
@@ -167,7 +170,7 @@ const EnhancedDashboard: React.FC = () => {
         date.setMonth(date.getMonth() - i);
         activityData.push({
           month: date.toLocaleDateString('fr-FR', { month: 'short' }),
-          vehicles: Math.max(0, vehiclesData.length - i + Math.floor(Math.random() * 3)),
+          vehicles: Math.max(0, safeLength(vehiclesData) - i + Math.floor(Math.random() * 3)),
           maintenances: Math.floor(Math.random() * 10) + 2,
         });
       }
@@ -175,10 +178,10 @@ const EnhancedDashboard: React.FC = () => {
 
       // Préparer les données de statut
       const statusMapping = [
-        { status: "En service", count: vehiclesData.filter(v => v.status === "active").length, color: "#10B981" },
-        { status: "Hors service", count: vehiclesData.filter(v => v.status === "hors_service").length, color: "#EF4444" },
-        { status: "En maintenance", count: vehiclesData.filter(v => v.status === "en_maintenance" || v.status === "en_reparation").length, color: "#F59E0B" },
-        { status: "À inspecter", count: notificationCountsResponse.upcoming || 0, color: "#3B82F6" },
+        { status: "En service", count: safeFilter(vehiclesData, v => v.status === "active").length, color: "#10B981" },
+        { status: "Hors service", count: safeFilter(vehiclesData, v => v.status === "hors_service").length, color: "#EF4444" },
+        { status: "En maintenance", count: safeFilter(vehiclesData, v => v.status === "en_maintenance" || v.status === "en_reparation").length, color: "#F59E0B" },
+        { status: "À inspecter", count: safeNumber(notificationCountsResponse.upcoming, 0), color: "#3B82F6" },
       ];
       setStatusData(statusMapping);
 
@@ -252,10 +255,10 @@ const EnhancedDashboard: React.FC = () => {
     loadDashboardData();
   };
 
-  // Calculs dérivés des véhicules
-  const valideVehicles = vehicles.filter(v => v.status === "active");
-  const invalideVehicles = vehicles.filter(v => v.status === "hors_service");
-  const maintenanceVehicles = vehicles.filter(v => v.status === "en_maintenance" || v.status === "en_reparation");
+  // Calculs dérivés des véhicules (sécurisés)
+  const valideVehicles = safeFilter(vehicles, v => v.status === "active");
+  const invalideVehicles = safeFilter(vehicles, v => v.status === "hors_service");
+  const maintenanceVehicles = safeFilter(vehicles, v => v.status === "en_maintenance" || v.status === "en_reparation");
 
   return (
     <div className="space-y-6">
@@ -282,24 +285,24 @@ const EnhancedDashboard: React.FC = () => {
             <FleetStatusCard
               title="Véhicules"
               description="État de votre flotte"
-              value={dashboardStats?.overview.total_vehicles || vehicles.length}
+              value={safeNumber(dashboardStats?.overview.total_vehicles, safeLength(vehicles))}
               subtitle={
                 <div>
                   <span className="text-green-500 font-medium">
-                    {dashboardStats?.overview.active_vehicles || valideVehicles.length} actif(s)
+                    {safeNumber(dashboardStats?.overview.active_vehicles, safeLength(valideVehicles))} actif(s)
                   </span>
-                  {((dashboardStats?.overview.total_vehicles || vehicles.length) > (dashboardStats?.overview.active_vehicles || valideVehicles.length)) && (
+                  {(safeNumber(dashboardStats?.overview.total_vehicles, safeLength(vehicles)) > safeNumber(dashboardStats?.overview.active_vehicles, safeLength(valideVehicles))) && (
                     <span className="text-orange-500 font-medium ml-2">
-                      • {(dashboardStats?.overview.total_vehicles || vehicles.length) - (dashboardStats?.overview.active_vehicles || valideVehicles.length)} en maintenance
+                      • {safeNumber(dashboardStats?.overview.total_vehicles, safeLength(vehicles)) - safeNumber(dashboardStats?.overview.active_vehicles, safeLength(valideVehicles))} en maintenance
                     </span>
                   )}
                 </div>
               }
               progress={
-                vehicles.length > 0 
-                  ? Math.round((valideVehicles.length / vehicles.length) * 100)
+                safeLength(vehicles) > 0 
+                  ? safePercentage(safeLength(valideVehicles), safeLength(vehicles))
                   : dashboardStats?.overview.total_vehicles 
-                    ? Math.round((dashboardStats.overview.active_vehicles / dashboardStats.overview.total_vehicles) * 100) 
+                    ? safePercentage(safeNumber(dashboardStats.overview.active_vehicles, 0), safeNumber(dashboardStats.overview.total_vehicles, 1)) 
                     : 0
               }
               icon={Car}
@@ -309,10 +312,9 @@ const EnhancedDashboard: React.FC = () => {
             <FleetStatusCard
               title="Contrôles techniques"
               description="Prochaines échéances"
-              value={notificationCounts?.upcoming || 0}
-              subtitle={<span className="text-amber-500 font-medium">{notificationCounts?.urgent || 0} urgent(es)</span>}
-              progress={notificationCounts?.total ? 
-                Math.round((notificationCounts.urgent / notificationCounts.total) * 100) : 0}
+              value={safeNumber(notificationCounts?.upcoming, 0)}
+              subtitle={<span className="text-amber-500 font-medium">{safeNumber(notificationCounts?.urgent, 0)} urgent(es)</span>}
+              progress={safePercentage(safeNumber(notificationCounts?.urgent, 0), safeNumber(notificationCounts?.total, 1))}
               icon={Calendar}
               isLoading={isLoading}
             />
@@ -320,10 +322,9 @@ const EnhancedDashboard: React.FC = () => {
             <FleetStatusCard
               title="Alertes"
               description="Problèmes à résoudre"
-              value={notificationCounts?.total || 0}
-              subtitle={<span className="text-red-500 font-medium">{notificationCounts?.critical || 0} critique(s)</span>}
-              progress={notificationCounts?.total ? 
-                Math.round((notificationCounts.critical / notificationCounts.total) * 100) : 0}
+              value={safeNumber(notificationCounts?.total, 0)}
+              subtitle={<span className="text-red-500 font-medium">{safeNumber(notificationCounts?.critical, 0)} critique(s)</span>}
+              progress={safePercentage(safeNumber(notificationCounts?.critical, 0), safeNumber(notificationCounts?.total, 1))}
               icon={AlertTriangle}
               isLoading={isLoading}
             />

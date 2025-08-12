@@ -28,6 +28,9 @@ import {
 import { financesService, FinancialOverview, MonthlyData, ExpenseBreakdown, TopExpensiveVehicle, MaintenanceStats, ExpenseHistoryItem, FinancialAlert } from "@/services/financesService";
 import { toast } from "@/hooks/use-toast";
 
+// Utilitaires sécurisés
+import { safeArray, safeLength, safeNumber } from "@/utils/safeData";
+
 const FinancialStatusDashboard: React.FC = () => {
   const [overview, setOverview] = useState<FinancialOverview | null>(null);
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
@@ -65,12 +68,12 @@ const FinancialStatusDashboard: React.FC = () => {
       ]);
 
       setOverview(overviewData);
-      setMonthlyData(monthlyChartData.monthly_data);
+      setMonthlyData(safeArray(monthlyChartData.monthly_data));
       setExpenseBreakdown(breakdownData);
-      setTopVehicles(topVehiclesData.top_vehicles);
+      setTopVehicles(safeArray(topVehiclesData.top_vehicles));
       setMaintenanceStats(maintenanceStatsData);
-      setExpenseHistory(historyData.expenses);
-      setAlerts(alertsData.alerts);
+      setExpenseHistory(safeArray(historyData.expenses));
+      setAlerts(safeArray(alertsData.alerts));
     } catch (error) {
       console.error('Erreur lors du chargement des données financières:', error);
       toast({
