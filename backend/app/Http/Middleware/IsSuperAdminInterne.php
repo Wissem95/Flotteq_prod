@@ -22,10 +22,23 @@ class IsSuperAdminInterne
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
-        if (!$user || !$user->isInternal() || !$user->isSuperAdmin()) {
-            return response()->json(['error' => 'Unauthorized (super-admin interne only)'], 403);
+        try {
+            $user = $request->user();
+            if (!$user) {
+                return response()->json(['error' => 'No user found'], 403);
+            }
+            
+            if (!$user->isInternal()) {
+                return response()->json(['error' => 'User not internal'], 403);
+            }
+            
+            if (!$user->isSuperAdmin()) {
+                return response()->json(['error' => 'User not super admin'], 403);
+            }
+            
+            return $next($request);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Middleware error: ' . $e->getMessage()], 500);
         }
-        return $next($request);
     }
 }
