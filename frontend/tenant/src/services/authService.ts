@@ -2,9 +2,9 @@
 import { api } from "@/lib/api";
 
 export const login = async (email: string, password: string) => {
-  // Utiliser JSON pour l'authentification
+  // Backend attend 'login' au lieu d'email
   const loginData = {
-    email: email,
+    login: email,
     password: password,
   };
   

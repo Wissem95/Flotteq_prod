@@ -41,9 +41,8 @@ export const internalAuthService = {
    */
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
-      // Essayer d'abord la connexion réelle via l'API interne
-      // L'API interne attend email et password en JSON
-      const response = await api.post('/auth/login', {
+      // Utiliser l'endpoint d'authentification interne spécifique
+      const response = await api.post('/internal/auth/login', {
         email: credentials.email,
         password: credentials.password,
       });
