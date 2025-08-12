@@ -30,11 +30,21 @@ Route::get('/debug-no-auth', function() {
 
 // Debug endpoint to test auth - ultra simple
 Route::middleware(['auth:sanctum'])->get('/debug-auth', function(Request $request) {
-    return response()->json([
-        'success' => true,
-        'message' => 'Token is valid',
-        'has_user' => $request->user() !== null
-    ]);
+    try {
+        $user = $request->user();
+        return response()->json([
+            'success' => true,
+            'message' => 'Token is valid',
+            'has_user' => $user !== null,
+            'user_id' => $user?->id ?? 'null'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'line' => $e->getLine()
+        ], 500);
+    }
 });
 
 // Test database connection
