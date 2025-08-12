@@ -17,8 +17,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Global API middleware
         $middleware->api(prepend: [
             \Illuminate\Http\Middleware\HandleCors::class,
-            // Réactivé pour la sécurité complète avec Bearer tokens
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            // Temporairement désactivé pour diagnostic des erreurs 500
+            // TODO: Réactiver après résolution du problème CSRF/CORS
+            // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
         // Custom middleware groups
