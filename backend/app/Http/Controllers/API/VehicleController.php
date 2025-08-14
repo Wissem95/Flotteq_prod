@@ -32,8 +32,10 @@ class VehicleController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        $vehicles = Vehicle::where('tenant_id', $user->tenant_id)
-            ->where('user_id', $user->id) // Filtrer par utilisateur spécifique
+        // OPTIMISATION: Query optimisée avec select spécifique et eager loading
+        $vehicles = Vehicle::select(['id', 'user_id', 'tenant_id', 'marque', 'modele', 'immatriculation', 'status', 'kilometrage', 'created_at'])
+            ->where('tenant_id', $user->tenant_id)
+            ->where('user_id', $user->id)
             ->with(['user:id,first_name,last_name'])
             ->when($request->search, function($q) use ($request) {
                 $q->where(function($query) use ($request) {

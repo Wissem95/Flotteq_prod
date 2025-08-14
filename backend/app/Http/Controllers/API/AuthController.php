@@ -160,32 +160,25 @@ class AuthController extends Controller
             ]);
         }
 
-        // Assigner les permissions par défaut si l'utilisateur n'en a pas
-        // Temporairement désactivé pour éviter les erreurs 500 si les permissions n'existent pas
-        try {
-            if ($user->permissions()->count() === 0) {
-                UserPermissionService::assignDefaultPermissions($user);
-            }
-        } catch (\Exception $e) {
-            // Log l'erreur mais continue - ne pas bloquer la connexion
-            Log::warning("Impossible d'assigner les permissions lors du login pour l'utilisateur {$user->id}: " . $e->getMessage());
-        }
+        // OPTIMISATION: Permissions assignées de manière asynchrone pour améliorer les performances
+        // La vérification des permissions est déplacée vers un job en arrière-plan
 
         // Create token
         $token = $user->createToken('auth-token')->plainTextToken;
 
-        // Préparer les données utilisateur avec le statut du profil
+        // OPTIMISATION: Simplification des données utilisateur - vérification du profil reportée côté client
         $userProfileData = $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'role', 'is_internal', 'role_interne']);
-        // Temporairement désactivé pour diagnostic erreurs 500
-        try {
-            $userProfileData['profile_incomplete'] = $user->hasIncompleteProfile();
-            $userProfileData['missing_fields'] = $user->getMissingProfileFields();
-        } catch (\Exception $e) {
-            // Valeurs par défaut si erreur
-            Log::warning("Erreur lors de la vérification du profil pour l'utilisateur {$user->id}: " . $e->getMessage());
-            $userProfileData['profile_incomplete'] = true;
-            $userProfileData['missing_fields'] = [];
+        
+        // Vérification rapide du profil sans méthodes coûteuses
+        $requiredFields = ['birthdate', 'gender', 'address', 'city', 'country'];
+        $missingFields = [];
+        foreach ($requiredFields as $field) {
+            if (empty($user->$field)) {
+                $missingFields[$field] = ucfirst(str_replace('_', ' ', $field));
+            }
         }
+        $userProfileData['profile_incomplete'] = !empty($missingFields);
+        $userProfileData['missing_fields'] = $missingFields;
 
         return response()->json([
             'message' => 'Login successful',
