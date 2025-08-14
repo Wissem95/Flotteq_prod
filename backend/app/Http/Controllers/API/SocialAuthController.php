@@ -30,7 +30,7 @@ class SocialAuthController extends Controller
     /**
      * Redirect to Google OAuth
      */
-    public function redirectToGoogle(Request $request): JsonResponse
+    public function redirectToGoogle(Request $request): RedirectResponse
     {
         $request->validate([
             'tenant_domain' => ['nullable', 'string', 'exists:tenants,domain']
@@ -42,7 +42,7 @@ class SocialAuthController extends Controller
         } else {
             $tenant = Tenant::first();
             if (!$tenant) {
-                return response()->json(['error' => 'No tenant available'], 500);
+                abort(500, 'No tenant available');
             }
         }
 
@@ -56,6 +56,7 @@ class SocialAuthController extends Controller
         /** @var \Laravel\Socialite\Two\GoogleProvider $provider */
         $provider = Socialite::driver('google');
         $authUrl = $provider->stateless()
+            ->redirectUrl(config('services.google.redirect')) // CORRECTION: Spécifier explicitement redirect_uri
             ->scopes([
                 'openid',
                 'profile',
@@ -71,10 +72,8 @@ class SocialAuthController extends Controller
             ->redirect()
             ->getTargetUrl();
 
-        return response()->json([
-            'auth_url' => $authUrl,
-            'state' => $state,
-        ]);
+        // CORRECTION: Retourner directement la redirection au lieu de JSON
+        return redirect($authUrl);
     }
 
     /**
@@ -113,7 +112,9 @@ class SocialAuthController extends Controller
             // Get user from Google
             /** @var \Laravel\Socialite\Two\GoogleProvider $provider */
             $provider = Socialite::driver('google');
-            $googleUser = $provider->stateless()->user();
+            $googleUser = $provider->stateless()
+                ->redirectUrl(config('services.google.redirect')) // CORRECTION: Même redirect_uri pour callback
+                ->user();
 
             // Extraire plus d'informations utilisateur depuis Google
             $googleUserData = $this->extractGoogleUserData($googleUser);
@@ -315,7 +316,9 @@ class SocialAuthController extends Controller
         try {
             /** @var \Laravel\Socialite\Two\GoogleProvider $provider */
             $provider = Socialite::driver('google');
-            $googleUser = $provider->stateless()->user();
+            $googleUser = $provider->stateless()
+                ->redirectUrl(config('services.google.redirect')) // CORRECTION: redirect_uri pour link account
+                ->user();
 
             // Check if Google account is already linked to another user
             $existingUser = User::where('google_id', $googleUser->getId())

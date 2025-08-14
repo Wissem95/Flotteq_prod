@@ -24,7 +24,7 @@ Route::prefix('auth')->group(function () {
     Route::post('/register', [App\Http\Controllers\API\AuthController::class, 'register']);
 
     // Google OAuth routes
-    Route::post('/google/redirect', [App\Http\Controllers\API\SocialAuthController::class, 'redirectToGoogle']);
+    Route::get('/google/redirect', [App\Http\Controllers\API\SocialAuthController::class, 'redirectToGoogle']);
     Route::get('/google/callback', [App\Http\Controllers\API\SocialAuthController::class, 'handleGoogleCallback']);
 
     // Password reset routes
