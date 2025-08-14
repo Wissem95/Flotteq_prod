@@ -18,8 +18,8 @@ class VehiclePolicy
             return in_array($user->role, ['admin', 'manager', 'support']) || $user->isSuperAdmin();
         }
         
-        // Pour les utilisateurs tenants, utiliser Spatie Permission avec fallback sur rôle
-        return $user->hasPermissionTo('view vehicles') || $user->hasRole('admin');
+        // TEMPORAIRE: Fallback sur les rôles natifs en attendant configuration Spatie complète
+        return in_array($user->role, ['admin', 'manager']);
     }
 
     /**
@@ -32,8 +32,8 @@ class VehiclePolicy
             return in_array($user->role, ['admin', 'manager', 'support']) || $user->isSuperAdmin();
         }
         
-        // Pour les utilisateurs tenants, vérifier permission + tenant + propriété
-        return ($user->hasPermissionTo('view vehicles') || $user->hasRole('admin'))
+        // TEMPORAIRE: Fallback sur rôles natifs + vérification tenant/propriété
+        return in_array($user->role, ['admin', 'manager'])
             && $vehicle->tenant_id === $user->tenant_id
             && $vehicle->user_id === $user->id;
     }
@@ -48,8 +48,8 @@ class VehiclePolicy
             return in_array($user->role, ['admin', 'manager']) || $user->isSuperAdmin();
         }
         
-        // Pour les utilisateurs tenants
-        return $user->hasPermissionTo('create vehicles') || $user->hasRole('admin');
+        // TEMPORAIRE: Fallback sur rôles natifs
+        return in_array($user->role, ['admin', 'manager']);
     }
 
     /**
@@ -62,8 +62,8 @@ class VehiclePolicy
             return in_array($user->role, ['admin', 'manager']) || $user->isSuperAdmin();
         }
         
-        // Pour les utilisateurs tenants, vérifier permission + tenant + propriété
-        return ($user->hasPermissionTo('edit vehicles') || $user->hasRole('admin'))
+        // TEMPORAIRE: Fallback sur rôles natifs + vérification tenant/propriété
+        return in_array($user->role, ['admin', 'manager'])
             && $vehicle->tenant_id === $user->tenant_id
             && $vehicle->user_id === $user->id;
     }
@@ -78,8 +78,8 @@ class VehiclePolicy
             return in_array($user->role, ['admin']) || $user->isSuperAdmin();
         }
         
-        // Pour les utilisateurs tenants, vérifier permission + tenant + propriété
-        return ($user->hasPermissionTo('delete vehicles') || $user->hasRole('admin'))
+        // TEMPORAIRE: Fallback sur rôles natifs + vérification tenant/propriété
+        return in_array($user->role, ['admin'])
             && $vehicle->tenant_id === $user->tenant_id
             && $vehicle->user_id === $user->id;
     }
@@ -89,7 +89,8 @@ class VehiclePolicy
      */
     public function restore(User $user, Vehicle $vehicle): bool
     {
-        return $user->hasPermissionTo('delete vehicles')
+        // TEMPORAIRE: Fallback sur rôles natifs
+        return in_array($user->role, ['admin'])
             && $vehicle->tenant_id === $user->tenant_id
             && $vehicle->user_id === $user->id;
     }
@@ -99,7 +100,8 @@ class VehiclePolicy
      */
     public function forceDelete(User $user, Vehicle $vehicle): bool
     {
-        return $user->hasPermissionTo('delete vehicles')
+        // TEMPORAIRE: Fallback sur rôles natifs
+        return in_array($user->role, ['admin'])
             && $vehicle->tenant_id === $user->tenant_id
             && $vehicle->user_id === $user->id;
     }
@@ -109,6 +111,7 @@ class VehiclePolicy
      */
     public function export(User $user): bool
     {
-        return $user->hasPermissionTo('export vehicles');
+        // TEMPORAIRE: Fallback sur rôles natifs
+        return in_array($user->role, ['admin', 'manager']);
     }
 }
