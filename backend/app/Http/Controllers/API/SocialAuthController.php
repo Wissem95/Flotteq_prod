@@ -55,8 +55,10 @@ class SocialAuthController extends Controller
 
         /** @var \Laravel\Socialite\Two\GoogleProvider $provider */
         $provider = Socialite::driver('google');
-        $authUrl = $provider->stateless()
-            ->redirectUrl(config('services.google.redirect')) // CORRECTION: Spécifier explicitement redirect_uri
+        
+        // CORRECTION: Retourner directement le redirect Socialite (pas de double redirection)
+        return $provider->stateless()
+            ->redirectUrl(config('services.google.redirect'))
             ->scopes([
                 'openid',
                 'profile',
@@ -69,11 +71,7 @@ class SocialAuthController extends Controller
                 'https://www.googleapis.com/auth/userinfo.email',
             ])
             ->with(['state' => $state])
-            ->redirect()
-            ->getTargetUrl();
-
-        // CORRECTION: Retourner directement la redirection au lieu de JSON
-        return redirect($authUrl);
+            ->redirect();
     }
 
     /**
