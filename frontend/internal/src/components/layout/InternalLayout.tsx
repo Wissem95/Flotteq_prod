@@ -72,7 +72,6 @@ const InternalLayout: React.FC<InternalLayoutProps> = ({ children }) => {
     if (path === "/outils/api") return "API Externes";
     if (path === "/outils/monitoring") return "Monitoring Système";
     if (path === "/outils/logs") return "Logs Système";
-    if (path === "/outils/demo-data") return "Générateur de Données";
     return "Outils & Intégrations";
   }
     

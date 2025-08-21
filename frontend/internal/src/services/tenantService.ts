@@ -409,7 +409,6 @@ class TenantService {
   // Générer un rapport d'utilisation pour un tenant
   async generateUsageReport(id: string): Promise<Blob> {
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
       
       const tenant = await this.getById(id);
       const usage = await this.getUsageDetails(id);

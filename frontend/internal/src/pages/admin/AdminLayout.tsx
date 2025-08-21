@@ -66,16 +66,6 @@ const AdminLayout: React.FC = () => {
             >
               Scan Routes
             </NavLink>
-            <NavLink
-              to="tools/test-api"
-              className={({ isActive }) =>
-                `block px-3 py-2 rounded ${
-                  isActive ? "bg-blue-500 text-white" : "hover:bg-gray-200"
-                }`
-              }
-            >
-              Test API
-            </NavLink>
           </div>
         </nav>
       </aside>

@@ -302,7 +302,6 @@ const InternalSidebar: React.FC = () => {
                         { to: "/outils/api", label: "API externes", icon: <Globe size={16} /> },
                         { to: "/outils/monitoring", label: "Monitoring", icon: <BarChart3 size={16} /> },
                         { to: "/outils/logs", label: "Logs système", icon: <Shield size={16} /> },
-                        { to: "/outils/demo-data", label: "Données de test", icon: <Users size={16} /> },
                       ].map(({ to, label, icon }) => (
                 <Link key={to} to={to} className={subNavLink(to, location.pathname, collapsed)}>
                   {icon}

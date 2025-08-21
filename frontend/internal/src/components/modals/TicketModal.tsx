@@ -150,8 +150,8 @@ const TicketModal: React.FC<TicketModalProps> = ({
 
     setLoading(true);
     try {
-      // TODO: Implémenter l'envoi de réponse via API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Envoyer la réponse via API
+      // await supportService.addMessage(ticket.id, responseText, false);
       
       toast({
         title: "Réponse envoyée",

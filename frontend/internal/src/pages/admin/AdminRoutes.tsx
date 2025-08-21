@@ -8,7 +8,6 @@ import AdminEmployes from "./Employes";
 import UserList from "./UserList";
 import AdminPermissionsPage from "./AdminPermissionsPage";
 import ScanUsersTool from "./tools/ScanUsers";
-import TestAPI from "../../pages/TestAPI"; // ajustez le chemin si nécessaire
 
 const AdminRoutes: React.FC = () => (
   <Routes>
@@ -32,8 +31,6 @@ const AdminRoutes: React.FC = () => (
       {/* /admin/tools/scan */}
       <Route path="tools/scan" element={<ScanUsersTool />} />
 
-      {/* /admin/tools/test-api */}
-      <Route path="tools/test-api" element={<TestAPI />} />
     </Route>
   </Routes>
 );

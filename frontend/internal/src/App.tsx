@@ -28,7 +28,6 @@ import SystemMonitoring from "./pages/tools/SystemMonitoring";
 import GlobalSettings from "./pages/settings/GlobalSettings";
 import RolesPermissions from "./pages/permissions/RolesPermissions";
 import APIIntegrations from "./pages/tools/APIIntegrations";
-import DemoDataGenerator from "./components/demo/DemoDataGenerator";
 
 // Pages Finance
 import FinanceRevenues from "./pages/finance/FinanceRevenues";
@@ -149,7 +148,6 @@ const App: React.FC = () => {
                       
                       {/* Outils */}
                       <Route path="/outils/api" element={<APIIntegrations />} />
-                      <Route path="/outils/demo-data" element={<DemoDataGenerator />} />
                       <Route path="/outils/monitoring" element={<SystemMonitoring />} />
                       <Route path="/outils/logs" element={<SystemMonitoring />} />
                       

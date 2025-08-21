@@ -63,15 +63,6 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  // Mode démo pour le développement
-  const handleDemoLogin = async () => {
-    try {
-      await internalAuthService.demoLogin();
-      navigate("/dashboard/overview");
-    } catch (error) {
-      setError("Erreur lors de la connexion démo");
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -159,20 +150,6 @@ const LoginPage: React.FC = () => {
               </Button>
             </form>
 
-            {/* Bouton de démonstration pour le développement */}
-            <div className="mt-6 pt-6 border-t">
-              <div className="text-center text-sm text-gray-500 mb-3">
-                Mode développement
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={handleDemoLogin}
-              >
-                Connexion démo (développement)
-              </Button>
-            </div>
           </CardContent>
         </Card>
 
