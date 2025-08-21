@@ -56,20 +56,15 @@ class SocialAuthController extends Controller
         /** @var \Laravel\Socialite\Two\GoogleProvider $provider */
         $provider = Socialite::driver('google');
         
-        // CORRECTION: Retourner directement le redirect Socialite (pas de double redirection)
+        // CORRECTION: S'assurer que le redirect_uri est bien configuré
+        $redirectUri = config('services.google.redirect');
+        if (!$redirectUri) {
+            abort(500, 'Google OAuth redirect URI not configured');
+        }
+        
         return $provider->stateless()
-            ->redirectUrl(config('services.google.redirect'))
-            ->scopes([
-                'openid',
-                'profile',
-                'email',
-                'https://www.googleapis.com/auth/user.birthday.read',
-                'https://www.googleapis.com/auth/user.gender.read',
-                'https://www.googleapis.com/auth/user.addresses.read',
-                'https://www.googleapis.com/auth/user.phonenumbers.read',
-                'https://www.googleapis.com/auth/userinfo.profile',
-                'https://www.googleapis.com/auth/userinfo.email',
-            ])
+            ->redirectUrl($redirectUri)
+            ->scopes(['openid', 'profile', 'email'])
             ->with(['state' => $state])
             ->redirect();
     }
@@ -111,7 +106,7 @@ class SocialAuthController extends Controller
             /** @var \Laravel\Socialite\Two\GoogleProvider $provider */
             $provider = Socialite::driver('google');
             $googleUser = $provider->stateless()
-                ->redirectUrl(config('services.google.redirect')) // CORRECTION: Même redirect_uri pour callback
+                ->redirectUrl(config('services.google.redirect'))
                 ->user();
 
             // Extraire plus d'informations utilisateur depuis Google
@@ -315,7 +310,7 @@ class SocialAuthController extends Controller
             /** @var \Laravel\Socialite\Two\GoogleProvider $provider */
             $provider = Socialite::driver('google');
             $googleUser = $provider->stateless()
-                ->redirectUrl(config('services.google.redirect')) // CORRECTION: redirect_uri pour link account
+                ->redirectUrl(config('services.google.redirect'))
                 ->user();
 
             // Check if Google account is already linked to another user
