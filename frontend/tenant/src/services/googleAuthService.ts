@@ -25,29 +25,27 @@ export interface GoogleCallbackResponse {
 }
 
 /**
- * Initier l'authentification Google
+ * Construire l'URL d'authentification Google
  */
-export const initiateGoogleAuth = async (tenantId: number): Promise<GoogleAuthResponse> => {
-  try {
-    const response = await api.post("/auth/google/redirect", {
-      tenant_id: tenantId
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Erreur lors de l\'initiation de l\'authentification Google:', error);
-    throw error;
+export const getGoogleAuthUrl = (tenantDomain?: string): string => {
+  const baseUrl = process.env.VITE_API_URL || 'https://flotteq-backend-v2-production.up.railway.app/api';
+  const url = new URL(`${baseUrl}/auth/google/redirect`);
+  
+  if (tenantDomain) {
+    url.searchParams.append('tenant_domain', tenantDomain);
   }
+  
+  return url.toString();
 };
 
 /**
  * Rediriger vers Google OAuth
  */
-export const redirectToGoogle = async (tenantId: number): Promise<void> => {
+export const redirectToGoogle = (tenantDomain?: string): void => {
   try {
-    const { auth_url } = await initiateGoogleAuth(tenantId);
-    
-    // Redirection vers Google
-    window.location.href = auth_url;
+    // Redirection directe vers l'endpoint OAuth
+    const authUrl = getGoogleAuthUrl(tenantDomain);
+    window.location.href = authUrl;
   } catch (error) {
     console.error("Erreur lors de l'initiation de l'authentification Google:", error);
     throw error;

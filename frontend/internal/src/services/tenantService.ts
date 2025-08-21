@@ -3,7 +3,7 @@
 import { api } from '@/lib/api';
 
 // Utilitaires sécurisés
-import { safeArray, safeFilter } from '@/utils/safeData';
+import { safeArray, safeFilter, safeLength, safeFindIndex } from '@/utils/safeData';
 
 export interface Tenant {
   id: string;
@@ -81,16 +81,17 @@ class TenantService {
       
       // Si erreur API, utiliser les données locales comme fallback
       const localTenants = this.getLocalTenants();
-      const stats = this.calculateStats(localTenants);
+      const safeTenants = safeArray(localTenants);
+      const stats = this.calculateStats(safeTenants);
       
       return {
-        tenants: localTenants,
+        tenants: safeTenants,
         stats,
         pagination: {
           page: filters.page || 1,
           limit: filters.limit || 10,
-          total: localTenants.length,
-          pages: Math.ceil(localTenants.length / (filters.limit || 10))
+          total: safeLength(safeTenants),
+          pages: Math.ceil(safeLength(safeTenants) / (filters.limit || 10))
         }
       };
     }
@@ -98,9 +99,14 @@ class TenantService {
 
   // Gestion locale des données
   private getLocalTenants(): Tenant[] {
-    const stored = localStorage.getItem('flotteq_internal_tenants');
-    if (stored) {
-      return JSON.parse(stored);
+    try {
+      const stored = localStorage.getItem('flotteq_internal_tenants');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return Array.isArray(parsed) ? parsed : [];
+      }
+    } catch (error) {
+      console.error('Erreur lors de la lecture des tenants locaux:', error);
     }
     
     // Données initiales si aucune donnée locale
@@ -284,7 +290,7 @@ class TenantService {
       
       // Mettre à jour le localStorage également
       const tenants = this.getLocalTenants();
-      const index = tenants.findIndex(t => t.id === id);
+      const index = safeFindIndex(tenants, t => t.id === id);
       if (index !== -1) {
         tenants[index] = { ...tenants[index], ...response.data, updated_at: new Date().toISOString() };
         this.saveLocalTenants(tenants);
@@ -298,7 +304,7 @@ class TenantService {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       const tenants = this.getLocalTenants();
-      const index = tenants.findIndex(t => t.id === id);
+      const index = safeFindIndex(tenants, t => t.id === id);
       
       if (index === -1) {
         throw new Error('Tenant non trouvé');

@@ -35,11 +35,11 @@ const Login = () => {
 
   const navigate = useNavigate();
 
-  const handleGoogleAuth = async () => {
+  const handleGoogleAuth = () => {
     try {
       setLoading(true);
-      // Pour l'instant, utilisons le tenant ID 1 (3wss)
-      await redirectToGoogle(1);
+      // Redirection directe vers Google OAuth (pas besoin de tenant_domain pour l'instant)
+      redirectToGoogle();
     } catch (error) {
       console.error("Erreur Google Auth:", error);
       setError("Erreur lors de la connexion Google. Veuillez réessayer.");
@@ -75,13 +75,13 @@ const Login = () => {
     try {
       // ✅ Formatage correct des données pour Laravel
       const registrationData = {
-        first_name,
-        last_name,
-        username,
-        email,
+        first_name: first_name.trim(),
+        last_name: last_name.trim(),
+        username: username.trim(),
+        email: email.trim().toLowerCase(),
         password: registerPassword,
         password_confirmation: confirmedPassword,
-        company_name: company_name || `${first_name} ${last_name} Entreprise`,
+        company_name: (company_name || `${first_name} ${last_name} Entreprise`).trim(),
       };
 
       const response = await axios.post("/auth/register", registrationData);

@@ -26,10 +26,16 @@ const TenantsOverview: React.FC = () => {
   const loadTenants = async () => {
     setLoading(true);
     try {
-      const { tenants: fetchedTenants, stats: fetchedStats } = await tenantService.getAll();
+      const response = await tenantService.getAll();
+      const fetchedTenants = safeArray(response?.tenants);
+      const fetchedStats = response?.stats || null;
       setTenants(fetchedTenants);
       setStats(fetchedStats);
     } catch (error) {
+      console.error('Erreur lors du chargement des tenants:', error);
+      // En cas d'erreur, s'assurer que tenants est un tableau vide
+      setTenants([]);
+      setStats(null);
       toast({
         title: "Erreur",
         description: "Impossible de charger les tenants",
@@ -211,7 +217,7 @@ const TenantsOverview: React.FC = () => {
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.total || tenants.length}</div>
+            <div className="text-2xl font-bold">{stats?.total || safeLength(tenants)}</div>
             <p className="text-xs text-muted-foreground">+{Math.round(stats?.monthly_growth || 0)}% ce mois</p>
           </CardContent>
         </Card>

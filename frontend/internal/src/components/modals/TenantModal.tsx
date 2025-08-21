@@ -10,6 +10,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Building2, Mail, Globe, CreditCard } from "lucide-react";
 
+// Utilitaires sécurisés
+import { safeFind, safeLength } from '@/utils/safeData';
+
 interface TenantData {
   name: string;
   domain: string;
@@ -115,7 +118,7 @@ const TenantModal: React.FC<TenantModalProps> = ({
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return safeLength(Object.keys(newErrors)) === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -158,7 +161,7 @@ const TenantModal: React.FC<TenantModalProps> = ({
     }
   };
 
-  const selectedPlan = subscriptionPlans.find(plan => plan.value === formData.subscription_plan);
+  const selectedPlan = safeFind(subscriptionPlans, plan => plan.value === formData.subscription_plan);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
