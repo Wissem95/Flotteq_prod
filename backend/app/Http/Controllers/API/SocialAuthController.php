@@ -19,6 +19,8 @@ use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\InvalidStateException;
 use GuzzleHttp\Client as HttpClient;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\Auth as FirebaseAuth;
 
 /**
  * Social authentication controller for handling Google OAuth
@@ -27,6 +29,146 @@ use GuzzleHttp\Client as HttpClient;
  */
 class SocialAuthController extends Controller
 {
+    /**
+     * Handle Firebase Auth (nouvelle méthode qui réutilise toute la logique existante)
+     */
+    public function handleFirebaseAuth(Request $request): JsonResponse
+    {
+        $request->validate([
+            'firebase_token' => 'required|string',
+            'user_data' => 'sometimes|array',
+            'tenant_domain' => 'sometimes|string'
+        ]);
+
+        try {
+            // 1. Vérifier le token Firebase
+            $factory = (new Factory)->withServiceAccount([
+                'type' => 'service_account',
+                'project_id' => config('services.firebase.project_id', 'flotteq-demo'),
+                'private_key_id' => config('services.firebase.private_key_id'),
+                'private_key' => config('services.firebase.private_key'),
+                'client_email' => config('services.firebase.client_email'),
+                'client_id' => config('services.firebase.client_id'),
+                'auth_uri' => 'https://accounts.google.com/o/oauth2/auth',
+                'token_uri' => 'https://oauth2.googleapis.com/token',
+            ]);
+
+            $auth = $factory->createAuth();
+            $verifiedIdToken = $auth->verifyIdToken($request->firebase_token);
+            $uid = $verifiedIdToken->claims()->get('sub');
+            $email = $verifiedIdToken->claims()->get('email');
+            $name = $verifiedIdToken->claims()->get('name');
+            $avatar = $verifiedIdToken->claims()->get('picture');
+
+            Log::info('Firebase Auth: Token verified successfully', [
+                'uid' => $uid,
+                'email' => $email,
+                'name' => $name
+            ]);
+
+            // 2. Utiliser la même logique que l'OAuth existant
+            $tenant = $this->getTenantForAuth($request->tenant_domain);
+            $tenant->makeCurrent();
+
+            // 3. Préparer les données utilisateur (même format que l'existant)
+            $googleUserData = [
+                'id' => $uid,
+                'email' => $email,
+                'name' => $name,
+                'avatar' => $avatar,
+                'first_name' => $this->extractFirstName($name),
+                'last_name' => $this->extractLastName($name),
+            ];
+
+            // 4. RÉUTILISER EXACTEMENT la même logique de création/mise à jour
+            $user = $this->findOrCreateUser($googleUserData, $tenant);
+
+            // 5. Créer le token (même logique)
+            $token = $user->createToken('firebase-auth')->plainTextToken;
+
+            // 6. MÊME format de retour que l'OAuth existant
+            return response()->json([
+                'message' => 'Authentication successful',
+                'user' => $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'avatar']),
+                'token' => $token,
+                'tenant' => $tenant->only(['id', 'name', 'domain']),
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Firebase Auth: Authentication failed', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            
+            return response()->json([
+                'error' => 'Authentication failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Méthode helper pour réutiliser la logique de tenant
+     */
+    private function getTenantForAuth(?string $tenantDomain): Tenant
+    {
+        if ($tenantDomain) {
+            return Tenant::where('domain', $tenantDomain)->firstOrFail();
+        }
+        
+        $tenant = Tenant::first();
+        if (!$tenant) {
+            throw new \Exception('No tenant available');
+        }
+        
+        return $tenant;
+    }
+
+    /**
+     * Méthode helper pour réutiliser la logique de création/mise à jour utilisateur
+     */
+    private function findOrCreateUser(array $googleUserData, Tenant $tenant): User
+    {
+        // Chercher l'utilisateur existant (MÊME LOGIQUE)
+        $user = User::where('email', $googleUserData['email'])
+            ->where('tenant_id', $tenant->id)
+            ->first();
+
+        if (!$user) {
+            // Vérifier si l'utilisateur existe dans un autre tenant
+            $existingUser = User::where('email', $googleUserData['email'])->first();
+            if ($existingUser) {
+                throw new \Exception('Cet email est déjà associé à un autre domaine.');
+            }
+
+            // Créer nouvel utilisateur (MÊME LOGIQUE)
+            $user = User::create([
+                'email' => $googleUserData['email'],
+                'username' => $this->generateUsername($googleUserData['name']),
+                'first_name' => $googleUserData['first_name'],
+                'last_name' => $googleUserData['last_name'],
+                'password' => Hash::make(Str::random(32)),
+                'google_id' => $googleUserData['id'],
+                'avatar' => $googleUserData['avatar'],
+                'email_verified_at' => now(),
+                'tenant_id' => $tenant->id,
+            ]);
+
+            // Assigner permissions (MÊME LOGIQUE)
+            UserPermissionService::assignDefaultPermissions($user);
+        } else {
+            // Mettre à jour utilisateur existant (MÊME LOGIQUE)
+            $user->update([
+                'google_id' => $googleUserData['id'],
+                'avatar' => $googleUserData['avatar'],
+                'first_name' => $googleUserData['first_name'],
+                'last_name' => $googleUserData['last_name'],
+            ]);
+        }
+
+        return $user;
+    }
+
     /**
      * Redirect to Google OAuth
      */

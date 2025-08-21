@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "@/lib/api";
 import { gsap } from "gsap";
 import { useGSAP } from '@gsap/react';
-import { redirectToGoogle } from "@/services/googleAuthService";
+import { signInWithGoogle } from "@/services/firebaseAuthService";
 import { login as authLogin, handleLoginSuccess } from "@/services/authService";
 
 import '/backgrounds/Background_road.svg'
@@ -35,14 +35,16 @@ const Login = () => {
 
   const navigate = useNavigate();
 
-  const handleGoogleAuth = () => {
+  const handleGoogleAuth = async () => {
     try {
       setLoading(true);
-      // Redirection directe vers Google OAuth (pas besoin de tenant_domain pour l'instant)
-      redirectToGoogle();
+      setError("");
+      // Utiliser Firebase Auth au lieu de la redirection OAuth classique
+      await signInWithGoogle();
     } catch (error) {
-      console.error("Erreur Google Auth:", error);
+      console.error("Erreur Firebase Google Auth:", error);
       setError("Erreur lors de la connexion Google. Veuillez réessayer.");
+    } finally {
       setLoading(false);
     }
   };
