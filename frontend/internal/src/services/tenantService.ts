@@ -2,8 +2,6 @@
 
 import { api } from '@/lib/api';
 
-// Utilitaires sécurisés
-import { safeArray, safeFilter, safeLength, safeFindIndex } from '@/utils/safeData';
 
 export interface Tenant {
   id: string;
@@ -71,323 +69,237 @@ export interface TenantStats {
 }
 
 class TenantService {
-  // Récupérer tous les tenants avec filtres
+  // Récupérer tous les tenants avec filtres depuis Supabase uniquement
   async getAll(filters: TenantFilters = {}): Promise<{ tenants: Tenant[]; stats: TenantStats; pagination: any }> {
     try {
-      const response = await api.get('/tenants', { params: filters });
-      return response.data;
-    } catch (error: any) {
-      console.error('Erreur récupération tenants:', error);
+      const response = await api.get('/internal/tenants', { params: filters });
+      const tenantsData = response.data.data || [];
       
-      // Si erreur API, utiliser les données locales comme fallback
-      const localTenants = this.getLocalTenants();
-      const safeTenants = safeArray(localTenants);
-      const stats = this.calculateStats(safeTenants);
-      
-      return {
-        tenants: safeTenants,
-        stats,
-        pagination: {
-          page: filters.page || 1,
-          limit: filters.limit || 10,
-          total: safeLength(safeTenants),
-          pages: Math.ceil(safeLength(safeTenants) / (filters.limit || 10))
-        }
-      };
-    }
-  }
-
-  // Gestion locale des données
-  private getLocalTenants(): Tenant[] {
-    try {
-      const stored = localStorage.getItem('flotteq_internal_tenants');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return Array.isArray(parsed) ? parsed : [];
-      }
-    } catch (error) {
-      console.error('Erreur lors de la lecture des tenants locaux:', error);
-    }
-    
-    // Données initiales si aucune donnée locale
-    const initialTenants: Tenant[] = [
-      {
-        id: '1',
-        name: 'Transport Express SARL',
-        domain: 'transport-express.com',
-        admin_email: 'admin@transport-express.com',
-        admin_name: 'Jean Dupont',
-        subscription_plan: 'professional',
-        status: 'active',
-        users_count: 12,
-        vehicles_count: 45,
-        max_users: 20,
-        max_vehicles: 50,
-        description: 'Entreprise de transport routier spécialisée dans la livraison express',
-        created_at: '2024-12-15T10:30:00Z',
-        updated_at: '2025-01-15T14:20:00Z',
-        last_activity: '2025-01-31T09:15:00Z',
+      // Transformer les données Supabase vers le format attendu
+      const tenants: Tenant[] = tenantsData.map((t: any) => ({
+        id: t.id.toString(),
+        name: t.name,
+        domain: t.domain,
+        admin_email: t.email || 'admin@' + t.domain,
+        admin_name: t.name,
+        subscription_plan: 'professional', // À adapter selon la DB
+        status: t.is_active ? 'active' : 'inactive',
+        users_count: t.users_count || 0,
+        vehicles_count: t.vehicles_count || 0,
+        max_users: 100, // À adapter selon le plan
+        max_vehicles: 200, // À adapter selon le plan
+        description: `Tenant ${t.name}`,
+        created_at: t.created_at,
+        updated_at: t.updated_at,
+        last_activity: t.updated_at,
         settings: {
           features_enabled: ['maintenance', 'tracking', 'reports'],
           custom_branding: true,
           api_access: true
         },
         billing: {
-          last_payment: '2025-01-15T00:00:00Z',
-          next_payment: '2025-02-15T00:00:00Z',
+          last_payment: t.created_at,
+          next_payment: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           payment_status: 'current'
         }
-      },
-      {
-        id: '2',
-        name: 'LogiTech Solutions',
-        domain: 'logitech-solutions.local',
-        admin_email: 'contact@logitech-sol.com',
-        admin_name: 'Marie Martin',
-        subscription_plan: 'starter',
-        status: 'active',
-        users_count: 5,
-        vehicles_count: 12,
-        max_users: 10,
-        max_vehicles: 15,
-        description: 'Solutions logistiques pour PME',
-        created_at: '2025-01-10T08:00:00Z',
-        updated_at: '2025-01-25T16:45:00Z',
-        last_activity: '2025-01-30T18:30:00Z',
-        settings: {
-          features_enabled: ['maintenance', 'tracking'],
-          custom_branding: false,
-          api_access: false
-        },
-        billing: {
-          last_payment: '2025-01-10T00:00:00Z',
-          next_payment: '2025-02-10T00:00:00Z',
-          payment_status: 'current'
+      }));
+      
+      const stats = this.calculateStatsFromReal(tenants);
+      
+      return {
+        tenants,
+        stats,
+        pagination: response.data.pagination || {
+          current_page: 1,
+          per_page: tenants.length,
+          total: tenants.length,
+          last_page: 1
         }
-      },
-      {
-        id: '3',
-        name: 'Médical Services Plus',
-        domain: 'medical-services.local',
-        admin_email: 'admin@medical-services.fr',
-        admin_name: 'Dr. Pierre Leblanc',
+      };
+    } catch (error: any) {
+      console.error('Erreur récupération tenants depuis Supabase:', error);
+      throw new Error('Impossible de récupérer les tenants');
+    }
+  }
+
+  // Calculer les statistiques à partir des vraies données Supabase
+  private calculateStatsFromReal(tenants: Tenant[]): TenantStats {
+    return {
+      total: tenants.length,
+      active: tenants.filter(t => t.status === 'active').length,
+      inactive: tenants.filter(t => t.status === 'inactive').length,
+      suspended: tenants.filter(t => t.status === 'suspended').length,
+      total_users: tenants.reduce((sum, t) => sum + t.users_count, 0),
+      total_vehicles: tenants.reduce((sum, t) => sum + t.vehicles_count, 0),
+      monthly_growth: tenants.length > 0 ? ((tenants.filter(t => t.status === 'active').length / tenants.length) * 100) : 0,
+      revenue_monthly: tenants.length * 89.99 // Estimation basée sur le plan moyen
+    };
+  }
+
+  // Récupérer un tenant par ID depuis Supabase uniquement
+  async getById(id: string): Promise<Tenant> {
+    try {
+      const response = await api.get(`/internal/tenants/${id}`);
+      const t = response.data.data;
+      
+      // Transformer les données Supabase vers le format attendu
+      return {
+        id: t.id.toString(),
+        name: t.name,
+        domain: t.domain,
+        admin_email: t.email || 'admin@' + t.domain,
+        admin_name: t.name,
         subscription_plan: 'professional',
-        status: 'suspended',
-        users_count: 8,
-        vehicles_count: 18,
-        max_users: 20,
-        max_vehicles: 25,
-        description: 'Services médicaux d\'urgence et transport sanitaire',
-        created_at: '2024-11-20T14:15:00Z',
-        updated_at: '2025-01-20T11:30:00Z',
-        last_activity: '2025-01-18T12:00:00Z',
+        status: t.is_active ? 'active' : 'inactive',
+        users_count: t.users_count || 0,
+        vehicles_count: t.vehicles_count || 0,
+        max_users: 100,
+        max_vehicles: 200,
+        description: `Tenant ${t.name}`,
+        created_at: t.created_at,
+        updated_at: t.updated_at,
+        last_activity: t.updated_at,
         settings: {
-          features_enabled: ['maintenance', 'tracking', 'emergency'],
+          features_enabled: ['maintenance', 'tracking', 'reports'],
           custom_branding: true,
           api_access: true
         },
         billing: {
-          last_payment: '2024-12-20T00:00:00Z',
-          next_payment: '2025-01-20T00:00:00Z',
-          payment_status: 'overdue'
+          last_payment: t.created_at,
+          next_payment: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          payment_status: 'current'
         }
-      }
-    ];
-    
-    this.saveLocalTenants(initialTenants);
-    return initialTenants;
-  }
-
-  private saveLocalTenants(tenants: Tenant[]): void {
-    localStorage.setItem('flotteq_internal_tenants', JSON.stringify(tenants));
-  }
-
-  private calculateStats(tenants: Tenant[]): TenantStats {
-    const safeTenants = safeArray(tenants);
-    return {
-      total: safeTenants.length,
-      active: safeFilter(safeTenants, t => t.status === 'active').length,
-      inactive: safeFilter(safeTenants, t => t.status === 'inactive').length,
-      suspended: safeFilter(safeTenants, t => t.status === 'suspended').length,
-      total_users: safeTenants.reduce((sum, t) => sum + t.users_count, 0),
-      total_vehicles: safeTenants.reduce((sum, t) => sum + t.vehicles_count, 0),
-      monthly_growth: 15.2,
-      revenue_monthly: 45760
-    };
-  }
-
-  // Récupérer un tenant par ID
-  async getById(id: string): Promise<Tenant> {
-    try {
-      const response = await api.get(`/tenants/${id}`);
-      return response.data;
+      };
     } catch (error: any) {
-      console.error('Erreur récupération tenant:', error);
-      
-      // Fallback local
-      const tenants = this.getLocalTenants();
-      const tenant = safeArray(tenants).find(t => t.id === id);
-      
-      if (!tenant) {
-        throw new Error('Tenant non trouvé');
-      }
-      
-      return tenant;
+      console.error('Erreur récupération tenant depuis Supabase:', error);
+      throw new Error('Tenant non trouvé');
     }
   }
 
-  // Créer un nouveau tenant
+  // Créer un nouveau tenant dans Supabase uniquement
   async create(data: TenantCreateData): Promise<Tenant> {
     try {
-      const response = await api.post('/tenants', data);
+      const response = await api.post('/internal/tenants', {
+        name: data.name,
+        domain: data.domain,
+        email: data.admin_email,
+        description: data.description,
+        is_active: true
+      });
       
-      // Mettre à jour le localStorage également
-      const tenants = this.getLocalTenants();
-      tenants.push(response.data);
-      this.saveLocalTenants(tenants);
+      const t = response.data.data;
       
-      return response.data;
-    } catch (error: any) {
-      console.error('Erreur création tenant:', error);
-      
-      // Fallback local
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const newTenant: Tenant = {
-        id: Date.now().toString(),
-        ...data,
+      return {
+        id: t.id.toString(),
+        name: t.name,
+        domain: t.domain,
+        admin_email: t.email,
+        admin_name: data.admin_name,
+        subscription_plan: data.subscription_plan,
         status: 'active',
-        users_count: 1, // Admin par défaut
+        users_count: 1,
         vehicles_count: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        last_activity: new Date().toISOString(),
+        max_users: data.max_users,
+        max_vehicles: data.max_vehicles,
+        description: data.description,
+        created_at: t.created_at,
+        updated_at: t.updated_at,
+        last_activity: t.created_at,
         settings: {
           features_enabled: ['maintenance', 'tracking'],
           custom_branding: data.subscription_plan !== 'starter',
           api_access: data.subscription_plan === 'enterprise'
         },
         billing: {
-          last_payment: new Date().toISOString(),
+          last_payment: t.created_at,
           next_payment: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           payment_status: 'current'
         }
       };
-      
-      // Sauvegarder localement
-      const tenants = this.getLocalTenants();
-      tenants.push(newTenant);
-      this.saveLocalTenants(tenants);
-      
-      return newTenant;
+    } catch (error: any) {
+      console.error('Erreur création tenant dans Supabase:', error);
+      throw new Error('Impossible de créer le tenant');
     }
   }
 
-  // Mettre à jour un tenant
+  // Mettre à jour un tenant dans Supabase uniquement
   async update(id: string, data: TenantUpdateData): Promise<Tenant> {
     try {
-      const response = await api.put(`/tenants/${id}`, data);
-      
-      // Mettre à jour le localStorage également
-      const tenants = this.getLocalTenants();
-      const index = safeFindIndex(tenants, t => t.id === id);
-      if (index !== -1) {
-        tenants[index] = { ...tenants[index], ...response.data, updated_at: new Date().toISOString() };
-        this.saveLocalTenants(tenants);
-      }
-      
-      return response.data;
-    } catch (error: any) {
-      console.error('Erreur mise à jour tenant:', error);
-      
-      // Fallback local
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const tenants = this.getLocalTenants();
-      const index = safeFindIndex(tenants, t => t.id === id);
-      
-      if (index === -1) {
-        throw new Error('Tenant non trouvé');
-      }
-      
-      const updatedTenant: Tenant = {
-        ...tenants[index],
-        ...data,
-        updated_at: new Date().toISOString()
+      const updateData = {
+        name: data.name,
+        domain: data.domain,
+        email: data.admin_email,
+        is_active: data.status === 'active'
       };
       
-      tenants[index] = updatedTenant;
-      this.saveLocalTenants(tenants);
+      const response = await api.put(`/internal/tenants/${id}`, updateData);
+      const t = response.data.data;
       
-      return updatedTenant;
+      return {
+        id: t.id.toString(),
+        name: t.name,
+        domain: t.domain,
+        admin_email: t.email,
+        admin_name: data.admin_name || t.name,
+        subscription_plan: data.subscription_plan || 'professional',
+        status: t.is_active ? 'active' : 'inactive',
+        users_count: t.users_count || 0,
+        vehicles_count: t.vehicles_count || 0,
+        max_users: data.max_users || 100,
+        max_vehicles: data.max_vehicles || 200,
+        description: data.description,
+        created_at: t.created_at,
+        updated_at: t.updated_at,
+        last_activity: t.updated_at,
+        settings: data.settings || {
+          features_enabled: ['maintenance', 'tracking', 'reports'],
+          custom_branding: true,
+          api_access: true
+        },
+        billing: {
+          last_payment: t.created_at,
+          next_payment: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          payment_status: 'current'
+        }
+      };
+    } catch (error: any) {
+      console.error('Erreur mise à jour tenant dans Supabase:', error);
+      throw new Error('Impossible de mettre à jour le tenant');
     }
   }
 
-  // Suspendre un tenant
+  // Suspendre un tenant dans Supabase
   async suspend(id: string, reason?: string): Promise<void> {
     try {
-      await api.post(`/tenants/${id}/suspend`, { reason });
-      
-      // Mettre à jour localement
-      await this.updateLocalTenantStatus(id, 'suspended');
+      await api.put(`/internal/tenants/${id}`, { is_active: false });
     } catch (error: any) {
-      console.error('Erreur suspension tenant:', error);
-      
-      // Fallback local
-      await new Promise(resolve => setTimeout(resolve, 800));
-      await this.updateLocalTenantStatus(id, 'suspended');
+      console.error('Erreur suspension tenant dans Supabase:', error);
+      throw new Error('Impossible de suspendre le tenant');
     }
   }
 
-  // Réactiver un tenant
+  // Réactiver un tenant dans Supabase
   async activate(id: string): Promise<void> {
     try {
-      await api.post(`/tenants/${id}/activate`);
-      
-      // Mettre à jour localement
-      await this.updateLocalTenantStatus(id, 'active');
+      await api.put(`/internal/tenants/${id}`, { is_active: true });
     } catch (error: any) {
-      console.error('Erreur activation tenant:', error);
-      
-      // Fallback local
-      await new Promise(resolve => setTimeout(resolve, 600));
-      await this.updateLocalTenantStatus(id, 'active');
+      console.error('Erreur activation tenant dans Supabase:', error);
+      throw new Error('Impossible de réactiver le tenant');
     }
   }
 
-  // Supprimer un tenant (soft delete)
+  // Supprimer un tenant dans Supabase
   async delete(id: string): Promise<void> {
     try {
-      await api.delete(`/tenants/${id}`);
-      
-      // Supprimer localement
-      const tenants = this.getLocalTenants();
-      const filteredTenants = safeFilter(tenants, t => t.id !== id);
-      this.saveLocalTenants(filteredTenants);
+      await api.delete(`/internal/tenants/${id}`);
     } catch (error: any) {
-      console.error('Erreur suppression tenant:', error);
-      
-      // Fallback local
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      const tenants = this.getLocalTenants();
-      const filteredTenants = safeFilter(tenants, t => t.id !== id);
-      this.saveLocalTenants(filteredTenants);
+      console.error('Erreur suppression tenant dans Supabase:', error);
+      throw new Error('Impossible de supprimer le tenant');
     }
   }
 
-  // Méthode utilitaire pour mettre à jour le statut localement
-  private async updateLocalTenantStatus(id: string, status: Tenant['status']): Promise<void> {
-    const tenants = this.getLocalTenants();
-    const index = safeArray(tenants).findIndex(t => t.id === id);
-    
-    if (index !== -1) {
-      tenants[index].status = status;
-      tenants[index].updated_at = new Date().toISOString();
-      this.saveLocalTenants(tenants);
-    }
-  }
 
-  // Obtenir les détails d'utilisation d'un tenant
+  // Obtenir les détails d'utilisation d'un tenant depuis les vraies données
   async getUsageDetails(id: string): Promise<{
     current_usage: {
       users: number;
@@ -409,26 +321,31 @@ class TenantService {
     };
   }> {
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const tenant = await this.getById(id);
+      
+      const currentUsers = tenant.users_count;
+      const currentVehicles = tenant.vehicles_count;
+      const maxUsers = tenant.max_users;
+      const maxVehicles = tenant.max_vehicles;
       
       return {
         current_usage: {
-          users: 8,
-          vehicles: 23,
-          storage_mb: 1240,
-          api_calls_monthly: 15670
+          users: currentUsers,
+          vehicles: currentVehicles,
+          storage_mb: currentVehicles * 50, // Estimation 50MB par véhicule
+          api_calls_monthly: currentUsers * 1000 // Estimation 1000 appels par utilisateur
         },
         limits: {
-          users: 20,
-          vehicles: 50,
-          storage_mb: 5000,
-          api_calls_monthly: 50000
+          users: maxUsers,
+          vehicles: maxVehicles,
+          storage_mb: maxVehicles * 100,
+          api_calls_monthly: maxUsers * 2000
         },
         usage_percentage: {
-          users: 40,
-          vehicles: 46,
-          storage: 25,
-          api_calls: 31
+          users: maxUsers > 0 ? Math.round((currentUsers / maxUsers) * 100) : 0,
+          vehicles: maxVehicles > 0 ? Math.round((currentVehicles / maxVehicles) * 100) : 0,
+          storage: maxVehicles > 0 ? Math.round(((currentVehicles * 50) / (maxVehicles * 100)) * 100) : 0,
+          api_calls: maxUsers > 0 ? Math.round(((currentUsers * 1000) / (maxUsers * 2000)) * 100) : 0
         }
       };
     } catch (error) {
@@ -437,7 +354,7 @@ class TenantService {
     }
   }
 
-  // Obtenir l'historique des activités d'un tenant
+  // Obtenir l'historique des activités d'un tenant depuis les vraies données
   async getActivityHistory(id: string, limit: number = 50): Promise<Array<{
     id: string;
     type: 'login' | 'vehicle_added' | 'user_added' | 'maintenance' | 'payment';
@@ -447,31 +364,42 @@ class TenantService {
     metadata?: any;
   }>> {
     try {
-      await new Promise(resolve => setTimeout(resolve, 400));
+      // Pour l'instant, retourner un historique basé sur les vraies données du tenant
+      const tenant = await this.getById(id);
       
-      return [
-        {
-          id: '1',
-          type: 'login',
-          user: 'Jean Dupont',
-          description: 'Connexion à l\'interface',
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-        },
-        {
+      const activities = [];
+      
+      // Ajouter l'activité de création
+      activities.push({
+        id: '1',
+        type: 'user_added' as const,
+        user: tenant.admin_name,
+        description: `Création du tenant ${tenant.name}`,
+        timestamp: tenant.created_at
+      });
+      
+      // Ajouter des activités basées sur les données réelles
+      if (tenant.users_count > 0) {
+        activities.push({
           id: '2',
-          type: 'vehicle_added',
-          user: 'Marie Martin',
-          description: 'Ajout du véhicule AB-123-CD',
-          timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
-        },
-        {
+          type: 'user_added' as const,
+          user: 'System',
+          description: `${tenant.users_count} utilisateur(s) actif(s)`,
+          timestamp: tenant.last_activity
+        });
+      }
+      
+      if (tenant.vehicles_count > 0) {
+        activities.push({
           id: '3',
-          type: 'maintenance',
-          user: 'Jean Dupont',
-          description: 'Maintenance programmée pour le véhicule EF-456-GH',
-          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-        }
-      ];
+          type: 'vehicle_added' as const,
+          user: tenant.admin_name,
+          description: `${tenant.vehicles_count} véhicule(s) géré(s)`,
+          timestamp: tenant.updated_at
+        });
+      }
+      
+      return activities.slice(0, limit);
     } catch (error) {
       console.error('Erreur récupération historique tenant:', error);
       throw new Error('Impossible de récupérer l\'historique des activités');
