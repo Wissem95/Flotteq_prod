@@ -64,7 +64,7 @@ class SocialAuthController extends Controller
             $tenant = $this->getTenantForAuth($request->tenant_domain);
             $tenant->makeCurrent();
 
-            // 3. Préparer les données utilisateur (même format que l'existant)
+            // 3. Préparer les données utilisateur avec toutes les données disponibles
             $googleUserData = [
                 'id' => $uid,
                 'email' => $email,
@@ -72,6 +72,14 @@ class SocialAuthController extends Controller
                 'avatar' => $avatar,
                 'first_name' => $this->extractFirstName($name),
                 'last_name' => $this->extractLastName($name),
+                // Nouvelles données étendues
+                'phone' => $userData['phone'] ?? null,
+                'birthdate' => $userData['birthday'] ?? null,
+                'gender' => $userData['gender'] ?? null,
+                'address' => $userData['address'] ?? null,
+                'locale' => $userData['locale'] ?? null,
+                'phone_verified' => $userData['phone_verified'] ?? false,
+                'email_verified' => $userData['email_verified'] ?? false,
             ];
 
             // 4. RÉUTILISER EXACTEMENT la même logique de création/mise à jour
@@ -135,7 +143,7 @@ class SocialAuthController extends Controller
                 throw new \Exception('Cet email est déjà associé à un autre domaine.');
             }
 
-            // Créer nouvel utilisateur (MÊME LOGIQUE)
+            // Créer nouvel utilisateur avec toutes les données disponibles
             $user = User::create([
                 'email' => $googleUserData['email'],
                 'username' => $this->generateUsername($googleUserData['name']),
@@ -146,18 +154,51 @@ class SocialAuthController extends Controller
                 'avatar' => $googleUserData['avatar'],
                 'email_verified_at' => now(),
                 'tenant_id' => $tenant->id,
+                // Nouvelles données étendues
+                'phone' => $googleUserData['phone'],
+                'birthdate' => $googleUserData['birthdate'],
+                'gender' => $googleUserData['gender'],
+                'address' => $googleUserData['address'],
+                'locale' => $googleUserData['locale'],
+                'phone_verified' => $googleUserData['phone_verified'],
+                'email_verified_status' => $googleUserData['email_verified'],
             ]);
 
             // Assigner permissions (MÊME LOGIQUE)
             UserPermissionService::assignDefaultPermissions($user);
         } else {
-            // Mettre à jour utilisateur existant (MÊME LOGIQUE)
-            $user->update([
+            // Mettre à jour utilisateur existant avec nouvelles données si vides
+            $updateData = [
                 'google_id' => $googleUserData['id'],
                 'avatar' => $googleUserData['avatar'],
                 'first_name' => $googleUserData['first_name'],
                 'last_name' => $googleUserData['last_name'],
-            ]);
+            ];
+            
+            // Ajouter les nouvelles données seulement si elles ne sont pas déjà renseignées
+            if (empty($user->phone) && !empty($googleUserData['phone'])) {
+                $updateData['phone'] = $googleUserData['phone'];
+            }
+            if (empty($user->birthdate) && !empty($googleUserData['birthdate'])) {
+                $updateData['birthdate'] = $googleUserData['birthdate'];
+            }
+            if (empty($user->gender) && !empty($googleUserData['gender'])) {
+                $updateData['gender'] = $googleUserData['gender'];
+            }
+            if (empty($user->address) && !empty($googleUserData['address'])) {
+                $updateData['address'] = $googleUserData['address'];
+            }
+            if (empty($user->locale) && !empty($googleUserData['locale'])) {
+                $updateData['locale'] = $googleUserData['locale'];
+            }
+            if (!$user->phone_verified && $googleUserData['phone_verified']) {
+                $updateData['phone_verified'] = $googleUserData['phone_verified'];
+            }
+            if (!$user->email_verified_status && $googleUserData['email_verified']) {
+                $updateData['email_verified_status'] = $googleUserData['email_verified'];
+            }
+            
+            $user->update($updateData);
         }
 
         return $user;
