@@ -28,7 +28,7 @@ export interface GoogleCallbackResponse {
  * Construire l'URL d'authentification Google
  */
 export const getGoogleAuthUrl = (tenantDomain?: string): string => {
-  const baseUrl = process.env.VITE_API_URL || 'https://flotteq-backend-v2-production.up.railway.app/api';
+  const baseUrl = import.meta.env.VITE_API_URL || 'https://flotteq-backend-v2-production.up.railway.app/api';
   const url = new URL(`${baseUrl}/auth/google/redirect`);
   
   if (tenantDomain) {
