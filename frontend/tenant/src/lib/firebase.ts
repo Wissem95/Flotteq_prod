@@ -32,9 +32,19 @@ export const auth = getAuth(app);
 // Initialize Google Auth Provider  
 export const googleProvider = new GoogleAuthProvider();
 
-// Configurer les scopes pour récupérer les mêmes données que votre backend actuel
+// Configurer les scopes pour récupérer un maximum de données du profil Google
 googleProvider.addScope('profile');
 googleProvider.addScope('email');
 googleProvider.addScope('openid');
+googleProvider.addScope('https://www.googleapis.com/auth/user.birthday.read');
+googleProvider.addScope('https://www.googleapis.com/auth/user.gender.read');
+googleProvider.addScope('https://www.googleapis.com/auth/user.phonenumbers.read');
+googleProvider.addScope('https://www.googleapis.com/auth/user.addresses.read');
+
+// Configurer le provider pour récupérer les informations étendues
+googleProvider.setCustomParameters({
+  'access_type': 'offline',
+  'prompt': 'consent'
+});
 
 export default app;
