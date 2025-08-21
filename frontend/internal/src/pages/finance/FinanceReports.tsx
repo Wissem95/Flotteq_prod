@@ -98,76 +98,6 @@ const FinanceReports: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('current_month');
   const [reportType, setReportType] = useState('summary');
 
-  // Données simulées
-  const mockReports: FinancialReport[] = [
-    {
-      id: '1',
-      name: 'Rapport Mensuel - Juillet 2024',
-      type: 'monthly',
-      period: '2024-07',
-      generated_at: '2024-07-30T09:00:00Z',
-      status: 'ready',
-      file_size: '2.4 MB',
-      download_url: '/reports/monthly-2024-07.pdf',
-    },
-    {
-      id: '2',
-      name: 'Rapport Trimestriel - Q2 2024',
-      type: 'quarterly',
-      period: '2024-Q2',
-      generated_at: '2024-07-01T14:30:00Z',
-      status: 'ready',
-      file_size: '5.8 MB',
-      download_url: '/reports/quarterly-2024-q2.pdf',
-    },
-    {
-      id: '3',
-      name: 'Rapport Annuel - 2023',
-      type: 'yearly',
-      period: '2023',
-      generated_at: '2024-01-15T11:00:00Z',
-      status: 'ready',
-      file_size: '12.3 MB',
-      download_url: '/reports/yearly-2023.pdf',
-    },
-    {
-      id: '4',
-      name: 'Rapport Custom - Analyse Partenaires',
-      type: 'custom',
-      period: '2024-06 to 2024-07',
-      generated_at: '2024-07-29T16:45:00Z',
-      status: 'generating',
-    },
-  ];
-
-  const mockReportData: ReportData = {
-    revenue_summary: {
-      total_revenue: 67800,
-      subscription_revenue: 56300,
-      commission_revenue: 8900,
-      other_revenue: 2600,
-      growth_rate: 10.2,
-    },
-    expense_summary: {
-      total_expenses: 42500,
-      operational_expenses: 25000,
-      marketing_expenses: 12000,
-      technical_expenses: 5500,
-    },
-    profit_loss: {
-      gross_profit: 25300,
-      net_profit: 18750,
-      profit_margin: 27.6,
-      ebitda: 22100,
-    },
-    key_metrics: {
-      arr: 745600,
-      mrr: 62133,
-      ltv: 1850,
-      cac: 125,
-      churn_rate: 2.3,
-    },
-  };
 
   useEffect(() => {
     loadData();
@@ -176,12 +106,21 @@ const FinanceReports: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      // Simulation d'appel API
-      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      setReports(mockReports);
-      setReportData(mockReportData);
+      const [reportsResponse, dataResponse] = await Promise.all([
+        fetch('/api/financial/reports'),
+        fetch(`/api/financial/reports/data?period=${selectedPeriod}`)
+      ]);
+      
+      const reportsData = await reportsResponse.json();
+      const reportData = await dataResponse.json();
+      
+      setReports(reportsData.data || []);
+      setReportData(reportData);
     } catch (error) {
+      console.error('Erreur lors du chargement des rapports:', error);
+      setReports([]);
+      setReportData(null);
       toast({
         title: 'Erreur',
         description: 'Impossible de charger les rapports financiers',

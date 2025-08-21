@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { Plus, Edit, MoreHorizontal, Star, Check, Eye, Power, Users, Car, Shield, Zap, Crown, Building2, DollarSign, } from "lucide-react";
-import { SubscriptionPlan, CreatePlanData } from "@/services/subscriptionsService";
+import { SubscriptionPlan, CreatePlanData, subscriptionsService } from "@/services/subscriptionsService";
 
 const PlansManagement: React.FC = () => {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -30,81 +30,6 @@ const PlansManagement: React.FC = () => {
     is_popular: false,
   });
 
-  // Plans mockés pour la démonstration
-  const mockPlans: SubscriptionPlan[] = [
-    {
-      id: "starter",
-      name: "Starter",
-      description: "Parfait pour les petites entreprises qui débutent avec la gestion de flotte",
-      price_monthly: 99,
-      price_yearly: 990,
-      features: [
-        "Jusqu'à 10 véhicules",
-        "3 utilisateurs inclus",
-        "Suivi GPS en temps réel",
-        "Rapports de base",
-        "Support par email",
-        "Application mobile",
-      ],
-      max_vehicles: 10,
-      max_users: 3,
-      support_level: "basic",
-      is_active: true,
-      is_popular: false,
-      created_at: "2024-01-15",
-      updated_at: "2024-07-20",
-    },
-    {
-      id: "business",
-      name: "Business",
-      description: "Solution complète pour les PME avec fonctionnalités avancées",
-      price_monthly: 299,
-      price_yearly: 2990,
-      features: [
-        "Jusqu'à 50 véhicules",
-        "10 utilisateurs inclus",
-        "Suivi GPS avancé",
-        "Rapports détaillés",
-        "Maintenance programmée",
-        "Support prioritaire",
-        "API d'intégration",
-        "Tableau de bord personnalisé",
-      ],
-      max_vehicles: 50,
-      max_users: 10,
-      support_level: "premium",
-      is_active: true,
-      is_popular: true,
-      created_at: "2024-01-15",
-      updated_at: "2024-07-20",
-    },
-    {
-      id: "enterprise",
-      name: "Enterprise",
-      description: "Solution sur mesure pour les grandes entreprises et flottes importantes",
-      price_monthly: 699,
-      price_yearly: 6990,
-      features: [
-        "Véhicules illimités",
-        "Utilisateurs illimités",
-        "Suivi GPS premium",
-        "Analytics avancés",
-        "Maintenance prédictive",
-        "Support 24/7 dédié",
-        "API complète",
-        "Intégrations personnalisées",
-        "Formation incluse",
-        "Manager dédié",
-      ],
-      max_vehicles: -1,
-      max_users: -1,
-      support_level: "enterprise",
-      is_active: true,
-      is_popular: false,
-      created_at: "2024-01-15",
-      updated_at: "2024-07-20",
-    },
-  ];
 
   useEffect(() => {
     loadPlans();
@@ -113,11 +38,11 @@ const PlansManagement: React.FC = () => {
   const loadPlans = async () => {
     setLoading(true);
     try {
-      // Simulation d'un appel API
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setPlans(mockPlans);
+      const plansData = await subscriptionsService.getPlans();
+      setPlans(plansData);
     } catch (error) {
       console.error("Erreur lors du chargement des plans:", error);
+      setPlans([]);
     } finally {
       setLoading(false);
     }
@@ -125,15 +50,7 @@ const PlansManagement: React.FC = () => {
 
   const handleCreatePlan = async () => {
     try {
-      // Simulation d'un appel API
-      const newPlan: SubscriptionPlan = {
-        id: `plan_${Date.now()}`,
-        ...formData,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      
+      const newPlan = await subscriptionsService.createPlan(formData);
       setPlans(prev => [...prev, newPlan]);
       setShowCreateModal(false);
       resetForm();
@@ -146,13 +63,7 @@ const PlansManagement: React.FC = () => {
     if (!editingPlan) return;
     
     try {
-      // Simulation d'un appel API
-      const updatedPlan: SubscriptionPlan = {
-        ...editingPlan,
-        ...formData,
-        updated_at: new Date().toISOString(),
-      };
-      
+      const updatedPlan = await subscriptionsService.updatePlan(editingPlan.id, formData);
       setPlans(prev => prev.map(plan => plan.id === editingPlan.id ? updatedPlan : plan));
       setEditingPlan(null);
       resetForm();
@@ -163,9 +74,9 @@ const PlansManagement: React.FC = () => {
 
   const togglePlanStatus = async (planId: string) => {
     try {
-      // Simulation d'un appel API
+      const updatedPlan = await subscriptionsService.togglePlanStatus(planId);
       setPlans(prev => prev.map(plan => 
-        plan.id === planId ? { ...plan, is_active: !plan.is_active } : plan
+        plan.id === planId ? updatedPlan : plan
       ));
     } catch (error) {
       console.error("Erreur lors du changement de statut:", error);

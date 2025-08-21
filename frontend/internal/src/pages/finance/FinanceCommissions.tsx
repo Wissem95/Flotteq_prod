@@ -100,74 +100,6 @@ const FinanceCommissions: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
 
-  // Données simulées
-  const mockCommissions: Commission[] = [
-    {
-      id: 1,
-      partner_id: 1,
-      partner_name: 'Garage Citroën Paris 15',
-      partner_type: 'garage',
-      booking_id: 1001,
-      tenant_name: 'Transport Express SARL',
-      service_amount: 250.00,
-      commission_rate: 15,
-      commission_amount: 37.50,
-      status: 'pending',
-      created_at: '2024-07-25T10:30:00Z',
-      due_date: '2024-08-25',
-    },
-    {
-      id: 2,
-      partner_id: 2,
-      partner_name: 'DEKRA Automotive Paris Nord',
-      partner_type: 'controle_technique',
-      booking_id: 1002,
-      tenant_name: 'LogiTech Solutions',
-      service_amount: 78.50,
-      commission_rate: 20,
-      commission_amount: 15.70,
-      status: 'approved',
-      created_at: '2024-07-20T14:15:00Z',
-      due_date: '2024-08-20',
-    },
-    {
-      id: 3,
-      partner_id: 3,
-      partner_name: 'AXA Assurance Flotte',
-      partner_type: 'assurance',
-      booking_id: 1003,
-      tenant_name: 'BatiPro Construction',
-      service_amount: 450.00,
-      commission_rate: 10,
-      commission_amount: 45.00,
-      status: 'paid',
-      created_at: '2024-07-15T09:00:00Z',
-      due_date: '2024-08-15',
-      paid_at: '2024-07-28T16:20:00Z',
-    },
-  ];
-
-  const mockStats: CommissionStats = {
-    total_commissions: 142300,
-    pending_commissions: 23450,
-    paid_commissions: 118850,
-    monthly_commissions: 8750,
-    total_partners: 47,
-    average_commission_rate: 15.2,
-    commissions_by_type: [
-      { type: 'garage', amount: 89450, count: 234 },
-      { type: 'controle_technique', amount: 34200, count: 156 },
-      { type: 'assurance', amount: 18650, count: 67 },
-    ],
-    monthly_evolution: [
-      { month: 'Jan', amount: 6200, count: 45 },
-      { month: 'Fév', amount: 7800, count: 52 },
-      { month: 'Mar', amount: 6900, count: 48 },
-      { month: 'Avr', amount: 8900, count: 61 },
-      { month: 'Mai', amount: 9200, count: 63 },
-      { month: 'Jun', amount: 8750, count: 58 },
-    ],
-  };
 
   useEffect(() => {
     loadData();
@@ -176,29 +108,26 @@ const FinanceCommissions: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      // Simulation d'appel API
-      await new Promise(resolve => setTimeout(resolve, 800));
       
-      let filteredCommissions = [...mockCommissions];
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (statusFilter !== 'all') params.append('status', statusFilter);
+      if (typeFilter !== 'all') params.append('type', typeFilter);
       
-      if (searchTerm) {
-        filteredCommissions = filteredCommissions.filter(commission =>
-          commission.partner_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          commission.tenant_name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
+      const [commissionsResponse, statsResponse] = await Promise.all([
+        fetch(`/api/financial/commissions?${params.toString()}`),
+        fetch('/api/financial/commissions/stats')
+      ]);
       
-      if (statusFilter !== 'all') {
-        filteredCommissions = filteredCommissions.filter(commission => commission.status === statusFilter);
-      }
+      const commissionsData = await commissionsResponse.json();
+      const statsData = await statsResponse.json();
       
-      if (typeFilter !== 'all') {
-        filteredCommissions = filteredCommissions.filter(commission => commission.partner_type === typeFilter);
-      }
-      
-      setCommissions(filteredCommissions);
-      setStats(mockStats);
+      setCommissions(commissionsData.data || []);
+      setStats(statsData);
     } catch (error) {
+      console.error('Erreur lors du chargement des commissions:', error);
+      setCommissions([]);
+      setStats(null);
       toast({
         title: 'Erreur',
         description: 'Impossible de charger les données des commissions',

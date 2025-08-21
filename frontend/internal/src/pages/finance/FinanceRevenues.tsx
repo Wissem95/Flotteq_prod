@@ -83,34 +83,6 @@ const FinanceRevenues: React.FC = () => {
   const [timeRange, setTimeRange] = useState('12m');
   const [selectedMetric, setSelectedMetric] = useState('total');
 
-  // Données simulées
-  const mockRevenueData: RevenueData[] = [
-    { period: 'Jan 2024', total_revenue: 45780, subscription_revenue: 38900, commission_revenue: 5380, other_revenue: 1500, growth_rate: 8.5 },
-    { period: 'Fév 2024', total_revenue: 52100, subscription_revenue: 42800, commission_revenue: 6800, other_revenue: 2500, growth_rate: 13.8 },
-    { period: 'Mar 2024', total_revenue: 48900, subscription_revenue: 41200, commission_revenue: 5900, other_revenue: 1800, growth_rate: -6.1 },
-    { period: 'Avr 2024', total_revenue: 58200, subscription_revenue: 48500, commission_revenue: 7200, other_revenue: 2500, growth_rate: 19.0 },
-    { period: 'Mai 2024', total_revenue: 61500, subscription_revenue: 51200, commission_revenue: 7800, other_revenue: 2500, growth_rate: 5.7 },
-    { period: 'Jun 2024', total_revenue: 67800, subscription_revenue: 56300, commission_revenue: 8900, other_revenue: 2600, growth_rate: 10.2 },
-  ];
-
-  const mockStats: RevenueStats = {
-    total_revenue: 1245000,
-    monthly_revenue: 67800,
-    yearly_revenue: 745600,
-    growth_rate: 15.3,
-    average_monthly_growth: 8.7,
-    top_revenue_sources: [
-      { source: 'Abonnements', amount: 456800, percentage: 68.5 },
-      { source: 'Commissions', amount: 142300, percentage: 21.3 },
-      { source: 'Services premium', amount: 45600, percentage: 6.8 },
-      { source: 'Formation', amount: 23100, percentage: 3.4 },
-    ],
-    revenue_by_plan: [
-      { plan_name: 'Starter', revenue: 145600, subscribers: 1245 },
-      { plan_name: 'Professional', revenue: 234500, subscribers: 856 },
-      { plan_name: 'Enterprise', revenue: 365400, subscribers: 287 },
-    ],
-  };
 
   useEffect(() => {
     loadData();
@@ -119,12 +91,17 @@ const FinanceRevenues: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      // Simulation d'appel API
-      await new Promise(resolve => setTimeout(resolve, 800));
       
-      setRevenueData(mockRevenueData);
-      setStats(mockStats);
+      // Appel API réel pour les revenus
+      const response = await fetch(`/api/financial/revenue?timeRange=${timeRange}`);
+      const data = await response.json();
+      
+      setRevenueData(data.revenue_data || []);
+      setStats(data.stats || null);
     } catch (error) {
+      console.error('Erreur lors du chargement des données financières:', error);
+      setRevenueData([]);
+      setStats(null);
       toast({
         title: 'Erreur',
         description: 'Impossible de charger les données financières',
