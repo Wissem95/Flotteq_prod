@@ -84,7 +84,7 @@ class Tenant extends Model implements IsTenant
     /**
      * Execute callback with this tenant as current
      */
-    public function execute(callable $callable)
+    public function execute(callable $callable): mixed
     {
         $originalTenant = static::current();
         $this->makeCurrent();
