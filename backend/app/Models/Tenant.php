@@ -117,6 +117,33 @@ class Tenant extends Model implements IsTenant
     }
 
     /**
+     * Forget this tenant instance
+     */
+    public function forget(): static
+    {
+        if ($this->isCurrent()) {
+            static::forgetCurrent();
+        }
+        return $this;
+    }
+
+    /**
+     * Get database name for this tenant
+     */
+    public function getDatabaseName(): string
+    {
+        return $this->database ?? config('database.connections.'.config('database.default').'.database');
+    }
+
+    /**
+     * Execute callback within tenant context
+     */
+    public function callback(callable $callable): mixed
+    {
+        return $this->execute($callable);
+    }
+
+    /**
      * Get all users for this tenant.
      */
     public function users(): HasMany
