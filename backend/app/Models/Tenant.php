@@ -41,7 +41,7 @@ class Tenant extends Model implements IsTenant
     /**
      * Get the current tenant
      */
-    public static function current(): ?IsTenant
+    public static function current(): ?static
     {
         return app('currentTenant');
     }
