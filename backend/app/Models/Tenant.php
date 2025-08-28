@@ -138,9 +138,9 @@ class Tenant extends Model implements IsTenant
     /**
      * Execute callback within tenant context
      */
-    public function callback(callable $callable): mixed
+    public function callback(callable $callable): \Closure
     {
-        return $this->execute($callable);
+        return \Closure::fromCallable($callable);
     }
 
     /**
