@@ -71,8 +71,7 @@ class AuthController extends Controller
             Log::warning("Impossible d'assigner les permissions lors de l'enregistrement pour l'utilisateur {$user->id}: " . $e->getMessage());
         }
 
-        // Make tenant current
-        $tenant->makeCurrent();
+        // Store tenant for response (makeCurrent removed)
 
         // Create token
         $token = $user->createToken('auth-token')->plainTextToken;
@@ -212,8 +211,7 @@ class AuthController extends Controller
             ]);
         }
 
-        // Make tenant current to avoid middleware issues
-        $tenant->makeCurrent();
+        // Store tenant data for response (makeCurrent removed)
 
         // Préparer les données utilisateur avec le statut du profil
         $userProfileData = $user->only([

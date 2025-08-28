@@ -62,7 +62,7 @@ class SocialAuthController extends Controller
 
             // 2. Utiliser la même logique que l'OAuth existant
             $tenant = $this->getTenantForAuth($request->tenant_domain);
-            $tenant->makeCurrent();
+            // Tenant makeCurrent removed
 
             // 3. Préparer les données utilisateur avec toutes les données disponibles
             $googleUserData = [
@@ -275,7 +275,7 @@ class SocialAuthController extends Controller
             Log::info('Google OAuth: State decoded successfully', ['tenant_id' => $stateData['tenant_id']]);
 
             $tenant = Tenant::findOrFail($stateData['tenant_id']);
-            $tenant->makeCurrent();
+            // Tenant makeCurrent removed
 
             Log::info('Google OAuth: Tenant set', ['tenant_id' => $tenant->id]);
 
