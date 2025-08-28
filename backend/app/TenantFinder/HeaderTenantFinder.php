@@ -7,10 +7,11 @@ namespace App\TenantFinder;
 use Illuminate\Http\Request;
 use App\Models\Tenant;
 use Spatie\Multitenancy\TenantFinder\TenantFinder;
+use Spatie\Multitenancy\Contracts\IsTenant;
 
 class HeaderTenantFinder extends TenantFinder
 {
-    public function findForRequest(Request $request): ?Tenant
+    public function findForRequest(Request $request): ?IsTenant
     {
         $tenantId = $request->header('X-Tenant-ID');
         if (!$tenantId) {
