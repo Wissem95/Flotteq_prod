@@ -21,16 +21,21 @@ class FinancesController extends Controller
      */
     public function getOverview(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+        
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         // Coût mensuel actuel
         $currentMonth = Carbon::now()->startOfMonth();
-        $currentMonthCost = $this->getMonthlyExpenses($user->id, $tenant->id, $currentMonth);
+        $currentMonthCost = $this->getMonthlyExpenses($user->id, $tenantId, $currentMonth);
         
         // Coût du mois précédent pour calculer l'évolution
         $previousMonth = Carbon::now()->subMonth()->startOfMonth();
-        $previousMonthCost = $this->getMonthlyExpenses($user->id, $tenant->id, $previousMonth);
+        $previousMonthCost = $this->getMonthlyExpenses($user->id, $tenantId, $previousMonth);
         
         // Évolution en pourcentage
         $evolution = $previousMonthCost > 0 
@@ -38,39 +43,39 @@ class FinancesController extends Controller
             : 0;
         
         // Factures en attente
-        $pendingInvoicesCount = Invoice::whereHas('vehicle', function($query) use ($user, $tenant) {
-                $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
+        $pendingInvoicesCount = Invoice::whereHas('vehicle', function($query) use ($user, $tenantId) {
+                $query->where('user_id', $user->id)->where('tenant_id', $tenantId);
             })
             ->where('status', 'pending')
             ->count();
         
         // Coût moyen d'entretien
-        $averageMaintenanceCost = Maintenance::whereHas('vehicle', function($query) use ($user, $tenant) {
-                $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
+        $averageMaintenanceCost = Maintenance::whereHas('vehicle', function($query) use ($user, $tenantId) {
+                $query->where('user_id', $user->id)->where('tenant_id', $tenantId);
             })
             ->avg('cost') ?? 0;
         
         // Coût cumulé total
-        $totalCumulatedCost = $this->getTotalExpenses($user->id, $tenant->id);
+        $totalCumulatedCost = $this->getTotalExpenses($user->id, $tenantId);
         
         // Nombre d'entretiens effectués
-        $totalMaintenances = Maintenance::whereHas('vehicle', function($query) use ($user, $tenant) {
-                $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
+        $totalMaintenances = Maintenance::whereHas('vehicle', function($query) use ($user, $tenantId) {
+                $query->where('user_id', $user->id)->where('tenant_id', $tenantId);
             })
             ->where('status', 'completed')
             ->count();
         
         // Total réparations
-        $totalRepairsCost = Repair::whereHas('vehicle', function($query) use ($user, $tenant) {
-                $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
+        $totalRepairsCost = Repair::whereHas('vehicle', function($query) use ($user, $tenantId) {
+                $query->where('user_id', $user->id)->where('tenant_id', $tenantId);
             })
             ->sum('total_cost') ?? 0;
         
         // Moyenne mensuelle (sur les 12 derniers mois)
-        $monthlyAverage = $this->getMonthlyAverage($user->id, $tenant->id);
+        $monthlyAverage = $this->getMonthlyAverage($user->id, $tenantId);
         
         // Coût le plus élevé
-        $highestCost = $this->getHighestExpense($user->id, $tenant->id);
+        $highestCost = $this->getHighestExpense($user->id, $tenantId);
         
         return response()->json([
             'monthly_metrics' => [
@@ -127,15 +132,20 @@ class FinancesController extends Controller
      */
     public function getMonthlyChart(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+        
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         $monthsData = [];
         $currentDate = Carbon::now();
         
         for ($i = 11; $i >= 0; $i--) {
             $month = $currentDate->copy()->subMonths($i)->startOfMonth();
-            $cost = $this->getMonthlyExpenses($user->id, $tenant->id, $month);
+            $cost = $this->getMonthlyExpenses($user->id, $tenantId, $month);
             
             $monthsData[] = [
                 'month' => $month->format('Y-m'),
@@ -155,24 +165,29 @@ class FinancesController extends Controller
      */
     public function getExpenseBreakdown(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
         
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
+        
         // Entretien courant
-        $maintenanceCost = Maintenance::whereHas('vehicle', function($query) use ($user, $tenant) {
-                $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
+        $maintenanceCost = Maintenance::whereHas('vehicle', function($query) use ($user, $tenantId) {
+                $query->where('user_id', $user->id)->where('tenant_id', $tenantId);
             })
             ->sum('cost') ?? 0;
         
         // Réparations
-        $repairCost = Repair::whereHas('vehicle', function($query) use ($user, $tenant) {
-                $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
+        $repairCost = Repair::whereHas('vehicle', function($query) use ($user, $tenantId) {
+                $query->where('user_id', $user->id)->where('tenant_id', $tenantId);
             })
             ->sum('total_cost') ?? 0;
         
         // Factures par type
-        $invoicesByType = Invoice::whereHas('vehicle', function($query) use ($user, $tenant) {
-                $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
+        $invoicesByType = Invoice::whereHas('vehicle', function($query) use ($user, $tenantId) {
+                $query->where('user_id', $user->id)->where('tenant_id', $tenantId);
             })
             ->select('expense_type', DB::raw('SUM(amount) as total'))
             ->groupBy('expense_type')
@@ -226,11 +241,16 @@ class FinancesController extends Controller
      */
     public function getTopExpensiveVehicles(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         $vehicles = Vehicle::where('user_id', $user->id)
-            ->where('tenant_id', $tenant->id)
+            ->where('tenant_id', $tenantId)
             ->withSum(['maintenances as maintenance_cost'], 'cost')
             ->withSum(['repairs as repair_cost'], 'total_cost')
             ->withSum(['invoices as invoice_cost'], 'amount')
@@ -265,36 +285,41 @@ class FinancesController extends Controller
      */
     public function getMaintenanceStats(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         $currentMonth = Carbon::now()->startOfMonth();
         $currentYear = Carbon::now()->startOfYear();
         
         // Entretiens du mois
-        $monthlyMaintenances = Maintenance::whereHas('vehicle', function($query) use ($user, $tenant) {
-                $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
+        $monthlyMaintenances = Maintenance::whereHas('vehicle', function($query) use ($user, $tenantId) {
+                $query->where('user_id', $user->id)->where('tenant_id', $tenantId);
             })
             ->where('maintenance_date', '>=', $currentMonth)
             ->count();
         
         // Entretiens de l'année
-        $yearlyMaintenances = Maintenance::whereHas('vehicle', function($query) use ($user, $tenant) {
-                $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
+        $yearlyMaintenances = Maintenance::whereHas('vehicle', function($query) use ($user, $tenantId) {
+                $query->where('user_id', $user->id)->where('tenant_id', $tenantId);
             })
             ->where('maintenance_date', '>=', $currentYear)
             ->count();
         
         // Moyenne par véhicule
         $totalVehicles = Vehicle::where('user_id', $user->id)
-            ->where('tenant_id', $tenant->id)
+            ->where('tenant_id', $tenantId)
             ->count();
         
         $averagePerVehicle = $totalVehicles > 0 ? round($yearlyMaintenances / $totalVehicles, 1) : 0;
         
         // Plus cher du mois
-        $mostExpensiveThisMonth = Maintenance::whereHas('vehicle', function($query) use ($user, $tenant) {
-                $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
+        $mostExpensiveThisMonth = Maintenance::whereHas('vehicle', function($query) use ($user, $tenantId) {
+                $query->where('user_id', $user->id)->where('tenant_id', $tenantId);
             })
             ->where('maintenance_date', '>=', $currentMonth)
             ->max('cost') ?? 0;
@@ -313,8 +338,13 @@ class FinancesController extends Controller
      */
     public function getExpenseHistory(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         $request->validate([
             'page' => ['nullable', 'integer', 'min:1'],
@@ -327,8 +357,8 @@ class FinancesController extends Controller
         $expenses = collect();
         
         // Maintenances
-        $maintenances = Maintenance::whereHas('vehicle', function($query) use ($user, $tenant) {
-                $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
+        $maintenances = Maintenance::whereHas('vehicle', function($query) use ($user, $tenantId) {
+                $query->where('user_id', $user->id)->where('tenant_id', $tenantId);
             })
             ->with('vehicle')
             ->get()
@@ -345,8 +375,8 @@ class FinancesController extends Controller
             });
         
         // Factures
-        $invoices = Invoice::whereHas('vehicle', function($query) use ($user, $tenant) {
-                $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
+        $invoices = Invoice::whereHas('vehicle', function($query) use ($user, $tenantId) {
+                $query->where('user_id', $user->id)->where('tenant_id', $tenantId);
             })
             ->with('vehicle')
             ->get()
@@ -363,8 +393,8 @@ class FinancesController extends Controller
             });
         
         // Réparations
-        $repairs = Repair::whereHas('vehicle', function($query) use ($user, $tenant) {
-                $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
+        $repairs = Repair::whereHas('vehicle', function($query) use ($user, $tenantId) {
+                $query->where('user_id', $user->id)->where('tenant_id', $tenantId);
             })
             ->with('vehicle')
             ->get()
@@ -408,14 +438,19 @@ class FinancesController extends Controller
      */
     public function getFinancialAlerts(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         $alerts = [];
         
         // Coût élevé ce mois
-        $currentMonthCost = $this->getMonthlyExpenses($user->id, $tenant->id);
-        $monthlyAverage = $this->getMonthlyAverage($user->id, $tenant->id);
+        $currentMonthCost = $this->getMonthlyExpenses($user->id, $tenantId);
+        $monthlyAverage = $this->getMonthlyAverage($user->id, $tenantId);
         
         if ($currentMonthCost > $monthlyAverage * 1.5) {
             $alerts[] = [
@@ -427,8 +462,8 @@ class FinancesController extends Controller
         }
         
         // Factures en attente
-        $pendingInvoices = Invoice::whereHas('vehicle', function($query) use ($user, $tenant) {
-                $query->where('user_id', $user->id)->where('tenant_id', $tenant->id);
+        $pendingInvoices = Invoice::whereHas('vehicle', function($query) use ($user, $tenantId) {
+                $query->where('user_id', $user->id)->where('tenant_id', $tenantId);
             })
             ->where('status', 'pending')
             ->count();

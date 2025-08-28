@@ -18,8 +18,8 @@ class VehiclePolicy
             return in_array($user->role, ['admin', 'manager', 'support']) || $user->isSuperAdmin();
         }
         
-        // TEMPORAIRE: Fallback sur les rôles natifs en attendant configuration Spatie complète
-        return in_array($user->role, ['admin', 'manager']);
+        // Pour les utilisateurs normaux (tenants), ils peuvent voir leurs propres véhicules
+        return true;
     }
 
     /**
@@ -32,9 +32,8 @@ class VehiclePolicy
             return in_array($user->role, ['admin', 'manager', 'support']) || $user->isSuperAdmin();
         }
         
-        // TEMPORAIRE: Fallback sur rôles natifs + vérification tenant/propriété
-        return in_array($user->role, ['admin', 'manager'])
-            && $vehicle->tenant_id === $user->tenant_id
+        // Pour les utilisateurs normaux, ils peuvent voir leurs propres véhicules
+        return $vehicle->tenant_id === $user->tenant_id
             && $vehicle->user_id === $user->id;
     }
 
@@ -48,8 +47,8 @@ class VehiclePolicy
             return in_array($user->role, ['admin', 'manager']) || $user->isSuperAdmin();
         }
         
-        // TEMPORAIRE: Fallback sur rôles natifs
-        return in_array($user->role, ['admin', 'manager']);
+        // Pour les utilisateurs normaux, ils peuvent créer des véhicules
+        return true;
     }
 
     /**
@@ -62,9 +61,8 @@ class VehiclePolicy
             return in_array($user->role, ['admin', 'manager']) || $user->isSuperAdmin();
         }
         
-        // TEMPORAIRE: Fallback sur rôles natifs + vérification tenant/propriété
-        return in_array($user->role, ['admin', 'manager'])
-            && $vehicle->tenant_id === $user->tenant_id
+        // Pour les utilisateurs normaux, ils peuvent modifier leurs propres véhicules
+        return $vehicle->tenant_id === $user->tenant_id
             && $vehicle->user_id === $user->id;
     }
 

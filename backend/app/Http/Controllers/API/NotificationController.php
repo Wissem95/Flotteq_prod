@@ -20,25 +20,30 @@ class NotificationController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+        
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         $notifications = collect();
         
         // Contrôles techniques à venir ou expirés
-        $ctNotifications = $this->getControleTechniqueNotifications($tenant->id, $user->id);
+        $ctNotifications = $this->getControleTechniqueNotifications($tenantId, $user->id);
         $notifications = $notifications->concat($ctNotifications);
         
         // Maintenances à venir
-        $maintenanceNotifications = $this->getMaintenanceNotifications($tenant->id, $user->id);
+        $maintenanceNotifications = $this->getMaintenanceNotifications($tenantId, $user->id);
         $notifications = $notifications->concat($maintenanceNotifications);
         
         // Véhicules avec problèmes
-        $issueNotifications = $this->getVehicleIssueNotifications($tenant->id, $user->id);
+        $issueNotifications = $this->getVehicleIssueNotifications($tenantId, $user->id);
         $notifications = $notifications->concat($issueNotifications);
         
         // Notifications de changement de statut de véhicules
-        $statusNotifications = $this->getVehicleStatusNotifications($tenant->id, $user->id);
+        $statusNotifications = $this->getVehicleStatusNotifications($tenantId, $user->id);
         $notifications = $notifications->concat($statusNotifications);
         
         // Transformer les notifications pour le frontend
@@ -370,14 +375,19 @@ class NotificationController extends Controller
      */
     public function markAsRead(Request $request, string $notificationId): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+        
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         // Extraire le type et l'id de la notification
         if (str_starts_with($notificationId, 'status_')) {
             $realId = str_replace('status_', '', $notificationId);
             $notification = VehicleStatusNotification::where('id', $realId)
-                ->where('tenant_id', $tenant->id)
+                ->where('tenant_id', $tenantId)
                 ->where('user_id', $user->id)
                 ->first();
                 
@@ -405,22 +415,27 @@ class NotificationController extends Controller
      */
     public function getCounts(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+        
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         // Utiliser la même logique que index() mais juste compter
         $notifications = collect();
         
-        $ctNotifications = $this->getControleTechniqueNotifications($tenant->id, $user->id);
+        $ctNotifications = $this->getControleTechniqueNotifications($tenantId, $user->id);
         $notifications = $notifications->concat($ctNotifications);
         
-        $maintenanceNotifications = $this->getMaintenanceNotifications($tenant->id, $user->id);
+        $maintenanceNotifications = $this->getMaintenanceNotifications($tenantId, $user->id);
         $notifications = $notifications->concat($maintenanceNotifications);
         
-        $issueNotifications = $this->getVehicleIssueNotifications($tenant->id, $user->id);
+        $issueNotifications = $this->getVehicleIssueNotifications($tenantId, $user->id);
         $notifications = $notifications->concat($issueNotifications);
         
-        $statusNotifications = $this->getVehicleStatusNotifications($tenant->id, $user->id);
+        $statusNotifications = $this->getVehicleStatusNotifications($tenantId, $user->id);
         $notifications = $notifications->concat($statusNotifications);
         
         return response()->json([

@@ -118,6 +118,9 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
         Route::post('/{notificationId}/read', [App\Http\Controllers\API\NotificationController::class, 'markAsRead']);
     });
 
+    // User management routes
+    Route::apiResource('users', App\Http\Controllers\API\UserController::class);
+
     // État des lieux routes
     Route::prefix('etat-des-lieux')->group(function () {
         Route::get('/', [App\Http\Controllers\API\EtatDesLieuxController::class, 'index']);
