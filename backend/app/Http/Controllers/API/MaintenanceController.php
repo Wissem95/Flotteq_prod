@@ -43,19 +43,26 @@ class MaintenanceController extends Controller
         }
 
         // Récupérer les maintenances avec tri
-        $maintenances = $query->orderBy('maintenance_date', 'desc')->get();
+        $maintenances = $query->orderBy('date', 'desc')->get();
 
         // Adapter le format pour correspondre à ce que le frontend attend
         $formattedMaintenances = $maintenances->map(function ($maintenance) {
             return [
                 'id' => $maintenance->id,
-                'date' => $maintenance->maintenance_date->format('Y-m-d'),
-                'type' => $maintenance->maintenance_type,
-                'garage' => $maintenance->workshop,
+                'date' => $maintenance->date,
+                'maintenance_date' => $maintenance->date, // Frontend compatibility
+                'type' => $maintenance->type,
+                'maintenance_type' => $maintenance->type, // Frontend compatibility
+                'garage' => $maintenance->garage,
+                'workshop' => $maintenance->garage, // Frontend compatibility
                 'kilometrage' => $maintenance->mileage,
+                'mileage' => $maintenance->mileage, // Frontend compatibility
                 'montant' => $maintenance->cost,
+                'cost' => $maintenance->cost, // Frontend compatibility
                 'pieces' => $maintenance->description, // En attendant d'avoir une vraie table de pièces
-                'status' => $maintenance->status, // ✅ Ajout du statut
+                'description' => $maintenance->description, // Frontend compatibility
+                'status' => 'completed', // Default status since column doesn't exist
+                'reason' => $maintenance->reason,
                 'vehicle' => [
                     'marque' => $maintenance->vehicle->marque,
                     'modele' => $maintenance->vehicle->modele,
@@ -116,10 +123,20 @@ class MaintenanceController extends Controller
             ], 422);
         }
 
-        $maintenance = Maintenance::create([
-            ...$validated,
-            'status' => $validated['status'] ?? 'completed',
-        ]);
+        // Map frontend field names to database column names
+        $maintenanceData = [
+            'vehicle_id' => $validated['vehicle_id'],
+            'type' => $validated['maintenance_type'],
+            'reason' => $validated['reason'] ?? null,
+            'description' => $validated['description'],
+            'date' => $validated['maintenance_date'],
+            'mileage' => $validated['mileage'],
+            'cost' => $validated['cost'],
+            'garage' => $validated['workshop'],
+            'user_id' => $user->id,
+        ];
+        
+        $maintenance = Maintenance::create($maintenanceData);
 
         // Mettre à jour le kilométrage du véhicule si c'est plus récent
         if ($validated['mileage'] > $vehicle->kilometrage) {
@@ -201,6 +218,15 @@ class MaintenanceController extends Controller
             }
         }
 
+        // Map frontend field names to database column names for update
+        $updateData = [];
+        if (isset($validated['maintenance_type'])) $updateData['type'] = $validated['maintenance_type'];
+        if (isset($validated['maintenance_date'])) $updateData['date'] = $validated['maintenance_date'];
+        if (isset($validated['workshop'])) $updateData['garage'] = $validated['workshop'];
+        if (isset($validated['description'])) $updateData['description'] = $validated['description'];
+        if (isset($validated['mileage'])) $updateData['mileage'] = $validated['mileage'];
+        if (isset($validated['cost'])) $updateData['cost'] = $validated['cost'];
+        
         // Validation du kilométrage si modifié
         if (isset($validated['mileage'])) {
             $vehicleId = $validated['vehicle_id'] ?? $maintenance->vehicle_id;
@@ -222,7 +248,7 @@ class MaintenanceController extends Controller
             }
         }
 
-        $maintenance->update($validated);
+        $maintenance->update($updateData);
         $maintenance->load('vehicle:id,marque,modele,immatriculation');
 
         return response()->json([
@@ -266,7 +292,7 @@ class MaintenanceController extends Controller
 
         // Dernière maintenance (en excluant celle en cours d'édition si fournie)
         $lastMaintenanceQuery = Maintenance::where('vehicle_id', $vehicleId)
-            ->orderBy('maintenance_date', 'desc')
+            ->orderBy('date', 'desc')
             ->orderBy('created_at', 'desc');
         
         if ($excludeMaintenanceId) {
@@ -274,7 +300,7 @@ class MaintenanceController extends Controller
         }
         
         $lastMaintenance = $lastMaintenanceQuery->first();
-        $lastMaintenanceKilometrage = $lastMaintenance ? $lastMaintenance->mileage : 0;
+        $lastMaintenanceKilometrage = $lastMaintenance ? ($lastMaintenance->mileage ?? 0) : 0;
 
         // Dernier état des lieux
         $lastEtatDesLieux = EtatDesLieux::where('vehicle_id', $vehicleId)
