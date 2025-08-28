@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Multitenancy\Contracts\IsTenant;
+use Spatie\Multitenancy\TenantCollection;
 
 class Tenant extends Model implements IsTenant
 {
@@ -28,6 +29,14 @@ class Tenant extends Model implements IsTenant
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Create a new Eloquent Collection instance for tenants.
+     */
+    public function newCollection(array $models = []): TenantCollection
+    {
+        return new TenantCollection($models);
+    }
 
     /**
      * Get all users for this tenant.
