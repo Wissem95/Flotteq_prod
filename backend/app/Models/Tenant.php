@@ -75,9 +75,10 @@ class Tenant extends Model implements IsTenant
     /**
      * Forget the current tenant
      */
-    public static function forgetCurrent(): void
+    public static function forgetCurrent(): ?static
     {
         app()->forgetInstance('currentTenant');
+        return null;
     }
 
     /**
