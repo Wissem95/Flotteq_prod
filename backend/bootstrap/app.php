@@ -32,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'is_super_admin_interne' => IsSuperAdminInterne::class,
             'ensure_permissions' => \App\Http\Middleware\EnsureUserHasPermissions::class,
             'check_incomplete_profile' => \App\Http\Middleware\CheckIncompleteProfile::class,
+            'check_loueur_permissions' => \App\Http\Middleware\CheckLoueurPermissions::class,
         ]);
 
         // Temporairement désactivé pour diagnostic des erreurs 500

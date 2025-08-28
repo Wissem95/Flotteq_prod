@@ -46,8 +46,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/profile/me', [App\Http\Controllers\API\AuthController::class, 'updateProfile']);
 });
 
-// Protected tenant-aware routes
-Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
+// Protected tenant-aware routes with loueur permissions check
+Route::middleware(['auth:sanctum', 'tenant', 'check_loueur_permissions'])->group(function () {
     Route::prefix('auth')->group(function () {
         Route::get('/me', [App\Http\Controllers\API\AuthController::class, 'me']);
         Route::post('/logout', [App\Http\Controllers\API\AuthController::class, 'logout']);

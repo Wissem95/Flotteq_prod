@@ -77,7 +77,7 @@ class UserController extends Controller
                 }),
             ],
             'password' => 'required|string|min:8',
-            'role' => 'sometimes|in:user,admin,manager',
+            'role' => 'sometimes|in:user,admin,manager,loueur',
         ]);
 
         $newUser = User::create([
@@ -153,7 +153,7 @@ class UserController extends Controller
                 }),
             ],
             'password' => 'sometimes|string|min:8',
-            'role' => 'sometimes|in:user,admin,manager',
+            'role' => 'sometimes|in:user,admin,manager,loueur',
             'is_active' => 'sometimes|boolean',
         ]);
 
