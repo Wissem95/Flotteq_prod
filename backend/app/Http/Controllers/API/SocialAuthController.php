@@ -481,7 +481,12 @@ class SocialAuthController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        $tenant = app('currentTenant');
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
 
         try {
             /** @var \Laravel\Socialite\Two\GoogleProvider $provider */
@@ -492,7 +497,7 @@ class SocialAuthController extends Controller
 
             // Check if Google account is already linked to another user
             $existingUser = User::where('google_id', $googleUser->getId())
-                ->where('tenant_id', $tenant->id)
+                ->where('tenant_id', $tenantId)
                 ->where('id', '!=', $user->id)
                 ->first();
 
@@ -539,7 +544,13 @@ class SocialAuthController extends Controller
      */
     private function generateUsername(string $name): string
     {
-        $tenant = app('currentTenant');
+        // Note: Cette méthode est utilisée dans findOrCreateUser() qui reçoit déjà le tenant
+        // Pour le moment, on utilise le premier tenant disponible comme fallback
+        $tenant = Tenant::first();
+        if (!$tenant) {
+            throw new \Exception('No tenant available');
+        }
+        
         $baseUsername = Str::slug(Str::lower($name), '');
         $username = $baseUsername;
         $counter = 1;

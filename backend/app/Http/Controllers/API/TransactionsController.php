@@ -19,49 +19,54 @@ class TransactionsController extends Controller
      */
     public function getOverview(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         // Valeur totale de la flotte
         $totalFleetValue = Vehicle::where('user_id', $user->id)
-            ->where('tenant_id', $tenant->id)
+            ->where('tenant_id', $tenantId)
             ->sum('purchase_price') ?? 0;
         
         // Investissement total (prix d'achat + dépenses)
-        $totalExpenses = $this->getTotalExpenses($user->id, $tenant->id);
+        $totalExpenses = $this->getTotalExpenses($user->id, $tenantId);
         $totalInvestment = $totalFleetValue + $totalExpenses;
         
         // Valeur marché estimée (approximation basée sur l'âge)
-        $estimatedMarketValue = $this->getEstimatedFleetValue($user->id, $tenant->id);
+        $estimatedMarketValue = $this->getEstimatedFleetValue($user->id, $tenantId);
         
         // Profit potentiel
         $potentialProfit = $estimatedMarketValue - $totalInvestment;
         
         // Marge moyenne
         $totalVehicles = Vehicle::where('user_id', $user->id)
-            ->where('tenant_id', $tenant->id)
+            ->where('tenant_id', $tenantId)
             ->count();
         
         $averageMargin = $totalVehicles > 0 ? $potentialProfit / $totalVehicles : 0;
         
         // Métriques de transactions
         $totalPurchases = Transaction::where('user_id', $user->id)
-            ->where('tenant_id', $tenant->id)
+            ->where('tenant_id', $tenantId)
             ->where('type', 'purchase')
             ->count();
         
         $totalSales = Transaction::where('user_id', $user->id)
-            ->where('tenant_id', $tenant->id)
+            ->where('tenant_id', $tenantId)
             ->where('type', 'sale')
             ->count();
         
         $totalPurchaseAmount = Transaction::where('user_id', $user->id)
-            ->where('tenant_id', $tenant->id)
+            ->where('tenant_id', $tenantId)
             ->where('type', 'purchase')
             ->sum('price') ?? 0;
         
         $totalSaleAmount = Transaction::where('user_id', $user->id)
-            ->where('tenant_id', $tenant->id)
+            ->where('tenant_id', $tenantId)
             ->where('type', 'sale')
             ->sum('price') ?? 0;
         
@@ -89,11 +94,16 @@ class TransactionsController extends Controller
      */
     public function getVehicleAnalysis(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         $vehicles = Vehicle::where('user_id', $user->id)
-            ->where('tenant_id', $tenant->id)
+            ->where('tenant_id', $tenantId)
             ->withSum(['maintenances as maintenance_cost'], 'cost')
             ->withSum(['repairs as repair_cost'], 'total_cost')
             ->withSum(['invoices as invoice_cost'], 'amount')
@@ -153,8 +163,13 @@ class TransactionsController extends Controller
      */
     public function getHistory(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         $request->validate([
             'page' => ['nullable', 'integer', 'min:1'],
@@ -163,7 +178,7 @@ class TransactionsController extends Controller
         ]);
         
         $query = Transaction::where('user_id', $user->id)
-            ->where('tenant_id', $tenant->id)
+            ->where('tenant_id', $tenantId)
             ->with('vehicle');
         
         if ($request->type) {
@@ -207,8 +222,13 @@ class TransactionsController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         $request->validate([
             'vehicle_id' => ['required', 'integer', 'exists:vehicles,id'],
@@ -226,13 +246,13 @@ class TransactionsController extends Controller
         // Vérifier que le véhicule appartient à l'utilisateur
         $vehicle = Vehicle::where('id', $request->vehicle_id)
             ->where('user_id', $user->id)
-            ->where('tenant_id', $tenant->id)
+            ->where('tenant_id', $tenantId)
             ->firstOrFail();
         
         $transaction = Transaction::create([
             'vehicle_id' => $request->vehicle_id,
             'user_id' => $user->id,
-            'tenant_id' => $tenant->id,
+            'tenant_id' => $tenantId,
             'type' => $request->type,
             'date' => $request->date,
             'price' => $request->price,
@@ -255,11 +275,16 @@ class TransactionsController extends Controller
      */
     public function update(Request $request, Transaction $transaction): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         // Vérifier que la transaction appartient à l'utilisateur
-        if ($transaction->user_id !== $user->id || $transaction->tenant_id !== $tenant->id) {
+        if ($transaction->user_id !== $user->id || $transaction->tenant_id !== $tenantId) {
             return response()->json(['message' => 'Transaction non trouvée'], 404);
         }
         
@@ -291,11 +316,16 @@ class TransactionsController extends Controller
      */
     public function destroy(Transaction $transaction): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = request()->user();
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? request()->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         // Vérifier que la transaction appartient à l'utilisateur
-        if ($transaction->user_id !== $user->id || $transaction->tenant_id !== $tenant->id) {
+        if ($transaction->user_id !== $user->id || $transaction->tenant_id !== $tenantId) {
             return response()->json(['message' => 'Transaction non trouvée'], 404);
         }
         

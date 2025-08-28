@@ -21,22 +21,27 @@ class AnalyticsController extends Controller
      */
     public function getDashboardStats(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
         $user = $request->user();
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         // Basic counts - filtrer par utilisateur
-        $totalVehicles = Vehicle::where('tenant_id', $tenant->id)
+        $totalVehicles = Vehicle::where('tenant_id', $tenantId)
             ->where('user_id', $user->id)
             ->count();
         $totalUsers = 1; // L'utilisateur lui-même
-        $activeVehicles = Vehicle::where('tenant_id', $tenant->id)
+        $activeVehicles = Vehicle::where('tenant_id', $tenantId)
             ->where('user_id', $user->id)
             ->where('status', 'active')
             ->count();
         
         // Recent activity (last 30 days)
         $recentPeriod = Carbon::now()->subDays(30);
-        $newVehiclesThisMonth = Vehicle::where('tenant_id', $tenant->id)
+        $newVehiclesThisMonth = Vehicle::where('tenant_id', $tenantId)
             ->where('user_id', $user->id)
             ->where('created_at', '>=', $recentPeriod)
             ->count();
@@ -44,7 +49,7 @@ class AnalyticsController extends Controller
         $newUsersThisMonth = 0; // L'utilisateur n'a pas créé d'autres utilisateurs
 
         // Vehicle status distribution
-        $vehiclesByStatus = Vehicle::where('tenant_id', $tenant->id)
+        $vehiclesByStatus = Vehicle::where('tenant_id', $tenantId)
             ->where('user_id', $user->id)
             ->select('status', DB::raw('count(*) as count'))
             ->groupBy('status')
@@ -52,7 +57,7 @@ class AnalyticsController extends Controller
             ->pluck('count', 'status');
 
         // Vehicle by fuel type
-        $vehiclesByFuel = Vehicle::where('tenant_id', $tenant->id)
+        $vehiclesByFuel = Vehicle::where('tenant_id', $tenantId)
             ->where('user_id', $user->id)
             ->select('carburant', DB::raw('count(*) as count'))
             ->groupBy('carburant')
@@ -61,7 +66,7 @@ class AnalyticsController extends Controller
 
         // Average vehicle age
         $currentYear = date('Y');
-        $averageAge = Vehicle::where('tenant_id', $tenant->id)
+        $averageAge = Vehicle::where('tenant_id', $tenantId)
             ->where('user_id', $user->id)
             ->whereNotNull('annee')
             ->avg(DB::raw("$currentYear - annee"));
@@ -89,7 +94,13 @@ class AnalyticsController extends Controller
      */
     public function getVehicleStats(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
+        $user = $request->user();
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         $request->validate([
             'period' => ['nullable', 'string', 'in:7,30,90,365'],
@@ -120,7 +131,7 @@ class AnalyticsController extends Controller
             };
         }
 
-        $vehicleCreationTrend = Vehicle::where('tenant_id', $tenant->id)
+        $vehicleCreationTrend = Vehicle::where('tenant_id', $tenantId)
             ->where('created_at', '>=', $startDate)
             ->select(
                 DB::raw($dateSelect),
@@ -131,7 +142,7 @@ class AnalyticsController extends Controller
             ->get();
 
         // Top vehicle brands
-        $topBrands = Vehicle::where('tenant_id', $tenant->id)
+        $topBrands = Vehicle::where('tenant_id', $tenantId)
             ->select('marque', DB::raw('count(*) as count'))
             ->groupBy('marque')
             ->orderByDesc('count')
@@ -140,7 +151,7 @@ class AnalyticsController extends Controller
 
         // Vehicle age distribution
         $currentYear = date('Y');
-        $ageDistribution = Vehicle::where('tenant_id', $tenant->id)
+        $ageDistribution = Vehicle::where('tenant_id', $tenantId)
             ->whereNotNull('annee')
             ->select(
                 DB::raw("CASE 
@@ -156,7 +167,7 @@ class AnalyticsController extends Controller
             ->get();
 
         // Mileage statistics
-        $mileageStats = Vehicle::where('tenant_id', $tenant->id)
+        $mileageStats = Vehicle::where('tenant_id', $tenantId)
             ->whereNotNull('kilometrage')
             ->selectRaw('
                 AVG(kilometrage) as average,
@@ -193,7 +204,13 @@ class AnalyticsController extends Controller
      */
     public function getUserStats(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
+        $user = $request->user();
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         $request->validate([
             'period' => ['nullable', 'string', 'in:7,30,90,365'],
@@ -203,7 +220,7 @@ class AnalyticsController extends Controller
         $startDate = Carbon::now()->subDays($period);
 
         // User registration trend
-        $userRegistrationTrend = User::where('tenant_id', $tenant->id)
+        $userRegistrationTrend = User::where('tenant_id', $tenantId)
             ->where('created_at', '>=', $startDate)
             ->select(
                 DB::raw('DATE(created_at) as date'),
@@ -214,24 +231,24 @@ class AnalyticsController extends Controller
             ->get();
 
         // Active users (those who own vehicles)
-        $activeUsers = User::where('tenant_id', $tenant->id)
+        $activeUsers = User::where('tenant_id', $tenantId)
             ->whereHas('vehicles')
             ->count();
 
         // Users by role distribution
-        $usersByRole = User::where('tenant_id', $tenant->id)
+        $usersByRole = User::where('tenant_id', $tenantId)
             ->select('role', DB::raw('count(*) as count'))
             ->groupBy('role')
             ->get()
             ->pluck('count', 'role');
 
         // Users with Google OAuth
-        $usersWithGoogle = User::where('tenant_id', $tenant->id)
+        $usersWithGoogle = User::where('tenant_id', $tenantId)
             ->whereNotNull('google_id')
             ->count();
 
         // Vehicle ownership distribution
-        $vehicleOwnership = User::where('tenant_id', $tenant->id)
+        $vehicleOwnership = User::where('tenant_id', $tenantId)
             ->withCount('vehicles')
             ->get()
             ->groupBy(function($user) {
@@ -247,10 +264,10 @@ class AnalyticsController extends Controller
 
         return response()->json([
             'overview' => [
-                'total_users' => User::where('tenant_id', $tenant->id)->count(),
+                'total_users' => User::where('tenant_id', $tenantId)->count(),
                 'active_users' => $activeUsers,
                 'users_with_google' => $usersWithGoogle,
-                'google_adoption_rate' => round(($usersWithGoogle / max(1, User::where('tenant_id', $tenant->id)->count())) * 100, 1),
+                'google_adoption_rate' => round(($usersWithGoogle / max(1, User::where('tenant_id', $tenantId)->count())) * 100, 1),
             ],
             'trends' => [
                 'user_registrations' => $userRegistrationTrend,
@@ -269,16 +286,22 @@ class AnalyticsController extends Controller
      */
     public function getSystemHealth(Request $request): JsonResponse
     {
-        $tenant = app('currentTenant');
+        $user = $request->user();
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
         
         // Database metrics
         $dbStats = [
-            'total_vehicles' => Vehicle::where('tenant_id', $tenant->id)->count(),
-            'total_users' => User::where('tenant_id', $tenant->id)->count(),
+            'total_vehicles' => Vehicle::where('tenant_id', $tenantId)->count(),
+            'total_users' => User::where('tenant_id', $tenantId)->count(),
             'total_media_files' => DB::table('media')
                 ->join('vehicles', 'media.model_id', '=', 'vehicles.id')
                 ->where('media.model_type', Vehicle::class)
-                ->where('vehicles.tenant_id', $tenant->id)
+                ->where('vehicles.tenant_id', $tenantId)
                 ->count(),
         ];
 
@@ -286,30 +309,30 @@ class AnalyticsController extends Controller
         $storageUsage = DB::table('media')
             ->join('vehicles', 'media.model_id', '=', 'vehicles.id')
             ->where('media.model_type', Vehicle::class)
-            ->where('vehicles.tenant_id', $tenant->id)
+            ->where('vehicles.tenant_id', $tenantId)
             ->sum('media.size');
 
         // Recent activity
         $recentActivity = [
-            'vehicles_created_today' => Vehicle::where('tenant_id', $tenant->id)
+            'vehicles_created_today' => Vehicle::where('tenant_id', $tenantId)
                 ->whereDate('created_at', today())
                 ->count(),
-            'users_created_today' => User::where('tenant_id', $tenant->id)
+            'users_created_today' => User::where('tenant_id', $tenantId)
                 ->whereDate('created_at', today())
                 ->count(),
         ];
 
         // Data quality metrics
         $dataQuality = [
-            'vehicles_with_images' => Vehicle::where('tenant_id', $tenant->id)
+            'vehicles_with_images' => Vehicle::where('tenant_id', $tenantId)
                 ->whereHas('media', function($query) {
                     $query->where('collection_name', 'images');
                 })
                 ->count(),
-            'vehicles_with_complete_info' => Vehicle::where('tenant_id', $tenant->id)
+            'vehicles_with_complete_info' => Vehicle::where('tenant_id', $tenantId)
                 ->whereNotNull(['marque', 'modele', 'immatriculation', 'annee'])
                 ->count(),
-            'users_with_complete_profiles' => User::where('tenant_id', $tenant->id)
+            'users_with_complete_profiles' => User::where('tenant_id', $tenantId)
                 ->whereNotNull(['first_name', 'last_name'])
                 ->count(),
         ];
