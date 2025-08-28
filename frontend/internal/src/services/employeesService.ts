@@ -165,7 +165,7 @@ export const employeesService = {
     };
   }> {
     try {
-      let url = `/employees?page=${page}&per_page=${perPage}`;
+      let url = `/internal/employees?page=${page}&per_page=${perPage}`;
       
       if (filters) {
         const params = new URLSearchParams();
@@ -190,7 +190,7 @@ export const employeesService = {
    */
   async getEmployee(id: number): Promise<Employee> {
     try {
-      const response = await api.get(`/employees/${id}`);
+      const response = await api.get(`/internal/employees/${id}`);
       return response.data.employee;
     } catch (error: any) {
       console.error(`Erreur lors de la récupération de l'employé ${id}:`, error);
@@ -203,7 +203,7 @@ export const employeesService = {
    */
   async createEmployee(data: CreateEmployeeData): Promise<Employee> {
     try {
-      const response = await api.post('/employees', data);
+      const response = await api.post('/internal/employees', data);
       return response.data.employee;
     } catch (error: any) {
       console.error("Erreur lors de la création de l'employé:", error);
@@ -216,7 +216,7 @@ export const employeesService = {
    */
   async updateEmployee(id: number, data: UpdateEmployeeData): Promise<Employee> {
     try {
-      const response = await api.put(`/employees/${id}`, data);
+      const response = await api.put(`/internal/employees/${id}`, data);
       return response.data.employee;
     } catch (error: any) {
       console.error(`Erreur lors de la mise à jour de l'employé ${id}:`, error);
@@ -229,7 +229,7 @@ export const employeesService = {
    */
   async deleteEmployee(id: number): Promise<{ message: string }> {
     try {
-      const response = await api.delete(`/employees/${id}`);
+      const response = await api.delete(`/internal/employees/${id}`);
       return response.data;
     } catch (error: any) {
       console.error(`Erreur lors de la suppression de l'employé ${id}:`, error);
@@ -245,7 +245,7 @@ export const employeesService = {
     status: 'active' | 'inactive' | 'on_leave' | 'terminated'
   ): Promise<Employee> {
     try {
-      const response = await api.patch(`/employees/${id}/status`, { status });
+      const response = await api.patch(`/internal/employees/${id}/status`, { status });
       return response.data.employee;
     } catch (error: any) {
       console.error("Erreur lors du changement de statut:", error);
@@ -258,7 +258,7 @@ export const employeesService = {
    */
   async resetEmployeePassword(id: number): Promise<{ message: string; temporary_password?: string }> {
     try {
-      const response = await api.post(`/employees/${id}/reset-password`);
+      const response = await api.post(`/internal/employees/${id}/reset-password`);
       return response.data;
     } catch (error: any) {
       console.error("Erreur lors de la réinitialisation du mot de passe:", error);
@@ -271,7 +271,7 @@ export const employeesService = {
    */
   async getEmployeeStats(): Promise<EmployeeStats> {
     try {
-      const response = await api.get('/employees/stats');
+      const response = await api.get('/internal/employees/stats');
       return response.data;
     } catch (error: any) {
       console.error("Erreur lors de la récupération des statistiques:", error);
@@ -356,7 +356,7 @@ export const employeesService = {
    */
   async searchEmployees(query: string): Promise<Employee[]> {
     try {
-      const response = await api.get(`/employees/search?q=${encodeURIComponent(query)}`);
+      const response = await api.get(`/internal/employees/search?q=${encodeURIComponent(query)}`);
       return response.data.employees;
     } catch (error: any) {
       console.error("Erreur lors de la recherche:", error);
@@ -372,7 +372,7 @@ export const employeesService = {
     filters?: EmployeeFilters
   ): Promise<Blob> {
     try {
-      let url = `/employees/export?format=${format}`;
+      let url = `/internal/employees/export?format=${format}`;
       
       if (filters) {
         const params = new URLSearchParams();

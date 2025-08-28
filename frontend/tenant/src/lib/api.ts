@@ -40,9 +40,16 @@ function getCookieValue(name: string): string | null {
 // Intercepteur pour ajouter le token d'authentification
 API.interceptors.request.use(async (config) => {
   // Ajouter l'en-tête Tenant ID requis par le backend multitenancy
-  // Récupérer le tenant_id depuis l'utilisateur connecté ou utiliser 1 par défaut
+  // Récupérer le tenant_id depuis l'utilisateur connecté
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  config.headers['X-Tenant-ID'] = user.tenant_id?.toString() || '1';
+  const tenantId = user.tenant?.id || user.tenant_id;
+  
+  if (tenantId) {
+    config.headers['X-Tenant-ID'] = tenantId.toString();
+  } else {
+    console.warn("⚠️ Aucun tenant ID trouvé - requête bloquée pour sécurité");
+    throw new Error("Tenant ID requis mais non trouvé dans les données utilisateur");
+  }
 
   const token = localStorage.getItem("token");
   if (token) {

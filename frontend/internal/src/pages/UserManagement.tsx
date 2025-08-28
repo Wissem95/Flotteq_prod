@@ -33,10 +33,11 @@ const UserManagement: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get("/users");
+      // Interface interne - récupérer tous les employés internes
+      const response = await axios.get("/internal/employees");
       setUsers(response.data);
     } catch (error) {
-      console.error("❌ Erreur lors de la récupération des utilisateurs :", error);
+      console.error("❌ Erreur lors de la récupération des employés :", error);
     }
   };
 
