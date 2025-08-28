@@ -39,6 +39,83 @@ class Tenant extends Model implements IsTenant
     }
 
     /**
+     * Get the current tenant
+     */
+    public static function current(): ?IsTenant
+    {
+        return app('currentTenant');
+    }
+
+    /**
+     * Check if this is the current tenant
+     */
+    public function isCurrent(): bool
+    {
+        $current = static::current();
+        return $current && $current->getKey() === $this->getKey();
+    }
+
+    /**
+     * Make this tenant the current tenant
+     */
+    public function makeCurrent(): IsTenant
+    {
+        app()->instance('currentTenant', $this);
+        return $this;
+    }
+
+    /**
+     * Check if there is a current tenant
+     */
+    public static function checkCurrent(): bool
+    {
+        return static::current() !== null;
+    }
+
+    /**
+     * Forget the current tenant
+     */
+    public static function forgetCurrent(): void
+    {
+        app()->forgetInstance('currentTenant');
+    }
+
+    /**
+     * Execute callback with this tenant as current
+     */
+    public function execute(callable $callable)
+    {
+        $originalTenant = static::current();
+        $this->makeCurrent();
+        
+        try {
+            return $callable();
+        } finally {
+            if ($originalTenant) {
+                $originalTenant->makeCurrent();
+            } else {
+                static::forgetCurrent();
+            }
+        }
+    }
+
+    /**
+     * Get tenant identifier for tasks
+     */
+    public function getTenantKey(): string
+    {
+        return (string) $this->getKey();
+    }
+
+    /**
+     * Get tenant identifier name
+     */
+    public function getTenantKeyName(): string
+    {
+        return $this->getKeyName();
+    }
+
+    /**
      * Get all users for this tenant.
      */
     public function users(): HasMany
