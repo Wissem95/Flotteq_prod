@@ -234,6 +234,8 @@ class VehicleController extends Controller
                     'cost' => $maintenance->cost,
                     'mileage' => $maintenance->mileage,
                     'notes' => $maintenance->reason,
+                    'next_maintenance' => null, // This field doesn't exist in DB but frontend expects it
+                    'status' => 'completed', // Default status since column doesn't exist
                 ],
                 'maintenance_id' => $maintenance->id,
                 'can_edit' => true,
