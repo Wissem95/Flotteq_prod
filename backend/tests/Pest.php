@@ -57,7 +57,7 @@ function createTenant(array $attributes = []): \App\Models\Tenant
 
 function createUser(array $attributes = []): \App\Models\User
 {
-    $currentTenant = \Spatie\Multitenancy\Models\Tenant::current();
+    $currentTenant = app('currentTenant'); // Using app container instead of Spatie current()
     
     $defaultAttributes = [];
     
@@ -81,7 +81,7 @@ function createUser(array $attributes = []): \App\Models\User
 
 function createVehicle(array $attributes = []): \App\Models\Vehicle
 {
-    $currentTenant = \Spatie\Multitenancy\Models\Tenant::current();
+    $currentTenant = app('currentTenant'); // Using app container instead of Spatie current()
     $currentUser = auth('sanctum')->user();
     
     $defaultAttributes = [];
@@ -99,7 +99,8 @@ function createVehicle(array $attributes = []): \App\Models\Vehicle
 
 function actingAsTenant(\App\Models\Tenant $tenant): void
 {
-    $tenant->makeCurrent();
+    // Set tenant in context for middleware compatibility (makeCurrent removed)
+    app()->instance('currentTenant', $tenant);
     
     // Set tenant in session for middleware compatibility
     session()->put('tenant_id', $tenant->id);

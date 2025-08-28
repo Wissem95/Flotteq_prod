@@ -157,7 +157,8 @@ class SocialAuthTest extends TestCase
             'tenant_id' => $this->tenant->id,
         ]);
 
-        $this->tenant->makeCurrent();
+        // Set tenant context (makeCurrent removed)
+        app()->instance('currentTenant', $this->tenant);
 
         // Mock Socialite
         $googleUser = Mockery::mock(SocialiteUser::class);
@@ -196,7 +197,8 @@ class SocialAuthTest extends TestCase
             'tenant_id' => $this->tenant->id,
         ]);
 
-        $this->tenant->makeCurrent();
+        // Set tenant context (makeCurrent removed)
+        app()->instance('currentTenant', $this->tenant);
 
         // Mock Socialite
         $googleUser = Mockery::mock(SocialiteUser::class);
@@ -226,7 +228,8 @@ class SocialAuthTest extends TestCase
             'tenant_id' => $this->tenant->id,
         ]);
 
-        $this->tenant->makeCurrent();
+        // Set tenant context (makeCurrent removed)
+        app()->instance('currentTenant', $this->tenant);
 
         $response = $this->actingAs($user)
             ->postJson('/api/auth/google/unlink');

@@ -28,7 +28,8 @@ class AnalyticsTest extends TestCase
             'database' => 'test_company_db',
         ]);
         
-        $this->tenant->makeCurrent();
+        // Set tenant context (makeCurrent removed)
+        app()->instance('currentTenant', $this->tenant);
         
         $this->user = User::factory()->create([
             'tenant_id' => $this->tenant->id,
