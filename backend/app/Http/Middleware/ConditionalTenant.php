@@ -52,8 +52,8 @@ class ConditionalTenant
             ], 403);
         }
         
-        // Définir le tenant actuel
-        $tenant->makeCurrent();
+        // Stocker le tenant dans la requête pour les contrôleurs qui en ont besoin
+        $request->attributes->set('tenant', $tenant);
         
         return $next($request);
     }
