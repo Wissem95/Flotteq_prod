@@ -58,7 +58,7 @@ class Tenant extends Model implements IsTenant
     /**
      * Make this tenant the current tenant
      */
-    public function makeCurrent(): IsTenant
+    public function makeCurrent(): static
     {
         app()->instance('currentTenant', $this);
         return $this;
