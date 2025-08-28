@@ -196,13 +196,13 @@ class VehicleController extends Controller
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        // Récupérer l'historique basé sur les maintenances terminées
+        // Récupérer l'historique basé sur toutes les maintenances (pas de status column)
         $history = Maintenance::whereHas('vehicle', function ($query) use ($user) {
-            $query->where('tenant_id', $user->tenant_id);
+            $query->where('tenant_id', $user->tenant_id)
+                  ->where('user_id', $user->id);
         })
-        ->where('status', 'completed')
         ->with(['vehicle:id,marque,modele,immatriculation'])
-        ->orderBy('maintenance_date', 'desc')
+        ->orderBy('date', 'desc')
         ->get()
         ->map(function ($maintenance) {
             // Traduction des types de maintenance
@@ -218,8 +218,8 @@ class VehicleController extends Controller
 
             return [
                 'id' => $maintenance->id,
-                'date' => $maintenance->maintenance_date->format('d/m/Y'),
-                'description' => "{$maintenanceTypes[$maintenance->maintenance_type]} - {$maintenance->description}",
+                'date' => $maintenance->date,
+                'description' => "{$maintenanceTypes[$maintenance->type]} - {$maintenance->description}",
                 'vehicle' => [
                     'marque' => $maintenance->vehicle->marque,
                     'modele' => $maintenance->vehicle->modele,
@@ -229,12 +229,11 @@ class VehicleController extends Controller
                 'vehicleId' => $maintenance->vehicle_id,
                 // Détails supplémentaires pour l'historique
                 'details' => [
-                    'maintenance_type' => $maintenanceTypes[$maintenance->maintenance_type],
-                    'workshop' => $maintenance->workshop,
+                    'maintenance_type' => $maintenanceTypes[$maintenance->type],
+                    'workshop' => $maintenance->garage,
                     'cost' => $maintenance->cost,
                     'mileage' => $maintenance->mileage,
-                    'notes' => $maintenance->notes,
-                    'next_maintenance' => $maintenance->next_maintenance ? $maintenance->next_maintenance->format('d/m/Y') : null,
+                    'notes' => $maintenance->reason,
                 ],
                 'maintenance_id' => $maintenance->id,
                 'can_edit' => true,

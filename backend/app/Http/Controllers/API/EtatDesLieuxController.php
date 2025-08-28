@@ -17,8 +17,23 @@ class EtatDesLieuxController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        // Récupérer le tenant depuis l'utilisateur ou le header
+        $tenantId = $user->tenant_id ?? $request->header('X-Tenant-ID');
+        if (!$tenantId) {
+            return response()->json(['message' => 'Tenant ID required'], 400);
+        }
+
+        // Query états des lieux via les véhicules du tenant de l'utilisateur
         $query = EtatDesLieux::with(['vehicle', 'user', 'validator'])
-            ->forTenant($request->header('X-Tenant-ID'));
+            ->whereHas('vehicle', function ($query) use ($user, $tenantId) {
+                $query->where('tenant_id', $tenantId)
+                      ->where('user_id', $user->id);
+            });
 
         if ($request->has('vehicle_id') && $request->vehicle_id !== 'all' && $request->vehicle_id !== null) {
             $query->where('vehicle_id', $request->vehicle_id);
@@ -35,6 +50,17 @@ class EtatDesLieuxController extends Controller
 
     public function show(EtatDesLieux $etatDesLieux): JsonResponse
     {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        // Vérifier que l'état des lieux appartient à un véhicule du tenant de l'utilisateur
+        $vehicle = $etatDesLieux->vehicle;
+        if (!$vehicle || $vehicle->tenant_id !== $user->tenant_id || $vehicle->user_id !== $user->id) {
+            return response()->json(['message' => 'État des lieux not found'], 404);
+        }
+
         $etatDesLieux->load(['vehicle', 'user', 'validator']);
         
         return response()->json($etatDesLieux);
