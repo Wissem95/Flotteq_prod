@@ -22,6 +22,9 @@ Route::get('/health', fn() => ['status' => 'ok', 'timestamp' => now()]);
 Route::prefix('auth')->group(function () {
     Route::post('/login', [App\Http\Controllers\API\AuthController::class, 'login']);
     Route::post('/register', [App\Http\Controllers\API\AuthController::class, 'register']);
+    Route::post('/register-tenant-user', [App\Http\Controllers\API\AuthController::class, 'registerTenantUser']);
+    Route::post('/resolve-tenant', [App\Http\Controllers\API\AuthController::class, 'resolveTenant']);
+    Route::get('/tenant-from-host', [App\Http\Controllers\API\AuthController::class, 'getTenantFromHost']);
 
     // Google OAuth routes
     Route::get('/google/redirect', [App\Http\Controllers\API\SocialAuthController::class, 'redirectToGoogle']);

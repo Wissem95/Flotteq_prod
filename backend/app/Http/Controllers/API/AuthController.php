@@ -98,6 +98,79 @@ class AuthController extends Controller
     }
 
     /**
+     * Register a new user in an existing tenant.
+     * Used by tenant interfaces to register users within a specific tenant.
+     */
+    public function registerTenantUser(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email', 'unique:users,email'],
+            'username' => ['required', 'string', 'min:3', 'unique:users,username'],
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'confirmed', Password::defaults()],
+            'tenant_id' => ['required', 'integer', 'exists:tenants,id'],
+            'company_name' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        // Verify tenant is active
+        $tenant = Tenant::where('id', $validated['tenant_id'])
+                       ->where('is_active', true)
+                       ->first();
+
+        if (!$tenant) {
+            throw ValidationException::withMessages([
+                'tenant_id' => ['Tenant invalide ou inactif.'],
+            ]);
+        }
+
+        // Create user in the existing tenant
+        $user = User::create([
+            'email' => $validated['email'],
+            'username' => $validated['username'],
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'password' => Hash::make($validated['password']),
+            'role' => 'user', // Standard user role, not admin
+            'tenant_id' => $tenant->id, // Assign to existing tenant
+            'is_active' => true,
+            'company' => $validated['company_name'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+        ]);
+
+        // Assign default permissions to the new user
+        try {
+            UserPermissionService::assignDefaultPermissions($user);
+        } catch (\Exception $e) {
+            // Log error but continue - don't block registration
+            Log::warning("Unable to assign permissions during registration for user {$user->id}: " . $e->getMessage());
+        }
+
+        // Create token
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        // Prepare user data with profile status
+        $userProfileData = $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'role', 'is_internal', 'role_interne']);
+        try {
+            $userProfileData['profile_incomplete'] = $user->hasIncompleteProfile();
+            $userProfileData['missing_fields'] = $user->getMissingProfileFields();
+        } catch (\Exception $e) {
+            // Default values if error
+            Log::warning("Error checking profile for user {$user->id}: " . $e->getMessage());
+            $userProfileData['profile_incomplete'] = true;
+            $userProfileData['missing_fields'] = [];
+        }
+
+        return response()->json([
+            'message' => 'Registration successful',
+            'user' => $userProfileData,
+            'tenant' => $tenant->only(['id', 'name', 'domain']),
+            'token' => $token,
+        ], 201);
+    }
+
+    /**
      * Login user.
      */
     public function login(Request $request): JsonResponse
@@ -317,6 +390,61 @@ class AuthController extends Controller
         return response()->json([
             'user' => $userProfileData,
             'message' => 'Profil mis à jour avec succès',
+        ]);
+    }
+
+    /**
+     * Resolve tenant information from domain.
+     * Used by tenant interfaces to get tenant_id before registration.
+     */
+    public function resolveTenant(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'domain' => ['required', 'string', 'min:3', 'max:255'],
+        ]);
+
+        $tenant = Tenant::where('domain', $validated['domain'])
+                       ->where('is_active', true)
+                       ->first();
+
+        if (!$tenant) {
+            return response()->json([
+                'error' => 'Tenant not found',
+                'message' => 'Aucun tenant actif trouvé pour ce domaine.',
+            ], 404);
+        }
+
+        return response()->json([
+            'tenant' => $tenant->only(['id', 'name', 'domain']),
+        ]);
+    }
+
+    /**
+     * Get tenant info from request host automatically.
+     * Used by tenant interfaces to auto-detect tenant from hostname.
+     */
+    public function getTenantFromHost(Request $request): JsonResponse
+    {
+        $host = $request->getHost();
+        
+        // Remove common prefixes like www.
+        $host = preg_replace('/^www\./', '', $host);
+        
+        $tenant = Tenant::where('domain', $host)
+                       ->where('is_active', true)
+                       ->first();
+
+        if (!$tenant) {
+            return response()->json([
+                'error' => 'Tenant not found',
+                'message' => 'Aucun tenant actif trouvé pour ce domaine.',
+                'host' => $host,
+            ], 404);
+        }
+
+        return response()->json([
+            'tenant' => $tenant->only(['id', 'name', 'domain']),
+            'host' => $host,
         ]);
     }
 }
