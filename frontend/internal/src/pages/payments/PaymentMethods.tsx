@@ -24,57 +24,8 @@ interface PaymentGateway {
 }
 
 const PaymentMethods: React.FC = () => {
-  // Mock data - replace with real API calls
-  const paymentGateways: PaymentGateway[] = [
-    {
-      id: 1,
-      name: 'Stripe Gateway',
-      type: 'card',
-      status: 'active',
-      provider: 'Stripe',
-      countries: ['FR', 'BE', 'CH', 'LU'],
-      fees: { percentage: 2.9, fixed: 0.30 },
-      volume_monthly: 125000,
-      transactions_count: 1247,
-      last_transaction: '2025-07-31T16:45:00Z'
-    },
-    {
-      id: 2,
-      name: 'PayPal Business',
-      type: 'card',
-      status: 'active',
-      provider: 'PayPal',
-      countries: ['FR', 'BE', 'CH', 'LU', 'DE', 'IT'],
-      fees: { percentage: 3.4, fixed: 0.35 },
-      volume_monthly: 87500,
-      transactions_count: 892,
-      last_transaction: '2025-07-31T15:30:00Z'
-    },
-    {
-      id: 3,
-      name: 'Orange Money',
-      type: 'mobile',
-      status: 'pending',
-      provider: 'Orange',
-      countries: ['FR', 'TN', 'MA'],
-      fees: { percentage: 1.8, fixed: 0.10 },
-      volume_monthly: 0,
-      transactions_count: 0,
-      last_transaction: ''
-    },
-    {
-      id: 4,
-      name: 'SEPA Direct Debit',
-      type: 'bank',
-      status: 'active',
-      provider: 'GoCardless',
-      countries: ['FR', 'DE', 'ES', 'IT', 'NL'],
-      fees: { percentage: 1.0, fixed: 0.25 },
-      volume_monthly: 45000,
-      transactions_count: 156,
-      last_transaction: '2025-07-31T12:15:00Z'
-    }
-  ];
+  // Payment methods not yet implemented - showing empty state
+  const paymentGateways: PaymentGateway[] = [];
 
   const getTypeIcon = (type: string) => {
     switch (type) {

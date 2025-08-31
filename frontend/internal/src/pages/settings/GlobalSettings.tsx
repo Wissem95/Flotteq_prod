@@ -72,59 +72,7 @@ const GlobalSettings: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Paramètres mockés pour la démonstration
-  const mockSettings: PlatformSettings = {
-    // Général
-    platform_name: "FlotteQ",
-    platform_description: "Plateforme de gestion de flotte automobile intelligente",
-    support_email: "support@flotteq.com",
-    company_address: "123 Avenue de l'Innovation, 75001 Paris, France",
-    timezone: "Europe/Paris",
-    default_language: "fr",
-    
-    // Sécurité
-    password_min_length: 8,
-    password_require_uppercase: true,
-    password_require_lowercase: true,
-    password_require_numbers: true,
-    password_require_symbols: false,
-    session_timeout_minutes: 120,
-    max_login_attempts: 5,
-    two_factor_required: false,
-    
-    // Email
-    smtp_host: "smtp.mailgun.org",
-    smtp_port: 587,
-    smtp_username: "noreply@flotteq.com",
-    smtp_password: "••••••••••••",
-    smtp_encryption: "tls",
-    email_from_address: "noreply@flotteq.com",
-    email_from_name: "FlotteQ Support",
-    
-    // Notifications
-    enable_email_notifications: true,
-    enable_sms_notifications: false,
-    enable_push_notifications: true,
-    notification_retention_days: 30,
-    
-    // API & Intégrations
-    api_rate_limit_per_minute: 100,
-    api_rate_limit_per_hour: 5000,
-    webhook_timeout_seconds: 30,
-    enable_api_analytics: true,
-    
-    // Stockage
-    max_file_size_mb: 10,
-    allowed_file_types: ["jpg", "jpeg", "png", "pdf", "doc", "docx"],
-    storage_cleanup_days: 90,
-    enable_file_compression: true,
-    
-    // Maintenance
-    maintenance_mode: false,
-    maintenance_message: "Maintenance en cours. Retour prévu dans 30 minutes.",
-    backup_frequency_hours: 24,
-    log_retention_days: 90,
-  };
+  // Settings feature not yet implemented - showing empty state
 
   useEffect(() => {
     loadSettings();
@@ -133,9 +81,8 @@ const GlobalSettings: React.FC = () => {
   const loadSettings = async () => {
     setLoading(true);
     try {
-      // Simulation d'un appel API
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setSettings(mockSettings);
+      // Settings feature not yet implemented - show empty state
+      setSettings(null);
     } catch (error) {
       console.error("Erreur lors du chargement des paramètres:", error);
     } finally {
@@ -148,10 +95,8 @@ const GlobalSettings: React.FC = () => {
     
     setSaving(true);
     try {
-      // Simulation d'un appel API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Settings save API not yet implemented
       setHasChanges(false);
-      // Ici on afficherait un toast de succès
     } catch (error) {
       console.error("Erreur lors de la sauvegarde:", error);
     } finally {

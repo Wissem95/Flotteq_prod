@@ -35,86 +35,18 @@ interface ReferralReward {
 }
 
 const ReferralProgram: React.FC = () => {
-  // Mock data - replace with real API calls
+  // Referral program not yet implemented - showing empty state
   const stats: ReferralStats = {
-    total_referrals: 1247,
-    active_referrers: 328,
-    conversion_rate: 68.5,
-    total_rewards_paid: 15420,
-    pending_rewards: 2340,
-    this_month_referrals: 89
+    total_referrals: 0,
+    active_referrers: 0,
+    conversion_rate: 0,
+    total_rewards_paid: 0,
+    pending_rewards: 0,
+    this_month_referrals: 0
   };
 
-  const topReferrers: ReferralUser[] = [
-    {
-      id: 1,
-      name: 'Marie Dubois',
-      email: 'marie.dubois@example.com',
-      referrals_count: 23,
-      successful_referrals: 18,
-      total_earned: 450,
-      level: 'gold',
-      joined_date: '2025-03-15',
-      last_referral: '2025-07-29'
-    },
-    {
-      id: 2,
-      name: 'Pierre Martin',
-      email: 'pierre.martin@example.com',
-      referrals_count: 19,
-      successful_referrals: 15,
-      total_earned: 375,
-      level: 'gold',
-      joined_date: '2025-04-10',
-      last_referral: '2025-07-30'
-    },
-    {
-      id: 3,
-      name: 'Sophie Laurent',
-      email: 'sophie.laurent@example.com',
-      referrals_count: 15,
-      successful_referrals: 12,
-      total_earned: 300,
-      level: 'silver',
-      joined_date: '2025-05-20',
-      last_referral: '2025-07-28'
-    }
-  ];
-
-  const rewardTiers: ReferralReward[] = [
-    {
-      id: 1,
-      type: 'cash',
-      amount: 25,
-      description: 'Récompense par parrainage réussi',
-      conditions: 'Le filleul doit souscrire un abonnement payant',
-      status: 'active'
-    },
-    {
-      id: 2,
-      type: 'credit',
-      amount: 50,
-      description: 'Crédit bonus 5ème parrainage',
-      conditions: 'Après 5 parrainages réussis',
-      status: 'active'
-    },
-    {
-      id: 3,
-      type: 'premium',
-      amount: 100,
-      description: 'Upgrade Premium gratuit',
-      conditions: '10 parrainages réussis en 3 mois',
-      status: 'active'
-    },
-    {
-      id: 4,
-      type: 'discount',
-      amount: 20,
-      description: 'Remise parrain fidèle',
-      conditions: 'Parrainage mensuel pendant 6 mois',
-      status: 'inactive'
-    }
-  ];
+  const topReferrers: ReferralUser[] = [];
+  const rewardTiers: ReferralReward[] = [];
 
   const getLevelBadge = (level: string) => {
     const variants = {

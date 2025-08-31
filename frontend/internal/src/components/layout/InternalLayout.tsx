@@ -30,6 +30,9 @@ const InternalLayout: React.FC<InternalLayoutProps> = ({ children }) => {
     // Employés
     if (path === "/employes") return "Employés FlotteQ";
     
+    // Utilisateurs
+    if (path === "/utilisateurs/tenants") return "Utilisateurs Tenants";
+    
     // Partenaires
     if (path.startsWith("/partenaires")) {
       if (path === "/partenaires/garages") return "Garages Partenaires";

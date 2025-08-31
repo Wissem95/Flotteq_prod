@@ -161,6 +161,12 @@ const InternalSidebar: React.FC = () => {
             {!collapsed && <span className="ml-3">Employés FlotteQ</span>}
           </Link>
 
+          {/* Utilisateurs Tenants */}
+          <Link to="/utilisateurs/tenants" className={navLink("/utilisateurs/tenants", location.pathname, collapsed)}>
+            <UserPlus size={20} />
+            {!collapsed && <span className="ml-3">Utilisateurs Tenants</span>}
+          </Link>
+
           {/* Partenaires */}
           <button
             onClick={() => setShowPartnersMenu((prev) => !prev)}

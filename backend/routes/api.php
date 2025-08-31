@@ -198,6 +198,16 @@ Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal'
         Route::delete('/{partner}', [App\Http\Controllers\API\PartnersController::class, 'destroy']);
     });
 
+    // Tenant Users management (Internal only) - Vue globale de tous les utilisateurs des tenants
+    Route::prefix('tenant-users')->group(function () {
+        Route::get('/', [App\Http\Controllers\API\Admin\TenantUsersController::class, 'index']);
+        Route::get('/export', [App\Http\Controllers\API\Admin\TenantUsersController::class, 'export']);
+        Route::get('/{user}', [App\Http\Controllers\API\Admin\TenantUsersController::class, 'show']);
+        Route::put('/{user}', [App\Http\Controllers\API\Admin\TenantUsersController::class, 'update']);
+        Route::post('/{user}/toggle-status', [App\Http\Controllers\API\Admin\TenantUsersController::class, 'toggleStatus']);
+        Route::delete('/{user}', [App\Http\Controllers\API\Admin\TenantUsersController::class, 'destroy']);
+    });
+
     // Support management (Internal only)
     Route::prefix('support')->group(function () {
         Route::get('/tickets', [App\Http\Controllers\API\SupportController::class, 'index']);

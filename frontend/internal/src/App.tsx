@@ -44,6 +44,9 @@ import AdminRoutes from "./pages/admin/AdminRoutes";
 import TenantsOverview from "./pages/tenants/TenantsOverview";
 import SystemAlerts from "./pages/alerts/SystemAlerts";
 
+// Pages Users
+import TenantUsersOverview from "./pages/users/TenantUsersOverview";
+
 // Pages Nouvelles
 import PaymentMethods from "./pages/payments/PaymentMethods";
 import ReferralProgram from "./pages/referral/ReferralProgram";
@@ -110,6 +113,9 @@ const App: React.FC = () => {
                       <Route path="/dashboard/overview" element={<DashboardOverview />} />
                       <Route path="/dashboard/tenants" element={<TenantsOverview />} />
                       <Route path="/dashboard/alerts" element={<SystemAlerts />} />
+                      
+                      {/* Users - Gestion des utilisateurs */}
+                      <Route path="/utilisateurs/tenants" element={<TenantUsersOverview />} />
                       
                       {/* Support */}
                       <Route path="/support" element={<SupportDashboard />} />
