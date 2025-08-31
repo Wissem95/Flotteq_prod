@@ -46,7 +46,8 @@ import {
   Shield,
   Star,
 } from "lucide-react";
-import { Partner, PartnerFilters } from "@/services/partnersService";
+import { partnersService, Partner, PartnerFilters } from "@/services/partnersService";
+import { toast } from "@/hooks/use-toast";
 
 const PartnersOverview: React.FC = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -56,129 +57,38 @@ const PartnersOverview: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  // Données simulées
-  const mockPartners: Partner[] = [
-    {
-      id: 1,
-      name: "Garage Central",
-      type: "garage",
-      email: "contact@garagecentral.fr",
-      phone: "01 23 45 67 89",
-      website: "https://garagecentral.fr",
-      status: "active",
-      address: {
-        street: "123 Rue de la République",
-        city: "Paris",
-        postal_code: "75001",
-        country: "France",
-        latitude: 48.8566,
-        longitude: 2.3522,
-      },
-      services: ["Révision", "Réparation", "Pneus"],
-      rating: { average: 4.5, total_reviews: 127 },
-      created_at: "2024-01-15",
-      updated_at: "2024-07-15",
-      availability: {
-        monday: { open: "08:00", close: "18:00" },
-        tuesday: { open: "08:00", close: "18:00" },
-        wednesday: { open: "08:00", close: "18:00" },
-        thursday: { open: "08:00", close: "18:00" },
-        friday: { open: "08:00", close: "18:00" },
-        saturday: { open: "09:00", close: "17:00" },
-        sunday: null,
-      },
-    },
-    {
-      id: 2,
-      name: "AutoVision CT",
-      type: "controle_technique",
-      email: "rdv@autovision-ct.fr",
-      phone: "01 98 76 54 32",
-      status: "active",
-      address: {
-        street: "45 Avenue des Tilleuls",
-        city: "Lyon",
-        postal_code: "69000",
-        country: "France",
-        latitude: 45.7640,
-        longitude: 4.8357,
-      },
-      services: ["Contrôle technique", "Contre-visite"],
-      rating: { average: 4.2, total_reviews: 89 },
-      created_at: "2024-02-20",
-      updated_at: "2024-07-10",
-      availability: {
-        monday: { open: "08:00", close: "19:00" },
-        tuesday: { open: "08:00", close: "19:00" },
-        wednesday: { open: "08:00", close: "19:00" },
-        thursday: { open: "08:00", close: "19:00" },
-        friday: { open: "08:00", close: "19:00" },
-        saturday: { open: "08:00", close: "16:00" },
-        sunday: null,
-      },
-    },
-    {
-      id: 3,
-      name: "AXA Assurances Pro",
-      type: "assurance",
-      email: "pro@axa.fr",
-      phone: "08 00 12 34 56",
-      website: "https://axa.fr/pro",
-      status: "pending",
-      address: {
-        street: "10 Boulevard Haussmann",
-        city: "Paris",
-        postal_code: "75009",
-        country: "France",
-      },
-      services: ["Assurance flotte", "Responsabilité civile", "Tous risques"],
-      created_at: "2024-07-01",
-      updated_at: "2024-07-25",
-      availability: {
-        monday: { open: "09:00", close: "18:00" },
-        tuesday: { open: "09:00", close: "18:00" },
-        wednesday: { open: "09:00", close: "18:00" },
-        thursday: { open: "09:00", close: "18:00" },
-        friday: { open: "09:00", close: "18:00" },
-        saturday: null,
-        sunday: null,
-      },
-    },
-  ];
+  // Removed mock data - using real API data only
 
   useEffect(() => {
     loadPartners();
   }, [currentPage, filters, searchTerm]);
 
   const loadPartners = async () => {
-    setLoading(true);
-    // TODO: Remplacer par un vrai appel API
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    let filteredPartners = [...mockPartners];
-    
-    // Filtrage par terme de recherche
-    if (searchTerm) {
-      filteredPartners = filteredPartners.filter(partner =>
-        partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        partner.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        partner.address.city.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    try {
+      setLoading(true);
+      
+      // Build filters for API call
+      const apiFilters = {
+        ...filters,
+        search: searchTerm || undefined,
+      };
+      
+      // Call real API
+      const response = await partnersService.getPartners(currentPage, 10, apiFilters);
+      
+      setPartners(response.partners);
+      setTotalPages(response.pagination.last_page);
+    } catch (error) {
+      console.error('Erreur lors du chargement des partenaires:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger les partenaires',
+        variant: 'destructive',
+      });
+      setPartners([]);
+    } finally {
+      setLoading(false);
     }
-    
-    // Filtrage par type
-    if (filters.type) {
-      filteredPartners = filteredPartners.filter(partner => partner.type === filters.type);
-    }
-    
-    // Filtrage par statut
-    if (filters.status) {
-      filteredPartners = filteredPartners.filter(partner => partner.status === filters.status);
-    }
-    
-    setPartners(filteredPartners);
-    setTotalPages(Math.ceil(filteredPartners.length / 10));
-    setLoading(false);
   };
 
   const getStatusBadge = (status: string) => {

@@ -153,69 +153,69 @@ export const subscriptionsService = {
       });
     }
 
-    const response = await api.get(`/subscriptions?${params}`);
+    const response = await api.get(`/internal/subscriptions?${params}`);
     return response.data;
   },
 
   async getSubscription(id: number): Promise<Subscription> {
-    const response = await api.get(`/subscriptions/${id}`);
+    const response = await api.get(`/internal/subscriptions/${id}`);
     return response.data;
   },
 
   async createSubscription(data: CreateSubscriptionData): Promise<Subscription> {
-    const response = await api.post('/subscriptions', data);
+    const response = await api.post('/internal/subscriptions', data);
     return response.data;
   },
 
   async updateSubscription(id: number, data: UpdateSubscriptionData): Promise<Subscription> {
-    const response = await api.put(`/subscriptions/${id}`, data);
+    const response = await api.put(`/internal/subscriptions/${id}`, data);
     return response.data;
   },
 
   async cancelSubscription(id: number, reason?: string): Promise<Subscription> {
-    const response = await api.post(`/subscriptions/${id}/cancel`, { reason });
+    const response = await api.post(`/internal/subscriptions/${id}/cancel`, { reason });
     return response.data;
   },
 
   async suspendSubscription(id: number, reason?: string): Promise<Subscription> {
-    const response = await api.post(`/subscriptions/${id}/suspend`, { reason });
+    const response = await api.post(`/internal/subscriptions/${id}/suspend`, { reason });
     return response.data;
   },
 
   async reactivateSubscription(id: number): Promise<Subscription> {
-    const response = await api.post(`/subscriptions/${id}/reactivate`);
+    const response = await api.post(`/internal/subscriptions/${id}/reactivate`);
     return response.data;
   },
 
   async extendTrial(id: number, days: number): Promise<Subscription> {
-    const response = await api.post(`/subscriptions/${id}/extend-trial`, { days });
+    const response = await api.post(`/internal/subscriptions/${id}/extend-trial`, { days });
     return response.data;
   },
 
   // === PLANS ===
   
   async getPlans(): Promise<SubscriptionPlan[]> {
-    const response = await api.get('/subscription-plans');
+    const response = await api.get('/internal/subscriptions/plans');
     return response.data;
   },
 
   async getPlan(id: string): Promise<SubscriptionPlan> {
-    const response = await api.get(`/subscription-plans/${id}`);
+    const response = await api.get(`/internal/subscriptions/plans/${id}`);
     return response.data;
   },
 
   async createPlan(data: CreatePlanData): Promise<SubscriptionPlan> {
-    const response = await api.post('/subscription-plans', data);
+    const response = await api.post('/internal/subscriptions/plans', data);
     return response.data;
   },
 
   async updatePlan(id: string, data: Partial<CreatePlanData>): Promise<SubscriptionPlan> {
-    const response = await api.put(`/subscription-plans/${id}`, data);
+    const response = await api.put(`/internal/subscriptions/plans/${id}`, data);
     return response.data;
   },
 
   async togglePlanStatus(id: string): Promise<SubscriptionPlan> {
-    const response = await api.post(`/subscription-plans/${id}/toggle-status`);
+    const response = await api.post(`/internal/subscriptions/plans/${id}/toggle-status`);
     return response.data;
   },
 
@@ -269,7 +269,7 @@ export const subscriptionsService = {
   // === STATISTICS ===
   
   async getSubscriptionStats(): Promise<SubscriptionStats> {
-    const response = await api.get('/subscriptions/stats');
+    const response = await api.get('/internal/subscriptions/stats');
     return response.data;
   },
 
