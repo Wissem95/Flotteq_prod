@@ -96,119 +96,8 @@ const PromotionsOverview: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
 
-  // Données simulées
-  const mockPromotions: Promotion[] = [
-    {
-      id: 1,
-      code: 'SUMMER2024',
-      name: 'Promotion Été 2024',
-      description: 'Réduction de 20% sur tous les plans pour l\'été',
-      type: 'percentage',
-      value: 20,
-      status: 'active',
-      usage_limit: 500,
-      usage_count: 127,
-      min_purchase_amount: 50,
-      applicable_plans: ['Professional', 'Enterprise'],
-      valid_from: '2024-06-01T00:00:00Z',
-      valid_until: '2024-08-31T23:59:59Z',
-      created_at: '2024-05-15T10:00:00Z',
-      updated_at: '2024-07-20T14:30:00Z',
-      created_by: 'Sophie Martin',
-    },
-    {
-      id: 2,
-      code: 'NEWCLIENT50',
-      name: 'Nouveau Client - 50€ de réduction',
-      description: 'Réduction fixe de 50€ pour les nouveaux clients',
-      type: 'fixed_amount',
-      value: 50,
-      currency: 'EUR',
-      status: 'active',
-      usage_limit: 200,
-      usage_count: 89,
-      min_purchase_amount: 100,
-      applicable_plans: ['Starter', 'Professional', 'Enterprise'],
-      valid_from: '2024-07-01T00:00:00Z',
-      valid_until: '2024-12-31T23:59:59Z',
-      created_at: '2024-06-20T09:15:00Z',
-      updated_at: '2024-07-25T11:45:00Z',
-      created_by: 'Thomas Garcia',
-    },
-    {
-      id: 3,
-      code: 'FREETRIAL30',
-      name: 'Essai gratuit 30 jours',
-      description: 'Essai gratuit étendu à 30 jours au lieu de 14',
-      type: 'free_trial',
-      value: 30,
-      status: 'active',
-      usage_count: 234,
-      applicable_plans: ['Professional'],
-      valid_from: '2024-01-01T00:00:00Z',
-      valid_until: '2024-12-31T23:59:59Z',
-      created_at: '2023-12-15T16:20:00Z',
-      updated_at: '2024-07-10T08:30:00Z',
-      created_by: 'Julie Vincent',
-    },
-    {
-      id: 4,
-      code: 'BLACKFRIDAY',
-      name: 'Black Friday 2024',
-      description: 'Méga promotion Black Friday - 40% de réduction',
-      type: 'percentage',
-      value: 40,
-      status: 'scheduled',
-      usage_limit: 1000,
-      usage_count: 0,
-      min_purchase_amount: 0,
-      applicable_plans: ['Starter', 'Professional', 'Enterprise'],
-      valid_from: '2024-11-29T00:00:00Z',
-      valid_until: '2024-12-02T23:59:59Z',
-      created_at: '2024-07-28T12:00:00Z',
-      updated_at: '2024-07-28T12:00:00Z',
-      created_by: 'Sophie Martin',
-    },
-    {
-      id: 5,
-      code: 'SPRING2024',
-      name: 'Promotion Printemps 2024',
-      description: 'Réduction de 15% pour le printemps',
-      type: 'percentage',
-      value: 15,
-      status: 'expired',
-      usage_limit: 300,
-      usage_count: 278,
-      min_purchase_amount: 30,
-      applicable_plans: ['Starter', 'Professional'],
-      valid_from: '2024-03-01T00:00:00Z',
-      valid_until: '2024-05-31T23:59:59Z',
-      created_at: '2024-02-20T14:45:00Z',
-      updated_at: '2024-06-01T00:00:00Z',
-      created_by: 'Thomas Garcia',
-    },
-  ];
-
-  const mockStats: PromotionStats = {
-    total_promotions: 5,
-    active_promotions: 3,
-    total_usage: 728,
-    total_savings: 45600,
-    conversion_rate: 18.5,
-    top_performing: [
-      { code: 'FREETRIAL30', usage_count: 234, savings: 15600 },
-      { code: 'SPRING2024', usage_count: 278, savings: 18900 },
-      { code: 'SUMMER2024', usage_count: 127, savings: 8200 },
-    ],
-    usage_by_month: [
-      { month: 'Jan', usage_count: 89, savings: 5400 },
-      { month: 'Fév', usage_count: 112, savings: 6800 },
-      { month: 'Mar', usage_count: 145, savings: 8900 },
-      { month: 'Avr', usage_count: 134, savings: 8200 },
-      { month: 'Mai', usage_count: 156, savings: 9500 },
-      { month: 'Jun', usage_count: 92, savings: 6800 },
-    ],
-  };
+  // Promotions feature not yet implemented in backend
+  // Using empty state until API is available
 
   useEffect(() => {
     loadData();
@@ -217,28 +106,17 @@ const PromotionsOverview: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      // Simulation d'appel API
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      let filteredPromotions = [...mockPromotions];
-      
-      if (searchTerm) {
-        filteredPromotions = filteredPromotions.filter(promo =>
-          promo.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          promo.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
-      
-      if (statusFilter !== 'all') {
-        filteredPromotions = filteredPromotions.filter(promo => promo.status === statusFilter);
-      }
-      
-      if (typeFilter !== 'all') {
-        filteredPromotions = filteredPromotions.filter(promo => promo.type === typeFilter);
-      }
-      
-      setPromotions(filteredPromotions);
-      setStats(mockStats);
+      // Promotions feature not yet implemented - show empty state
+      setPromotions([]);
+      setStats({
+        total_promotions: 0,
+        active_promotions: 0,
+        total_usage: 0,
+        total_savings: 0,
+        conversion_rate: 0,
+        top_performing: [],
+        usage_by_month: [],
+      });
     } catch (error) {
       toast({
         title: 'Erreur',
