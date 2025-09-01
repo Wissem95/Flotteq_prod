@@ -17,7 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Global API middleware
         $middleware->api(prepend: [
             \Illuminate\Http\Middleware\HandleCors::class,
-            // Réactivé: nécessaire pour l'authentification Sanctum
+        ]);
+
+        // Sanctum middleware seulement pour les routes protégées (pas auth)
+        $middleware->group('sanctum', [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
