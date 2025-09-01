@@ -1,6 +1,6 @@
 // tenantService.ts - Service pour la gestion des tenants
 
-import { api } from '@/lib/api';
+import api from '@/lib/api';
 
 
 export interface Tenant {

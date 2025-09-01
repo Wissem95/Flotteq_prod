@@ -1,6 +1,6 @@
 // internalAuthService.ts - Service d'authentification pour l'interface d'administration
 
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 
 export interface InternalUser {
   id: number;

@@ -1,5 +1,5 @@
 // subscriptionsService.ts - Service de gestion des abonnements FlotteQ
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 
 // === INTERFACES ===
 

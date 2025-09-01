@@ -1,6 +1,6 @@
 // supportService.ts - Service de gestion du support client FlotteQ
 
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 
 // Types pour le système de support
 export interface SupportTicket {
