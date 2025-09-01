@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 
 import '/backgrounds/Background_road.svg'
 

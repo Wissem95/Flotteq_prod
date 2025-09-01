@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { User, Car, MapPin, Phone, Mail, Shield, Edit3, Save, Camera, CheckCircle } from "lucide-react";
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 
 // Interface pour le profil utilisateur
 interface UserProfile {

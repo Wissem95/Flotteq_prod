@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import MaintenanceModal from "./MaintenanceModal";
 import StatusChangeModal from "./StatusChangeModal";
 import { getMaintenancesWithFilters, updateMaintenanceStatus } from "@/services/maintenanceService";
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 
 interface StatusDropdownProps {
   currentStatus: string;

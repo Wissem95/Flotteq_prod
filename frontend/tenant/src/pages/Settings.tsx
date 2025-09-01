@@ -24,7 +24,7 @@ import {
   Check
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 
 interface UserProfile {
   id: number;
