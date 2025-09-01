@@ -33,6 +33,7 @@ import {
 import AlertsModal from "@/components/modals/AlertsModal";
 import { reportService } from "@/services/reportService";
 import { analyticsService } from "@/services/analyticsService";
+import { api } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 
 // Types pour le dashboard
