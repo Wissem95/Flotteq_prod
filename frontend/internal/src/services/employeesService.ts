@@ -1,6 +1,6 @@
 // employeesService.ts - Service de gestion des employés FlotteQ
 
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 
 // Types pour la gestion des employés
 export interface Employee {

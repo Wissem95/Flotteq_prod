@@ -1,5 +1,5 @@
 // client/src/services/authService.ts
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 
 export const login = async (email: string, password: string) => {
   // Backend attend 'login' au lieu d'email

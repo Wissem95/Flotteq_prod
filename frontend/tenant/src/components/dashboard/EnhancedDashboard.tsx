@@ -22,7 +22,7 @@ import FinancialStatusDashboard from "./FinancialStatusDashboard";
 import TransactionsPage from "./TransactionsPage";
 
 // Services
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 import { notificationService } from "@/services/notificationService";
 import { fetchVehicles } from "@/services/vehicleService";
 import { toast } from "@/hooks/use-toast";

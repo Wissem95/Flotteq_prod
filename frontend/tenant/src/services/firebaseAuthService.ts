@@ -1,6 +1,6 @@
 import { signInWithPopup, User } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 import { handleLoginSuccess } from './authService';
 
 export interface FirebaseAuthResponse {

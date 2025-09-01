@@ -1,6 +1,6 @@
 // reportService.ts - Service pour la génération de rapports
 
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 
 export interface ReportFilters {
   startDate?: string;

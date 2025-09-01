@@ -1,7 +1,7 @@
 // pages/routes/VehiclesHistory.tsx
 
 import React, { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

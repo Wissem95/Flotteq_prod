@@ -1,6 +1,6 @@
 // 📁 frontend/src/services/vehicleService.ts
 
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 
 // Type pour les inspections techniques
 export interface TechnicalInspection {

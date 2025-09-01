@@ -15,7 +15,7 @@ import StatusDistribution from "@/components/dashboard/StatusDistribution";
 import RecentEvents from "@/components/dashboard/RecentEvents";
 
 // Services
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 import { useNotifications } from "@/hooks/useNotifications";
 import { fetchVehicles } from "@/services/vehicleService";
 import { toast } from "@/hooks/use-toast";

@@ -1,6 +1,6 @@
 // /maintenanceService.ts
 
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 
 const API_URL = "/maintenances";
 

@@ -1,5 +1,5 @@
 // analyticsService.ts - Service d'analytics et monitoring FlotteQ
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 
 // === INTERFACES ===
 

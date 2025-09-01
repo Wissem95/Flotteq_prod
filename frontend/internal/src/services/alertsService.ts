@@ -1,6 +1,6 @@
 // alertsService.ts - Service pour la gestion des alertes système
 
-import api from '@/lib/api';
+import { api } from '@/lib/api';
 
 export interface SystemAlert {
   id: string;

@@ -1,6 +1,6 @@
 // partnersService.ts - Service de gestion des partenaires FlotteQ
 
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 
 // Types pour les partenaires
 export interface Partner {
