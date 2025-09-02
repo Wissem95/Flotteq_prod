@@ -36,6 +36,10 @@ class VehicleResource extends JsonResource
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
             'last_ct_date' => $this->last_ct_date,
             'next_ct_date' => $this->next_ct_date,
+            'insurance_start_date' => $this->insurance_start_date,
+            'insurance_expiry_date' => $this->insurance_expiry_date,
+            'insurance_company' => $this->insurance_company,
+            'insurance_policy_number' => $this->insurance_policy_number,
             
             // Relationships
             'owner' => $this->whenLoaded('user', fn() => [

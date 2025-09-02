@@ -34,6 +34,10 @@ class Vehicle extends Model implements HasMedia
         'status',
         'last_ct_date',
         'next_ct_date',
+        'insurance_start_date',
+        'insurance_expiry_date',
+        'insurance_company',
+        'insurance_policy_number',
         'notes',
     ];
 
@@ -42,6 +46,8 @@ class Vehicle extends Model implements HasMedia
         'purchase_price' => 'decimal:2',
         'last_ct_date' => 'date',
         'next_ct_date' => 'date',
+        'insurance_start_date' => 'date',
+        'insurance_expiry_date' => 'date',
         'kilometrage' => 'integer',
         'puissance' => 'integer',
         'annee' => 'integer',

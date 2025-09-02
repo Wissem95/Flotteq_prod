@@ -87,26 +87,26 @@ class InternalDashboardController extends Controller
         $activeUsers = $activeUsers->where('is_active', true)->count();
         
         $pendingMaintenances = clone $maintenanceQuery;
-        $pendingMaintenances = $pendingMaintenances->where('status', 'pending')->count();
+        $pendingMaintenances = $pendingMaintenances->where('status', 'scheduled')->count();
         
         // Technical controls upcoming (next 30 days)
         $upcomingTechnicalControls = clone $vehicleQuery;
-        $upcomingTechnicalControls = $upcomingTechnicalControls->where('controle_technique_expiry', '<=', Carbon::now()->addDays(30))
-            ->where('controle_technique_expiry', '>=', Carbon::now())
+        $upcomingTechnicalControls = $upcomingTechnicalControls->where('next_ct_date', '<=', Carbon::now()->addDays(30))
+            ->where('next_ct_date', '>=', Carbon::now())
             ->count();
         
         // Critical alerts (vehicles with expired CT or insurance)
         $criticalAlerts = clone $vehicleQuery;
         $criticalAlerts = $criticalAlerts->where(function($query) {
-            $query->where('controle_technique_expiry', '<', Carbon::now())
-                  ->orWhere('assurance_expiry', '<', Carbon::now());
+            $query->where('next_ct_date', '<', Carbon::now())
+                  ->orWhere('insurance_expiry_date', '<', Carbon::now());
         })->count();
         
         // Total alerts (include warnings - CT/insurance expiring in 30 days)
         $totalAlerts = clone $vehicleQuery;
         $totalAlerts = $totalAlerts->where(function($query) {
-            $query->where('controle_technique_expiry', '<=', Carbon::now()->addDays(30))
-                  ->orWhere('assurance_expiry', '<=', Carbon::now()->addDays(30));
+            $query->where('next_ct_date', '<=', Carbon::now()->addDays(30))
+                  ->orWhere('insurance_expiry_date', '<=', Carbon::now()->addDays(30));
         })->count();
 
         return response()->json([
@@ -202,7 +202,7 @@ class InternalDashboardController extends Controller
 
         // Critical: Expired CT
         $expiredCT = clone $vehicleQuery;
-        $expiredCT = $expiredCT->where('controle_technique_expiry', '<', Carbon::now())
+        $expiredCT = $expiredCT->where('next_ct_date', '<', Carbon::now())
             ->limit($limit)
             ->get();
 
@@ -213,14 +213,15 @@ class InternalDashboardController extends Controller
                 'description' => "Véhicule {$vehicle->immatriculation} - CT expiré",
                 'severity' => 'critical',
                 'category' => 'compliance',
-                'created_at' => $vehicle->controle_technique_expiry,
+                'created_at' => $vehicle->next_ct_date,
                 'tenant_name' => $vehicle->tenant->name ?? 'Tenant inconnu',
             ]);
         }
 
         // Critical: Expired insurance
         $expiredInsurance = clone $vehicleQuery;
-        $expiredInsurance = $expiredInsurance->where('assurance_expiry', '<', Carbon::now())
+        $expiredInsurance = $expiredInsurance->whereNotNull('insurance_expiry_date')
+            ->where('insurance_expiry_date', '<', Carbon::now())
             ->limit($limit)
             ->get();
 
@@ -228,18 +229,18 @@ class InternalDashboardController extends Controller
             $alerts->push([
                 'id' => 'insurance_expired_' . $vehicle->id,
                 'title' => 'Assurance expirée',
-                'description' => "Véhicule {$vehicle->immatriculation} - Assurance expirée",
+                'description' => "Véhicule {$vehicle->immatriculation} - Assurance expirée le " . Carbon::parse($vehicle->insurance_expiry_date)->format('d/m/Y'),
                 'severity' => 'critical',
                 'category' => 'compliance',
-                'created_at' => $vehicle->assurance_expiry,
+                'created_at' => $vehicle->insurance_expiry_date,
                 'tenant_name' => $vehicle->tenant->name ?? 'Tenant inconnu',
             ]);
         }
 
         // Warning: CT expiring soon
         $ctExpiringSoon = clone $vehicleQuery;
-        $ctExpiringSoon = $ctExpiringSoon->where('controle_technique_expiry', '>', Carbon::now())
-            ->where('controle_technique_expiry', '<=', Carbon::now()->addDays(30))
+        $ctExpiringSoon = $ctExpiringSoon->where('next_ct_date', '>', Carbon::now())
+            ->where('next_ct_date', '<=', Carbon::now()->addDays(30))
             ->limit($limit)
             ->get();
 
@@ -247,10 +248,30 @@ class InternalDashboardController extends Controller
             $alerts->push([
                 'id' => 'ct_expiring_' . $vehicle->id,
                 'title' => 'Contrôle technique bientôt expiré',
-                'description' => "Véhicule {$vehicle->immatriculation} - CT expire le " . Carbon::parse($vehicle->controle_technique_expiry)->format('d/m/Y'),
+                'description' => "Véhicule {$vehicle->immatriculation} - CT expire le " . Carbon::parse($vehicle->next_ct_date)->format('d/m/Y'),
                 'severity' => 'medium',
                 'category' => 'compliance',
-                'created_at' => $vehicle->controle_technique_expiry,
+                'created_at' => $vehicle->next_ct_date,
+                'tenant_name' => $vehicle->tenant->name ?? 'Tenant inconnu',
+            ]);
+        }
+
+        // Warning: Insurance expiring soon
+        $insuranceExpiringSoon = clone $vehicleQuery;
+        $insuranceExpiringSoon = $insuranceExpiringSoon->whereNotNull('insurance_expiry_date')
+            ->where('insurance_expiry_date', '>', Carbon::now())
+            ->where('insurance_expiry_date', '<=', Carbon::now()->addDays(30))
+            ->limit($limit)
+            ->get();
+
+        foreach ($insuranceExpiringSoon as $vehicle) {
+            $alerts->push([
+                'id' => 'insurance_expiring_' . $vehicle->id,
+                'title' => 'Assurance bientôt expirée',
+                'description' => "Véhicule {$vehicle->immatriculation} - Assurance expire le " . Carbon::parse($vehicle->insurance_expiry_date)->format('d/m/Y'),
+                'severity' => 'medium',
+                'category' => 'compliance',
+                'created_at' => $vehicle->insurance_expiry_date,
                 'tenant_name' => $vehicle->tenant->name ?? 'Tenant inconnu',
             ]);
         }
