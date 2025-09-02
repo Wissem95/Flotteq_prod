@@ -35,6 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ensure_permissions' => \App\Http\Middleware\EnsureUserHasPermissions::class,
             'check_incomplete_profile' => \App\Http\Middleware\CheckIncompleteProfile::class,
             'check_loueur_permissions' => \App\Http\Middleware\CheckLoueurPermissions::class,
+            'require_subscription' => \App\Http\Middleware\RequireSubscription::class,
         ]);
 
         // Temporairement désactivé pour diagnostic des erreurs 500

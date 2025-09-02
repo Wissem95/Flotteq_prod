@@ -49,15 +49,29 @@ class InternalDashboardController extends Controller
     }
 
     /**
-     * Calculate stats with optimized, simple queries
+     * Calculate stats with optimized, simple queries - IMPROVED with subscription logic
      */
     private function calculateStatsOptimized(): array
     {
         try {
-            // Use simple COUNT queries with timeout
+            // Basic tenant counts
             $totalTenants = $this->safeCount('tenants');
             $activeTenants = $this->safeCount('tenants', ['is_active' => true]);
             
+            // Subscription-based tenant metrics
+            $tenantsWithSubscription = $this->safeCountWithJoin(
+                'tenants',
+                'user_subscriptions',
+                'tenants.id = user_subscriptions.tenant_id',
+                ['tenants.is_active' => true, 'user_subscriptions.is_active' => true]
+            );
+            
+            $tenantsWithoutSubscription = max(0, $activeTenants - $tenantsWithSubscription);
+            
+            // Conversion rate (percentage of active tenants with subscriptions)
+            $conversionRate = $activeTenants > 0 ? round(($tenantsWithSubscription / $activeTenants) * 100, 1) : 0;
+            
+            // Vehicle and user metrics
             $totalVehicles = $this->safeCount('vehicles');
             $activeVehicles = $this->safeCount('vehicles', ['status' => 'active']);
             
@@ -78,7 +92,10 @@ class InternalDashboardController extends Controller
             return [
                 'tenants' => [
                     'total' => $totalTenants,
-                    'active' => $activeTenants
+                    'active' => $activeTenants,
+                    'with_subscription' => $tenantsWithSubscription,
+                    'without_subscription' => $tenantsWithoutSubscription,
+                    'conversion_rate' => $conversionRate
                 ],
                 'vehicles' => [
                     'total' => $totalVehicles,
@@ -121,6 +138,30 @@ class InternalDashboardController extends Controller
             }
             
             return $query->count();
+        } catch (\Exception $e) {
+            // Return 0 if query fails
+            return 0;
+        }
+    }
+
+    /**
+     * Safe count with join for subscription-based queries
+     */
+    private function safeCountWithJoin(string $mainTable, string $joinTable, string $joinCondition, array $conditions = []): int
+    {
+        try {
+            $query = DB::table($mainTable)
+                ->join($joinTable, DB::raw($joinCondition));
+            
+            foreach ($conditions as $key => $value) {
+                if (is_array($value)) {
+                    $query->where($value[0], $value[1], $value[2]);
+                } else {
+                    $query->where($key, $value);
+                }
+            }
+            
+            return $query->distinct($mainTable . '.id')->count($mainTable . '.id');
         } catch (\Exception $e) {
             // Return 0 if query fails
             return 0;
@@ -267,20 +308,51 @@ class InternalDashboardController extends Controller
     }
 
     /**
-     * Get global revenue - SIMPLIFIED
+     * Get global revenue - CORRECTED to use actual subscriptions
      */
     public function getGlobalRevenue(Request $request): JsonResponse
     {
         return Cache::remember('global_revenue_optimized', 1800, function () {
             try {
-                $activeTenants = DB::table('tenants')->where('is_active', true)->count();
-                $basicPlanPrice = 29.99;
-                $estimatedMonthlyRevenue = $activeTenants * $basicPlanPrice;
+                // Calculate real revenue from active subscriptions
+                $monthlyRevenue = DB::table('user_subscriptions')
+                    ->join('subscriptions', 'user_subscriptions.subscription_id', '=', 'subscriptions.id')
+                    ->where('user_subscriptions.is_active', true)
+                    ->sum('subscriptions.price');
+                
+                // Get revenue by billing cycle for better estimation
+                $subscriptionRevenue = DB::table('user_subscriptions')
+                    ->join('subscriptions', 'user_subscriptions.subscription_id', '=', 'subscriptions.id')
+                    ->where('user_subscriptions.is_active', true)
+                    ->select('subscriptions.billing_cycle', 'subscriptions.price')
+                    ->get();
+                
+                $adjustedMonthlyRevenue = 0;
+                foreach ($subscriptionRevenue as $sub) {
+                    if ($sub->billing_cycle === 'yearly') {
+                        $adjustedMonthlyRevenue += $sub->price / 12; // Convert yearly to monthly
+                    } else {
+                        $adjustedMonthlyRevenue += $sub->price;
+                    }
+                }
+                
+                // Calculate growth (simplified for now)
+                $currentMonth = DB::table('user_subscriptions')
+                    ->where('is_active', true)
+                    ->whereBetween('created_at', [now()->startOfMonth(), now()])
+                    ->count();
+                
+                $lastMonth = DB::table('user_subscriptions')
+                    ->where('is_active', true)
+                    ->whereBetween('created_at', [now()->subMonth()->startOfMonth(), now()->subMonth()->endOfMonth()])
+                    ->count();
+                
+                $growthRate = $lastMonth > 0 ? round((($currentMonth - $lastMonth) / $lastMonth) * 100, 1) : 0;
                 
                 return response()->json([
-                    'monthly_revenue' => round($estimatedMonthlyRevenue, 2),
-                    'annual_revenue' => round($estimatedMonthlyRevenue * 12, 2),
-                    'growth_percentage' => 0,
+                    'monthly_revenue' => round($adjustedMonthlyRevenue, 2),
+                    'annual_revenue' => round($adjustedMonthlyRevenue * 12, 2),
+                    'growth_percentage' => $growthRate,
                     'monthly_trends' => [],
                     'generated_at' => now()->toISOString(),
                 ]);

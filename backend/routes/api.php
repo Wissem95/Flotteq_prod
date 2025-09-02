@@ -84,8 +84,8 @@ Route::middleware(['auth:sanctum', 'tenant', 'check_loueur_permissions'])->group
     // Maintenance routes
     Route::apiResource('maintenances', App\Http\Controllers\API\MaintenanceController::class);
 
-    // Analytics routes
-    Route::prefix('analytics')->group(function () {
+    // Analytics routes (subscription required for advanced analytics)
+    Route::prefix('analytics')->middleware('require_subscription')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\API\AnalyticsController::class, 'getDashboardStats']);
         Route::get('/vehicles', [App\Http\Controllers\API\AnalyticsController::class, 'getVehicleStats']);
         Route::get('/users', [App\Http\Controllers\API\AnalyticsController::class, 'getUserStats']);
@@ -93,8 +93,8 @@ Route::middleware(['auth:sanctum', 'tenant', 'check_loueur_permissions'])->group
         Route::post('/export', [App\Http\Controllers\API\AnalyticsController::class, 'exportAnalytics']);
     });
 
-    // Finances routes
-    Route::prefix('finances')->group(function () {
+    // Finances routes (subscription required for financial management)
+    Route::prefix('finances')->middleware('require_subscription')->group(function () {
         Route::get('/overview', [App\Http\Controllers\API\FinancesController::class, 'getOverview']);
         Route::get('/monthly-chart', [App\Http\Controllers\API\FinancesController::class, 'getMonthlyChart']);
         Route::get('/expense-breakdown', [App\Http\Controllers\API\FinancesController::class, 'getExpenseBreakdown']);
@@ -104,8 +104,8 @@ Route::middleware(['auth:sanctum', 'tenant', 'check_loueur_permissions'])->group
         Route::get('/alerts', [App\Http\Controllers\API\FinancesController::class, 'getFinancialAlerts']);
     });
 
-    // Transactions routes
-    Route::prefix('transactions')->group(function () {
+    // Transactions routes (subscription required for transaction management)
+    Route::prefix('transactions')->middleware('require_subscription')->group(function () {
         Route::get('/overview', [App\Http\Controllers\API\TransactionsController::class, 'getOverview']);
         Route::get('/vehicle-analysis', [App\Http\Controllers\API\TransactionsController::class, 'getVehicleAnalysis']);
         Route::get('/history', [App\Http\Controllers\API\TransactionsController::class, 'getHistory']);
@@ -285,6 +285,16 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
         Route::get('/tickets/{ticket}', [App\Http\Controllers\API\SupportController::class, 'show']);
         Route::post('/tickets/{ticket}/messages', [App\Http\Controllers\API\SupportController::class, 'addMessage']);
         Route::patch('/tickets/{ticket}/status', [App\Http\Controllers\API\SupportController::class, 'updateStatus']);
+    });
+
+    // Tenant subscription management
+    Route::prefix('tenant/subscription')->group(function () {
+        Route::get('/plans', [App\Http\Controllers\API\TenantSubscriptionController::class, 'getAvailablePlans']);
+        Route::get('/current', [App\Http\Controllers\API\TenantSubscriptionController::class, 'getCurrentSubscription']);
+        Route::post('/subscribe', [App\Http\Controllers\API\TenantSubscriptionController::class, 'subscribe']);
+        Route::post('/cancel', [App\Http\Controllers\API\TenantSubscriptionController::class, 'cancelSubscription']);
+        Route::get('/history', [App\Http\Controllers\API\TenantSubscriptionController::class, 'getSubscriptionHistory']);
+        Route::get('/feature/{feature}/check', [App\Http\Controllers\API\TenantSubscriptionController::class, 'checkFeatureAccess']);
     });
 });
 
