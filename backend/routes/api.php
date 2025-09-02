@@ -185,6 +185,17 @@ Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal'
         Route::delete('/{alert}', [App\Http\Controllers\API\AlertsController::class, 'destroy']);
     });
 
+    // Internal Dashboard routes
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/stats', [App\Http\Controllers\API\InternalDashboardController::class, 'getGlobalStats']);
+        Route::get('/upcoming-maintenances', [App\Http\Controllers\API\InternalDashboardController::class, 'getUpcomingMaintenances']);
+        Route::get('/alerts', [App\Http\Controllers\API\InternalDashboardController::class, 'getSystemAlerts']);
+        Route::get('/revenue', [App\Http\Controllers\API\InternalDashboardController::class, 'getGlobalRevenue']);
+        Route::get('/partners-distribution', [App\Http\Controllers\API\InternalDashboardController::class, 'getPartnerDistribution']);
+        Route::get('/system-health', [App\Http\Controllers\API\InternalDashboardController::class, 'getSystemHealth']);
+        Route::get('/tenants-list', [App\Http\Controllers\API\InternalDashboardController::class, 'getTenantsList']);
+    });
+
     // Additional internal routes
     Route::get('/tickets', [App\Http\Controllers\API\SupportController::class, 'index']);
     Route::get('/employees', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'index']);

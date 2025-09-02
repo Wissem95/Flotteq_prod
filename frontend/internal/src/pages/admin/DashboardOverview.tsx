@@ -88,72 +88,69 @@ const DashboardOverview: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
 
-  // Charger les données réelles du dashboard depuis la DB
+  // Charger les données réelles du dashboard depuis les nouvelles APIs
   const loadDashboardData = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Appels API basés sur les vraies données de la DB
-      const [tenantsResponse, partnersResponse] = await Promise.all([
-        api.get('/internal/tenants').then(res => res.data).catch(() => ({ data: [] })),
-        api.get('/partners').then(res => res.data).catch(() => ({ data: [] }))
+      // Utiliser les nouveaux endpoints du dashboard interne
+      const [
+        statsResponse,
+        revenueResponse,
+        partnerDistributionResponse,
+        systemHealthResponse
+      ] = await Promise.all([
+        api.get('/internal/dashboard/stats'),
+        api.get('/internal/dashboard/revenue').catch(() => ({ data: { monthly_revenue: 0, annual_revenue: 0, growth_percentage: 0, monthly_trends: [] } })),
+        api.get('/internal/dashboard/partners-distribution').catch(() => ({ data: { partners_distribution: [] } })),
+        api.get('/internal/dashboard/system-health').catch(() => ({ 
+          data: { uptime_percentage: 0, response_time_ms: 0, status: 'healthy' } 
+        }))
       ]);
       
-      // Calculer les métriques à partir des vraies données
-      const totalTenants = tenantsResponse.data?.length || 0;
-      const activeTenants = tenantsResponse.data?.filter((t: any) => t.is_active)?.length || 0;
-      const totalPartners = partnersResponse.data?.length || 0;
-      const activePartners = partnersResponse.data?.filter((p: any) => p.is_active)?.length || 0;
+      const stats = statsResponse.data;
+      const revenue = revenueResponse.data;
+      const partnerDistribution = partnerDistributionResponse.data;
+      const systemHealth = systemHealthResponse.data;
       
-      // Compter tous les utilisateurs de tous les tenants
-      const totalUsers = tenantsResponse.data?.reduce((sum: number, tenant: any) => 
-        sum + (tenant.users_count || 0), 0) || 0;
-      
-      // Construire les métriques du dashboard
+      // Construire les métriques du dashboard avec les vraies données
       const dashboardMetrics: DashboardMetrics = {
         tenants: {
-          total: totalTenants,
-          active: activeTenants,
-          growth_percentage: totalTenants > 0 ? ((activeTenants / totalTenants) * 100) : 0,
+          total: stats.total_tenants || 0,
+          active: stats.active_tenants || 0,
+          growth_percentage: stats.active_tenants && stats.total_tenants 
+            ? Math.round((stats.active_tenants / stats.total_tenants) * 100) 
+            : 0,
         },
         revenue: {
-          monthly: totalTenants * 89.99, // Estimation basée sur le plan moyen
-          annual: totalTenants * 89.99 * 12,
-          growth_percentage: 15.2,
+          monthly: revenue.monthly_revenue || 0,
+          annual: revenue.annual_revenue || 0,
+          growth_percentage: revenue.growth_percentage || 0,
         },
         partners: {
-          total: totalPartners,
-          active: activePartners,
-          pending: totalPartners - activePartners,
+          total: partnerDistribution.partners_distribution?.reduce((sum: number, p: any) => sum + p.value, 0) || 0,
+          active: partnerDistribution.partners_distribution?.reduce((sum: number, p: any) => sum + p.value, 0) || 0,
+          pending: 0,
         },
         users: {
-          total: totalUsers,
-          active_monthly: Math.floor(totalUsers * 0.8), // Estimation 80% actifs
-          growth_percentage: 18.7,
+          total: stats.total_users || 0,
+          active_monthly: stats.active_users || 0,
+          growth_percentage: stats.active_users && stats.total_users 
+            ? Math.round((stats.active_users / stats.total_users) * 100) 
+            : 0,
         },
         system_health: {
-          uptime_percentage: 99.97,
-          response_time_ms: 142,
-          status: 'healthy',
+          uptime_percentage: systemHealth.uptime_percentage || 0,
+          response_time_ms: systemHealth.response_time_ms || 0,
+          status: systemHealth.status || 'healthy',
         },
       };
       
-      // Générer des données de graphique basées sur les vraies métriques
+      // Données de graphiques depuis les vraies APIs
       const chartData: ChartData = {
-        monthly_trends: [
-          { month: 'Jan', revenue: Math.floor(dashboardMetrics.revenue.monthly * 0.7), tenants: Math.floor(totalTenants * 0.8) },
-          { month: 'Fév', revenue: Math.floor(dashboardMetrics.revenue.monthly * 0.8), tenants: Math.floor(totalTenants * 0.85) },
-          { month: 'Mar', revenue: Math.floor(dashboardMetrics.revenue.monthly * 0.9), tenants: Math.floor(totalTenants * 0.9) },
-          { month: 'Avr', revenue: Math.floor(dashboardMetrics.revenue.monthly * 0.85), tenants: Math.floor(totalTenants * 0.88) },
-          { month: 'Mai', revenue: Math.floor(dashboardMetrics.revenue.monthly * 0.95), tenants: Math.floor(totalTenants * 0.95) },
-          { month: 'Jun', revenue: dashboardMetrics.revenue.monthly, tenants: totalTenants },
-        ],
-        partners_distribution: [
-          { name: 'Garages', value: Math.floor(activePartners * 0.5), color: '#3b82f6' },
-          { name: 'Centres CT', value: Math.floor(activePartners * 0.3), color: '#10b981' },
-          { name: 'Assurances', value: Math.floor(activePartners * 0.2), color: '#f59e0b' },
-        ],
+        monthly_trends: revenue.monthly_trends || [],
+        partners_distribution: partnerDistribution.partners_distribution || [],
       };
       
       setMetrics(dashboardMetrics);
