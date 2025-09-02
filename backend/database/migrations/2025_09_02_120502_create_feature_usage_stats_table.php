@@ -165,7 +165,7 @@ return new class extends Migration
             $table->index(['platform', 'device_type', 'usage_date'], 'platform_usage_idx');
             $table->index(['is_trial_user', 'feature_key', 'usage_date'], 'trial_feature_idx');
             $table->index(['exceeded_quota', 'quota_percentage_used'], 'quota_analysis_idx');
-            $table->index(['active_experiments', 'variant_group'], 'experiment_idx');
+            $table->index(['variant_group'], 'experiment_idx');
             
             // Index pour requêtes fréquentes
             $table->index(['feature_key', 'used_at']);
