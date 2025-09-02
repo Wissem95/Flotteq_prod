@@ -12,6 +12,8 @@ import { Plus, Search, Filter, CreditCard, TrendingUp, Users, DollarSign, Calend
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, } from "recharts";
 import { subscriptionsService, Subscription, SubscriptionFilters, SubscriptionStats } from "@/services/subscriptionsService";
 import { toast } from "@/components/ui/use-toast";
+import CreatePlanModal from "@/components/subscriptions/CreatePlanModal";
+import CreateSubscriptionModal from "@/components/subscriptions/CreateSubscriptionModal";
 
 const SubscriptionsOverview: React.FC = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -19,6 +21,8 @@ const SubscriptionsOverview: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<SubscriptionFilters>({});
   const [loading, setLoading] = useState(true);
+  const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
+  const [showCreateSubscriptionModal, setShowCreateSubscriptionModal] = useState(false);
 
 
   useEffect(() => {
@@ -132,11 +136,22 @@ const SubscriptionsOverview: React.FC = () => {
           <p className="text-gray-600">Gérez les abonnements et la facturation des tenants FlotteQ</p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={() => setShowCreatePlanModal(true)}
+          >
+            <CreditCard className="w-4 h-4" />
+            Créer un plan
+          </Button>
           <Button variant="outline" className="flex items-center gap-2">
             <Download className="w-4 h-4" />
             Exporter
           </Button>
-          <Button className="flex items-center gap-2">
+          <Button 
+            className="flex items-center gap-2"
+            onClick={() => setShowCreateSubscriptionModal(true)}
+          >
             <Plus className="w-4 h-4" />
             Nouvel abonnement
           </Button>
@@ -414,6 +429,25 @@ const SubscriptionsOverview: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      <CreatePlanModal
+        isOpen={showCreatePlanModal}
+        onClose={() => setShowCreatePlanModal(false)}
+        onSuccess={() => {
+          loadData();
+          setShowCreatePlanModal(false);
+        }}
+      />
+
+      <CreateSubscriptionModal
+        isOpen={showCreateSubscriptionModal}
+        onClose={() => setShowCreateSubscriptionModal(false)}
+        onSuccess={() => {
+          loadData();
+          setShowCreateSubscriptionModal(false);
+        }}
+      />
     </div>
   );
 };
