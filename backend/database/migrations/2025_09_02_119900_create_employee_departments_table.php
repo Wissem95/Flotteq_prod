@@ -17,8 +17,8 @@ return new class extends Migration
             // Hiérarchie
             $table->foreignId('parent_department_id')->nullable()->constrained('employee_departments')->onDelete('set null');
             
-            // Responsable du département
-            $table->foreignId('manager_id')->nullable()->constrained('internal_employees')->onDelete('set null');
+            // Responsable du département (sera ajouté après création internal_employees)
+            $table->unsignedBigInteger('manager_id')->nullable();
             
             // Configuration
             $table->boolean('is_active')->default(true);
