@@ -27,6 +27,7 @@ import {
   CheckCircle,
   AlertTriangle,
   Globe,
+  Flag,
 } from "lucide-react";
 import * as Collapsible from "@radix-ui/react-collapsible";
 
@@ -291,6 +292,12 @@ const InternalSidebar: React.FC = () => {
           <Link to="/permissions" className={navLink("/permissions", location.pathname, collapsed)}>
             <Shield size={20} />
             {!collapsed && <span className="ml-3">Permissions & Rôles</span>}
+          </Link>
+
+          {/* Feature Flags */}
+          <Link to="/flags" className={navLink("/flags", location.pathname, collapsed)}>
+            <Flag size={20} />
+            {!collapsed && <span className="ml-3">Feature Flags</span>}
           </Link>
 
           {/* Outils & Intégrations */}

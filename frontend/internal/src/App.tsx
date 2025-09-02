@@ -52,6 +52,7 @@ import PaymentMethods from "./pages/payments/PaymentMethods";
 import ReferralProgram from "./pages/referral/ReferralProgram";
 import FeaturesBonus from "./pages/features/FeaturesBonus";
 import ProfilePage from "./pages/profile/ProfilePage";
+import FeatureFlags from "./pages/flags/FeatureFlags";
 
 // Hook d'authentification
 import { useInternalAuth } from "./hooks/useInternalAuth";
@@ -151,6 +152,7 @@ const App: React.FC = () => {
                       <Route path="/parrainage" element={<ReferralProgram />} />
                       <Route path="/features-bonus" element={<FeaturesBonus />} />
                       <Route path="/permissions" element={<RolesPermissions />} />
+                      <Route path="/flags" element={<FeatureFlags />} />
                       
                       {/* Outils */}
                       <Route path="/outils/api" element={<APIIntegrations />} />
