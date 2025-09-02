@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
-class InternalDashboardController extends Controller
+class InternalDashboardControllerOptimized extends Controller
 {
     /**
      * Get dashboard statistics - OPTIMIZED VERSION for Supabase performance
