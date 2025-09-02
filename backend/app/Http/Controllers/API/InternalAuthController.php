@@ -6,6 +6,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\InternalAdmin;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -24,9 +25,8 @@ class InternalAuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        // Find internal user by email
-        $user = User::where('email', $validated['email'])
-            ->where('is_internal', true)
+        // Find internal admin by email
+        $user = InternalAdmin::where('email', $validated['email'])
             ->where('is_active', true)
             ->first();
 
@@ -61,7 +61,7 @@ class InternalAuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->first_name . ' ' . $user->last_name,
                 'email' => $user->email,
-                'role' => $user->role_interne ?? $user->role ?? 'admin',
+                'role' => $user->role,
                 'permissions' => ['*'], // Internal users have all permissions
                 'is_internal' => true,
                 'last_login' => $user->last_login,
@@ -78,7 +78,7 @@ class InternalAuthController extends Controller
     {
         $user = $request->user();
 
-        if (!$user || !$user->is_internal) {
+        if (!$user || !($user instanceof InternalAdmin)) {
             throw ValidationException::withMessages([
                 'auth' => ['Utilisateur non autorisé pour l\'interface d\'administration.'],
             ]);
@@ -89,7 +89,7 @@ class InternalAuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->first_name . ' ' . $user->last_name,
                 'email' => $user->email,
-                'role' => $user->role_interne ?? $user->role ?? 'admin',
+                'role' => $user->role,
                 'permissions' => ['*'], // Internal users have all permissions
                 'is_internal' => true,
                 'last_login' => $user->last_login,
@@ -121,7 +121,7 @@ class InternalAuthController extends Controller
     {
         $user = $request->user();
 
-        if (!$user || !$user->is_internal) {
+        if (!$user || !($user instanceof InternalAdmin)) {
             throw ValidationException::withMessages([
                 'auth' => ['Utilisateur non autorisé.'],
             ]);
@@ -130,7 +130,7 @@ class InternalAuthController extends Controller
         $validated = $request->validate([
             'first_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255',
-            'email' => 'nullable|email|unique:users,email,' . $user->id,
+            'email' => 'nullable|email|unique:internal_admins,email,' . $user->id,
         ]);
 
         $user->update($validated);
@@ -141,7 +141,7 @@ class InternalAuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->first_name . ' ' . $user->last_name,
                 'email' => $user->email,
-                'role' => $user->role_interne ?? $user->role ?? 'admin',
+                'role' => $user->role,
                 'permissions' => ['*'],
                 'is_internal' => true,
                 'last_login' => $user->last_login,
@@ -157,7 +157,7 @@ class InternalAuthController extends Controller
     {
         try {
             // Simple database check
-            $userCount = User::where('is_internal', true)->count();
+            $userCount = InternalAdmin::count();
             
             return response()->json([
                 'status' => 'ok',

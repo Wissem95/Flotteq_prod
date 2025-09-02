@@ -13,234 +13,218 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
-import { Plus, Edit, Trash2, Users, Shield, Key, MoreHorizontal, Eye, UserCheck, Settings, Building2, } from "lucide-react";
-
-interface Permission {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  resource: string;
-  action: string;
-}
-
-interface Role {
-  id: string;
-  name: string;
-  description: string;
-  permissions: string[];
-  users_count: number;
-  is_system: boolean;
-  created_at: string;
-  updated_at: string;
-}
+import { Plus, Edit, Trash2, Users, Shield, Key, MoreHorizontal, Eye, UserCheck, Settings, Building2, Copy, } from "lucide-react";
+import { toast } from '@/components/ui/use-toast';
+import { permissionsService, type EmployeePermission, type EmployeeRole } from '@/services/permissionsService';
 
 interface User {
   id: number;
   name: string;
   email: string;
-  role_id: string;
+  role_id: number;
   role_name: string;
   status: 'active' | 'inactive';
   last_login: string;
 }
 
 const RolesPermissions: React.FC = () => {
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [roles, setRoles] = useState<EmployeeRole[]>([]);
+  const [permissions, setPermissions] = useState<EmployeePermission[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rolesLoading, setRolesLoading] = useState(false);
+  const [permissionsLoading, setPermissionsLoading] = useState(false);
   const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);
-  const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [editingRole, setEditingRole] = useState<EmployeeRole | null>(null);
   const [newRole, setNewRole] = useState({
     name: '',
     description: '',
-    permissions: [] as string[]
+    permissions: [] as number[]
   });
+  const [categories, setCategories] = useState<string[]>([]);
 
-  // Permissions mockées organisées par catégorie
-  const mockPermissions: Permission[] = [
-    // Dashboard
-    { id: "dashboard.view", name: "Voir le dashboard", description: "Accès à la vue d'ensemble", category: "Dashboard", resource: "dashboard", action: "view" },
-    { id: "dashboard.analytics", name: "Analytics avancés", description: "Accès aux métriques détaillées", category: "Dashboard", resource: "dashboard", action: "analytics" },
-    
-    // Tenants
-    { id: "tenants.view", name: "Voir les tenants", description: "Consulter la liste des tenants", category: "Tenants", resource: "tenants", action: "view" },
-    { id: "tenants.create", name: "Créer des tenants", description: "Ajouter de nouveaux tenants", category: "Tenants", resource: "tenants", action: "create" },
-    { id: "tenants.edit", name: "Modifier les tenants", description: "Éditer les informations des tenants", category: "Tenants", resource: "tenants", action: "edit" },
-    { id: "tenants.delete", name: "Supprimer des tenants", description: "Supprimer des comptes tenants", category: "Tenants", resource: "tenants", action: "delete" },
-    { id: "tenants.suspend", name: "Suspendre des tenants", description: "Suspendre temporairement des comptes", category: "Tenants", resource: "tenants", action: "suspend" },
-    
-    // Support
-    { id: "support.view", name: "Voir les tickets", description: "Consulter les tickets de support", category: "Support", resource: "support", action: "view" },
-    { id: "support.respond", name: "Répondre aux tickets", description: "Répondre aux demandes de support", category: "Support", resource: "support", action: "respond" },
-    { id: "support.assign", name: "Assigner des tickets", description: "Assigner des tickets à des agents", category: "Support", resource: "support", action: "assign" },
-    { id: "support.close", name: "Fermer des tickets", description: "Clôturer des tickets de support", category: "Support", resource: "support", action: "close" },
-    
-    // Employés
-    { id: "employees.view", name: "Voir les employés", description: "Consulter la liste des employés", category: "Employés", resource: "employees", action: "view" },
-    { id: "employees.create", name: "Créer des employés", description: "Ajouter de nouveaux employés", category: "Employés", resource: "employees", action: "create" },
-    { id: "employees.edit", name: "Modifier les employés", description: "Éditer les profils d'employés", category: "Employés", resource: "employees", action: "edit" },
-    { id: "employees.delete", name: "Supprimer des employés", description: "Supprimer des comptes d'employés", category: "Employés", resource: "employees", action: "delete" },
-    
-    // Partenaires
-    { id: "partners.view", name: "Voir les partenaires", description: "Consulter la liste des partenaires", category: "Partenaires", resource: "partners", action: "view" },
-    { id: "partners.create", name: "Créer des partenaires", description: "Ajouter de nouveaux partenaires", category: "Partenaires", resource: "partners", action: "create" },
-    { id: "partners.edit", name: "Modifier les partenaires", description: "Éditer les informations des partenaires", category: "Partenaires", resource: "partners", action: "edit" },
-    { id: "partners.approve", name: "Approuver des partenaires", description: "Valider les demandes de partenariat", category: "Partenaires", resource: "partners", action: "approve" },
-    
-    // Abonnements
-    { id: "subscriptions.view", name: "Voir les abonnements", description: "Consulter les abonnements", category: "Abonnements", resource: "subscriptions", action: "view" },
-    { id: "subscriptions.create", name: "Créer des abonnements", description: "Créer de nouveaux abonnements", category: "Abonnements", resource: "subscriptions", action: "create" },
-    { id: "subscriptions.edit", name: "Modifier les abonnements", description: "Éditer les abonnements existants", category: "Abonnements", resource: "subscriptions", action: "edit" },
-    { id: "subscriptions.cancel", name: "Annuler des abonnements", description: "Annuler des abonnements", category: "Abonnements", resource: "subscriptions", action: "cancel" },
-    
-    // Analytics
-    { id: "analytics.view", name: "Voir les analytics", description: "Accès aux tableaux de bord analytics", category: "Analytics", resource: "analytics", action: "view" },
-    { id: "analytics.export", name: "Exporter les données", description: "Exporter les rapports analytics", category: "Analytics", resource: "analytics", action: "export" },
-    
-    // Paramètres
-    { id: "settings.view", name: "Voir les paramètres", description: "Consulter les paramètres système", category: "Paramètres", resource: "settings", action: "view" },
-    { id: "settings.edit", name: "Modifier les paramètres", description: "Modifier la configuration système", category: "Paramètres", resource: "settings", action: "edit" },
-    
-    // Permissions
-    { id: "permissions.manage", name: "Gérer les permissions", description: "Gérer les rôles et permissions", category: "Sécurité", resource: "permissions", action: "manage" },
-  ];
-
-  // Rôles mockés
-  const mockRoles: Role[] = [
-    {
-      id: "super_admin",
-      name: "Super Administrateur",
-      description: "Accès complet à toutes les fonctionnalités de la plateforme",
-      permissions: mockPermissions.map(p => p.id),
-      users_count: 2,
-      is_system: true,
-      created_at: "2024-01-01",
-      updated_at: "2024-07-20",
-    },
-    {
-      id: "admin",
-      name: "Administrateur",
-      description: "Accès administratif avec restrictions sur les paramètres critiques",
-      permissions: mockPermissions.filter(p => !['settings.edit', 'permissions.manage'].includes(p.id)).map(p => p.id),
-      users_count: 5,
-      is_system: true,
-      created_at: "2024-01-01",
-      updated_at: "2024-07-20",
-    },
-    {
-      id: "support",
-      name: "Support Client",
-      description: "Accès aux fonctionnalités de support et consultation",
-      permissions: [
-        "dashboard.view",
-        "tenants.view",
-        "support.view", "support.respond", "support.assign", "support.close",
-        "partners.view",
-        "subscriptions.view",
-      ],
-      users_count: 8,
-      is_system: true,
-      created_at: "2024-01-01",
-      updated_at: "2024-07-20",
-    },
-    {
-      id: "partner_manager",
-      name: "Gestionnaire Partenaires",
-      description: "Gestion des partenaires et validation des demandes",
-      permissions: [
-        "dashboard.view",
-        "partners.view", "partners.create", "partners.edit", "partners.approve",
-        "support.view", "support.respond",
-        "analytics.view",
-      ],
-      users_count: 3,
-      is_system: false,
-      created_at: "2024-02-15",
-      updated_at: "2024-07-20",
-    },
-    {
-      id: "analyst",
-      name: "Analyste",
-      description: "Accès en lecture aux analytics et rapports",
-      permissions: [
-        "dashboard.view", "dashboard.analytics",
-        "tenants.view",
-        "subscriptions.view",
-        "analytics.view", "analytics.export",
-      ],
-      users_count: 4,
-      is_system: false,
-      created_at: "2024-03-01",
-      updated_at: "2024-07-20",
-    },
-  ];
-
-  // Utilisateurs mockés
+  // Mock users data since we don't have a user management system yet
   const mockUsers: User[] = [
-    { id: 1, name: "John Doe", email: "john@flotteq.com", role_id: "super_admin", role_name: "Super Administrateur", status: "active", last_login: "2024-07-28T10:30:00Z" },
-    { id: 2, name: "Jane Smith", email: "jane@flotteq.com", role_id: "admin", role_name: "Administrateur", status: "active", last_login: "2024-07-28T09:15:00Z" },
-    { id: 3, name: "Mike Johnson", email: "mike@flotteq.com", role_id: "support", role_name: "Support Client", status: "active", last_login: "2024-07-28T11:45:00Z" },
-    { id: 4, name: "Sarah Wilson", email: "sarah@flotteq.com", role_id: "partner_manager", role_name: "Gestionnaire Partenaires", status: "active", last_login: "2024-07-27T16:20:00Z" },
-    { id: 5, name: "Tom Brown", email: "tom@flotteq.com", role_id: "analyst", role_name: "Analyste", status: "inactive", last_login: "2024-07-25T14:10:00Z" },
+    { id: 1, name: "John Doe", email: "john@flotteq.com", role_id: 1, role_name: "Super Administrateur", status: "active", last_login: "2024-07-28T10:30:00Z" },
+    { id: 2, name: "Jane Smith", email: "jane@flotteq.com", role_id: 2, role_name: "Administrateur", status: "active", last_login: "2024-07-28T09:15:00Z" },
+    { id: 3, name: "Mike Johnson", email: "mike@flotteq.com", role_id: 3, role_name: "Support Client", status: "active", last_login: "2024-07-28T11:45:00Z" },
+    { id: 4, name: "Sarah Wilson", email: "sarah@flotteq.com", role_id: 4, role_name: "Gestionnaire Partenaires", status: "active", last_login: "2024-07-27T16:20:00Z" },
+    { id: 5, name: "Tom Brown", email: "tom@flotteq.com", role_id: 5, role_name: "Analyste", status: "inactive", last_login: "2024-07-25T14:10:00Z" },
   ];
 
   useEffect(() => {
-    loadData();
+    loadInitialData();
   }, []);
 
-  const loadData = async () => {
+  const loadInitialData = async () => {
     setLoading(true);
     try {
-      // Simulation d'appels API
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setPermissions(mockPermissions);
-      setRoles(mockRoles);
-      setUsers(mockUsers);
+      await Promise.all([
+        loadRoles(),
+        loadPermissions(),
+        loadCategories()
+      ]);
     } catch (error) {
-      console.error("Erreur lors du chargement des données:", error);
+      console.error("Erreur lors du chargement initial:", error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de charger les données',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreateRole = async () => {
+  const loadRoles = async () => {
     try {
-      const role: Role = {
-        id: `role_${Date.now()}`,
-        name: newRole.name,
-        description: newRole.description,
-        permissions: newRole.permissions,
-        users_count: 0,
-        is_system: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      
-      setRoles(prev => [...prev, role]);
-      setShowCreateRoleModal(false);
-      setNewRole({ name: '', description: '', permissions: [] });
+      setRolesLoading(true);
+      const response = await permissionsService.getRoles();
+      setRoles(response.data || []);
     } catch (error) {
-      console.error("Erreur lors de la création du rôle:", error);
+      console.error('Error loading roles:', error);
+      setRoles([]);
+    } finally {
+      setRolesLoading(false);
     }
   };
 
-  const handleDeleteRole = async (roleId: string) => {
-    if (roles.find(r => r.id === roleId)?.is_system) {
-      alert("Impossible de supprimer un rôle système");
+  const loadPermissions = async () => {
+    try {
+      setPermissionsLoading(true);
+      const response = await permissionsService.getPermissions();
+      setPermissions(response.data || []);
+    } catch (error) {
+      console.error('Error loading permissions:', error);
+      setPermissions([]);
+    } finally {
+      setPermissionsLoading(false);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const categoryList = await permissionsService.getPermissionCategories();
+      setCategories(categoryList);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      setCategories([]);
+    }
+  };
+
+  const loadMockUsers = () => {
+    setUsers(mockUsers);
+  };
+
+  const handleCreateRole = async () => {
+    try {
+      if (!newRole.name.trim()) {
+        toast({
+          title: 'Erreur',
+          description: 'Le nom du rôle est obligatoire',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const roleData = {
+        name: newRole.name.trim(),
+        description: newRole.description.trim(),
+        permissions: newRole.permissions,
+        is_active: true,
+      };
+      
+      if (editingRole) {
+        await permissionsService.updateRole(editingRole.id, roleData);
+        toast({
+          title: 'Succès',
+          description: 'Le rôle a été modifié avec succès',
+        });
+      } else {
+        await permissionsService.createRole(roleData);
+        toast({
+          title: 'Succès',
+          description: 'Le rôle a été créé avec succès',
+        });
+      }
+      
+      setShowCreateRoleModal(false);
+      setEditingRole(null);
+      setNewRole({ name: '', description: '', permissions: [] });
+      loadRoles();
+    } catch (error) {
+      console.error("Erreur lors de la création/modification du rôle:", error);
+      toast({
+        title: 'Erreur',
+        description: editingRole ? 'Impossible de modifier le rôle' : 'Impossible de créer le rôle',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteRole = async (roleId: number) => {
+    const role = roles.find(r => r.id === roleId);
+    if (!role) return;
+    
+    if (role.employees_count && role.employees_count > 0) {
+      toast({
+        title: 'Impossible de supprimer',
+        description: 'Ce rôle est assigné à des employés',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce rôle ?')) {
       return;
     }
     
     try {
-      setRoles(prev => prev.filter(r => r.id !== roleId));
+      await permissionsService.deleteRole(roleId);
+      toast({
+        title: 'Succès',
+        description: 'Le rôle a été supprimé avec succès',
+      });
+      loadRoles();
     } catch (error) {
       console.error("Erreur lors de la suppression du rôle:", error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de supprimer le rôle',
+        variant: 'destructive',
+      });
     }
   };
 
-  const togglePermission = (permissionId: string) => {
+  const handleEditRole = (role: EmployeeRole) => {
+    setEditingRole(role);
+    setNewRole({
+      name: role.name,
+      description: role.description || '',
+      permissions: role.permissions.map(p => parseInt(p)) || []
+    });
+    setShowCreateRoleModal(true);
+  };
+
+  const handleDuplicateRole = async (role: EmployeeRole) => {
+    try {
+      await permissionsService.duplicateRole(role.id, `${role.name} (Copie)`, `${role.code}_COPY`);
+      toast({
+        title: 'Succès',
+        description: 'Le rôle a été dupliqué avec succès',
+      });
+      loadRoles();
+    } catch (error) {
+      console.error('Error duplicating role:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de dupliquer le rôle',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const togglePermission = (permissionId: number) => {
     setNewRole(prev => ({
       ...prev,
       permissions: prev.permissions.includes(permissionId)
@@ -249,8 +233,8 @@ const RolesPermissions: React.FC = () => {
     }));
   };
 
-  const getRoleBadge = (role: Role) => {
-    if (role.is_system) {
+  const getRoleBadge = (role: EmployeeRole) => {
+    if (role.level && role.level >= 9) {
       return <Badge variant="secondary">Système</Badge>;
     }
     return <Badge variant="outline">Personnalisé</Badge>;
@@ -272,7 +256,11 @@ const RolesPermissions: React.FC = () => {
     }
     acc[permission.category].push(permission);
     return acc;
-  }, {} as Record<string, Permission[]>);
+  }, {} as Record<string, EmployeePermission[]>);
+
+  useEffect(() => {
+    loadMockUsers();
+  }, [roles]);
 
   return (
     <div className="space-y-6">
@@ -303,7 +291,7 @@ const RolesPermissions: React.FC = () => {
         {/* Rôles */}
         <TabsContent value="roles">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {loading ? (
+            {loading || rolesLoading ? (
               <div className="col-span-full flex items-center justify-center h-64">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               </div>
@@ -324,12 +312,16 @@ const RolesPermissions: React.FC = () => {
                             <Eye className="w-4 h-4" />
                             Voir détails
                           </DropdownMenuItem>
-                          {!role.is_system && (
+                          <DropdownMenuItem onClick={() => handleEditRole(role)} className="flex items-center gap-2">
+                            <Edit className="w-4 h-4" />
+                            Modifier
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDuplicateRole(role)} className="flex items-center gap-2">
+                            <Copy className="w-4 h-4" />
+                            Dupliquer
+                          </DropdownMenuItem>
+                          {(!role.level || role.level < 9) && (
                             <>
-                              <DropdownMenuItem className="flex items-center gap-2">
-                                <Edit className="w-4 h-4" />
-                                Modifier
-                              </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem 
                                 onClick={() => handleDeleteRole(role.id)}
@@ -352,10 +344,10 @@ const RolesPermissions: React.FC = () => {
                     </div>
                     
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Utilisateurs</span>
+                      <span className="text-sm text-gray-600">Employés</span>
                       <div className="flex items-center gap-1">
                         <Users className="w-4 h-4 text-gray-500" />
-                        <span className="font-medium">{role.users_count}</span>
+                        <span className="font-medium">{role.employees_count || 0}</span>
                       </div>
                     </div>
                     
@@ -363,7 +355,7 @@ const RolesPermissions: React.FC = () => {
                       <span className="text-sm text-gray-600">Permissions</span>
                       <div className="flex items-center gap-1">
                         <Key className="w-4 h-4 text-gray-500" />
-                        <span className="font-medium">{role.permissions.length}</span>
+                        <span className="font-medium">{role.permissions?.length || 0}</span>
                       </div>
                     </div>
                     
@@ -380,7 +372,11 @@ const RolesPermissions: React.FC = () => {
         {/* Permissions */}
         <TabsContent value="permissions">
           <div className="space-y-6">
-            {Object.entries(permissionsByCategory).map(([category, categoryPermissions]) => (
+            {permissionsLoading ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : Object.entries(permissionsByCategory).map(([category, categoryPermissions]) => (
               <Card key={category}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -396,13 +392,22 @@ const RolesPermissions: React.FC = () => {
                     {categoryPermissions.map((permission) => (
                       <div key={permission.id} className="flex items-start gap-3 p-3 border rounded-lg">
                         <div className="w-5 h-5 mt-0.5">
-                          <Key className="w-4 h-4 text-gray-500" />
+                          {permission.is_dangerous ? (
+                            <Shield className="w-4 h-4 text-red-500" />
+                          ) : (
+                            <Key className="w-4 h-4 text-gray-500" />
+                          )}
                         </div>
                         <div className="flex-1">
-                          <div className="font-medium">{permission.name}</div>
+                          <div className="font-medium flex items-center gap-2">
+                            {permission.name}
+                            {permission.is_dangerous && (
+                              <Badge variant="destructive" className="text-xs">Sensible</Badge>
+                            )}
+                          </div>
                           <div className="text-sm text-gray-600">{permission.description}</div>
                           <div className="text-xs text-gray-500 mt-1">
-                            {permission.resource}.{permission.action}
+                            {permission.code}
                           </div>
                         </div>
                       </div>
@@ -484,9 +489,9 @@ const RolesPermissions: React.FC = () => {
       <Dialog open={showCreateRoleModal} onOpenChange={setShowCreateRoleModal}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Créer un nouveau rôle</DialogTitle>
+            <DialogTitle>{editingRole ? 'Modifier le rôle' : 'Créer un nouveau rôle'}</DialogTitle>
             <DialogDescription>
-              Configurez les permissions pour ce nouveau rôle
+              Configurez les permissions pour ce rôle
             </DialogDescription>
           </DialogHeader>
           
@@ -535,12 +540,15 @@ const RolesPermissions: React.FC = () => {
                       {categoryPermissions.map((permission) => (
                         <div key={permission.id} className="flex items-center space-x-2">
                           <Checkbox
-                            id={permission.id}
+                            id={permission.id.toString()}
                             checked={newRole.permissions.includes(permission.id)}
                             onCheckedChange={() => togglePermission(permission.id)}
                           />
-                          <Label htmlFor={permission.id} className="text-sm">
+                          <Label htmlFor={permission.id.toString()} className="text-sm flex items-center gap-2">
                             {permission.name}
+                            {permission.is_dangerous && (
+                              <Badge variant="destructive" className="text-xs">Sensible</Badge>
+                            )}
                           </Label>
                         </div>
                       ))}
@@ -552,14 +560,18 @@ const RolesPermissions: React.FC = () => {
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateRoleModal(false)}>
+            <Button variant="outline" onClick={() => {
+              setShowCreateRoleModal(false);
+              setEditingRole(null);
+              setNewRole({ name: '', description: '', permissions: [] });
+            }}>
               Annuler
             </Button>
             <Button 
               onClick={handleCreateRole}
               disabled={!newRole.name || newRole.permissions.length === 0}
             >
-              Créer le rôle
+              {editingRole ? 'Modifier le rôle' : 'Créer le rôle'}
             </Button>
           </DialogFooter>
         </DialogContent>

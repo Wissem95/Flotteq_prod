@@ -267,6 +267,74 @@ Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal'
     Route::post('/employees', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'store']);
     Route::put('/employees/{id}', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'update']);
     Route::delete('/employees/{id}', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'destroy']);
+
+    // Promotions management (Internal only)
+    Route::prefix('promotions')->group(function () {
+        Route::get('/', [App\Http\Controllers\API\PromotionsController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\API\PromotionsController::class, 'store']);
+        Route::get('/statistics', [App\Http\Controllers\API\PromotionsController::class, 'statistics']);
+        Route::post('/validate-code', [App\Http\Controllers\API\PromotionsController::class, 'validateCode']);
+        Route::get('/{promotion}', [App\Http\Controllers\API\PromotionsController::class, 'show']);
+        Route::put('/{promotion}', [App\Http\Controllers\API\PromotionsController::class, 'update']);
+        Route::delete('/{promotion}', [App\Http\Controllers\API\PromotionsController::class, 'destroy']);
+        Route::post('/{promotion}/activate', [App\Http\Controllers\API\PromotionsController::class, 'activate']);
+        Route::post('/{promotion}/deactivate', [App\Http\Controllers\API\PromotionsController::class, 'deactivate']);
+    });
+
+    // Payment Methods management (Internal only)
+    Route::prefix('payment-methods')->group(function () {
+        Route::get('/', [App\Http\Controllers\API\PaymentMethodsController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\API\PaymentMethodsController::class, 'store']);
+        Route::get('/available', [App\Http\Controllers\API\PaymentMethodsController::class, 'available']);
+        Route::get('/statistics', [App\Http\Controllers\API\PaymentMethodsController::class, 'statistics']);
+        Route::get('/{paymentMethod}', [App\Http\Controllers\API\PaymentMethodsController::class, 'show']);
+        Route::put('/{paymentMethod}', [App\Http\Controllers\API\PaymentMethodsController::class, 'update']);
+        Route::delete('/{paymentMethod}', [App\Http\Controllers\API\PaymentMethodsController::class, 'destroy']);
+        Route::post('/{paymentMethod}/test', [App\Http\Controllers\API\PaymentMethodsController::class, 'testConnection']);
+        Route::post('/{paymentMethod}/toggle', [App\Http\Controllers\API\PaymentMethodsController::class, 'toggleStatus']);
+        Route::post('/{paymentMethod}/set-default', [App\Http\Controllers\API\PaymentMethodsController::class, 'setDefault']);
+    });
+
+    // Permissions and Roles management (Internal only)
+    Route::prefix('permissions')->group(function () {
+        // Permissions
+        Route::get('/', [App\Http\Controllers\API\PermissionsController::class, 'getPermissions']);
+        Route::post('/', [App\Http\Controllers\API\PermissionsController::class, 'storePermission']);
+        Route::put('/{permission}', [App\Http\Controllers\API\PermissionsController::class, 'updatePermission']);
+        Route::get('/categories', [App\Http\Controllers\API\PermissionsController::class, 'getCategories']);
+        Route::get('/modules', [App\Http\Controllers\API\PermissionsController::class, 'getModules']);
+        Route::get('/matrix', [App\Http\Controllers\API\PermissionsController::class, 'getPermissionMatrix']);
+
+        // Roles
+        Route::prefix('roles')->group(function () {
+            Route::get('/', [App\Http\Controllers\API\PermissionsController::class, 'getRoles']);
+            Route::post('/', [App\Http\Controllers\API\PermissionsController::class, 'storeRole']);
+            Route::get('/{role}', [App\Http\Controllers\API\PermissionsController::class, 'showRole']);
+            Route::put('/{role}', [App\Http\Controllers\API\PermissionsController::class, 'updateRole']);
+            Route::delete('/{role}', [App\Http\Controllers\API\PermissionsController::class, 'destroyRole']);
+            Route::post('/{role}/permissions', [App\Http\Controllers\API\PermissionsController::class, 'assignPermissionToRole']);
+            Route::delete('/{role}/permissions/{permission}', [App\Http\Controllers\API\PermissionsController::class, 'removePermissionFromRole']);
+        });
+
+        // User permissions
+        Route::get('/users/{employee}/permissions', [App\Http\Controllers\API\PermissionsController::class, 'getUserPermissions']);
+    });
+
+    // Feature Flags management (Internal only)
+    Route::prefix('feature-flags')->group(function () {
+        Route::get('/', [App\Http\Controllers\API\FeatureFlagsController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\API\FeatureFlagsController::class, 'store']);
+        Route::get('/categories', [App\Http\Controllers\API\FeatureFlagsController::class, 'getCategories']);
+        Route::get('/statistics', [App\Http\Controllers\API\FeatureFlagsController::class, 'statistics']);
+        Route::post('/check', [App\Http\Controllers\API\FeatureFlagsController::class, 'checkFlag']);
+        Route::post('/bulk-check', [App\Http\Controllers\API\FeatureFlagsController::class, 'bulkCheck']);
+        Route::get('/{featureFlag}', [App\Http\Controllers\API\FeatureFlagsController::class, 'show']);
+        Route::put('/{featureFlag}', [App\Http\Controllers\API\FeatureFlagsController::class, 'update']);
+        Route::delete('/{featureFlag}', [App\Http\Controllers\API\FeatureFlagsController::class, 'destroy']);
+        Route::post('/{featureFlag}/enable', [App\Http\Controllers\API\FeatureFlagsController::class, 'enable']);
+        Route::post('/{featureFlag}/disable', [App\Http\Controllers\API\FeatureFlagsController::class, 'disable']);
+        Route::post('/{featureFlag}/clone', [App\Http\Controllers\API\FeatureFlagsController::class, 'clone']);
+    });
 });
 
 // Tenant-specific routes

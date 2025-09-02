@@ -1,9 +1,11 @@
 // Internal Dashboard - Vue d'ensemble hybride global/tenant FlotteQ
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "@/components/ui/use-toast";
 import { 
   AlertTriangle, 
   Car, 
@@ -14,7 +16,13 @@ import {
   Users,
   Building2,
   Wrench,
-  RefreshCw
+  RefreshCw,
+  Shield,
+  CreditCard,
+  Flag,
+  Gift,
+  Settings,
+  BarChart3
 } from "lucide-react";
 
 // Nouveaux composants hybrides
@@ -23,6 +31,8 @@ import TenantScopeSelector from "@/components/dashboard/TenantScopeSelector";
 import DashboardStats from "@/components/dashboard/DashboardStats";
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+  
   // Utilisation du hook hybride
   const {
     selectedTenantId,
@@ -66,6 +76,47 @@ const Dashboard: React.FC = () => {
     } else {
       return `Dashboard - ${stats.tenant_info?.name}`;
     }
+  };
+
+  // Navigation handlers
+  const handleNavigateToTenants = () => {
+    navigate('/tenants');
+  };
+
+  const handleNavigateToUsers = () => {
+    navigate('/users');
+  };
+
+  const handleNavigateToVehicles = () => {
+    navigate('/vehicles');
+  };
+
+  const handleNavigateToMaintenance = () => {
+    navigate('/maintenances');
+  };
+
+  const handleNavigateToPromotions = () => {
+    navigate('/promotions');
+  };
+
+  const handleNavigateToPermissions = () => {
+    navigate('/permissions');
+  };
+
+  const handleNavigateToPayments = () => {
+    navigate('/payments');
+  };
+
+  const handleNavigateToFeatureFlags = () => {
+    navigate('/flags');
+  };
+
+  const handleNavigateToAnalytics = () => {
+    navigate('/analytics');
+  };
+
+  const handleNavigateToSettings = () => {
+    navigate('/settings');
   };
 
   // Gestion des erreurs
@@ -259,30 +310,151 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Actions rapides */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Navigation Rapide</CardTitle>
+            <CardDescription>
+              Accès aux sections principales de gestion
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 hover:bg-blue-50 hover:border-blue-200"
+                onClick={handleNavigateToTenants}
+              >
+                <Building2 className="h-6 w-6 text-blue-600" />
+                <span className="text-sm font-medium">Gestion Tenants</span>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 hover:bg-purple-50 hover:border-purple-200"
+                onClick={handleNavigateToUsers}
+              >
+                <Users className="h-6 w-6 text-purple-600" />
+                <span className="text-sm font-medium">Utilisateurs</span>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 hover:bg-green-50 hover:border-green-200"
+                onClick={handleNavigateToVehicles}
+              >
+                <Car className="h-6 w-6 text-green-600" />
+                <span className="text-sm font-medium">Véhicules</span>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 hover:bg-orange-50 hover:border-orange-200"
+                onClick={handleNavigateToMaintenance}
+              >
+                <Wrench className="h-6 w-6 text-orange-600" />
+                <span className="text-sm font-medium">Maintenance</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Outils d'Administration</CardTitle>
+            <CardDescription>
+              Nouvelles fonctionnalités de gestion avancées
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 hover:bg-pink-50 hover:border-pink-200"
+                onClick={handleNavigateToPromotions}
+              >
+                <Gift className="h-6 w-6 text-pink-600" />
+                <span className="text-sm font-medium">Promotions</span>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 hover:bg-indigo-50 hover:border-indigo-200"
+                onClick={handleNavigateToPermissions}
+              >
+                <Shield className="h-6 w-6 text-indigo-600" />
+                <span className="text-sm font-medium">Permissions</span>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 hover:bg-emerald-50 hover:border-emerald-200"
+                onClick={handleNavigateToPayments}
+              >
+                <CreditCard className="h-6 w-6 text-emerald-600" />
+                <span className="text-sm font-medium">Paiements</span>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 hover:bg-amber-50 hover:border-amber-200"
+                onClick={handleNavigateToFeatureFlags}
+              >
+                <Flag className="h-6 w-6 text-amber-600" />
+                <span className="text-sm font-medium">Feature Flags</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Outils supplémentaires */}
       <Card>
         <CardHeader>
-          <CardTitle>Actions Rapides</CardTitle>
+          <CardTitle>Outils Système</CardTitle>
           <CardDescription>
-            Navigation vers les sections principales
+            Analytics, configuration et monitoring
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-20 flex-col gap-2">
-              <Building2 className="h-6 w-6" />
-              <span className="text-sm">Gestion Tenants</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button 
+              variant="outline" 
+              className="h-16 flex items-center gap-3 justify-start px-4 hover:bg-slate-50"
+              onClick={handleNavigateToAnalytics}
+            >
+              <BarChart3 className="h-5 w-5 text-slate-600" />
+              <div className="text-left">
+                <div className="font-medium text-sm">Analytics</div>
+                <div className="text-xs text-muted-foreground">Tableaux de bord</div>
+              </div>
+              <ArrowRight className="h-4 w-4 ml-auto text-muted-foreground" />
             </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2">
-              <Users className="h-6 w-6" />
-              <span className="text-sm">Utilisateurs</span>
+            
+            <Button 
+              variant="outline" 
+              className="h-16 flex items-center gap-3 justify-start px-4 hover:bg-slate-50"
+              onClick={handleNavigateToSettings}
+            >
+              <Settings className="h-5 w-5 text-slate-600" />
+              <div className="text-left">
+                <div className="font-medium text-sm">Paramètres</div>
+                <div className="text-xs text-muted-foreground">Configuration</div>
+              </div>
+              <ArrowRight className="h-4 w-4 ml-auto text-muted-foreground" />
             </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2">
-              <Car className="h-6 w-6" />
-              <span className="text-sm">Véhicules</span>
-            </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2">
-              <Wrench className="h-6 w-6" />
-              <span className="text-sm">Maintenance</span>
+            
+            <Button 
+              variant="outline" 
+              className="h-16 flex items-center gap-3 justify-start px-4 hover:bg-slate-50"
+              onClick={refreshData}
+            >
+              <RefreshCw className={`h-5 w-5 text-slate-600 ${loading ? 'animate-spin' : ''}`} />
+              <div className="text-left">
+                <div className="font-medium text-sm">Actualiser</div>
+                <div className="text-xs text-muted-foreground">Recharger les données</div>
+              </div>
+              <ArrowRight className="h-4 w-4 ml-auto text-muted-foreground" />
             </Button>
           </div>
         </CardContent>
