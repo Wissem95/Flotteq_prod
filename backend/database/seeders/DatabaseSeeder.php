@@ -2,8 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,8 +11,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seeder de production - uniquement les permissions et rôles de base
-        $this->call(\Database\Seeders\RolesAndPermissionsSeeder::class);
-        $this->call(\Database\Seeders\CleanProductionSeeder::class);
+        // Production environment - no demo data
+        // Real data will be added through the application
     }
 }
