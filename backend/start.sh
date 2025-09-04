@@ -21,14 +21,8 @@ php artisan migrate --force
 # Skip table creation as they're now in Supabase
 echo "📊 Tables already exist in Supabase"
 
-# Check if database is empty and seed if needed
-USER_COUNT=$(php artisan tinker --execute="echo App\Models\User::count();")
-if [ "$USER_COUNT" = "0" ]; then
-    echo "🌱 Database is empty, running production seeders..."
-    php artisan db:seed --class=ProductionDataSeeder --force
-else
-    echo "📊 Database already contains $USER_COUNT users, skipping seeders"
-fi
+# Skip seeders in production - database should be populated with real data
+echo "📊 Production mode - skipping seeders"
 
 # Create storage link
 php artisan storage:link
