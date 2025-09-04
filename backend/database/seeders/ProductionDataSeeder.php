@@ -32,7 +32,7 @@ class ProductionDataSeeder extends Seeder
         \DB::statement('DELETE FROM tenant_partner_relations');
         \DB::statement('DELETE FROM analytics_events');
         \DB::statement('DELETE FROM vehicles');
-        \DB::statement('DELETE FROM users WHERE is_internal = 0');
+        \DB::statement('DELETE FROM users WHERE is_internal = false');
         \DB::statement('DELETE FROM tenants');
         \DB::statement('DELETE FROM partners');
         \DB::statement('DELETE FROM subscriptions');
