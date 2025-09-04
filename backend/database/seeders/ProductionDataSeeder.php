@@ -63,17 +63,17 @@ class ProductionDataSeeder extends Seeder
                 'price' => 29.99,
                 'currency' => 'EUR',
                 'billing_cycle' => 'monthly',
-                'features' => [
+                'features' => json_encode([
                     'vehicle_management',
                     'basic_maintenance',
                     'basic_reporting',
                     'email_support'
-                ],
-                'limits' => [
+                ]),
+                'limits' => json_encode([
                     'vehicles' => 5,
                     'users' => 3,
                     'support_tickets' => 5
-                ],
+                ]),
                 'is_active' => true,
                 'is_popular' => false,
                 'sort_order' => 1,
@@ -84,19 +84,19 @@ class ProductionDataSeeder extends Seeder
                 'price' => 89.99,
                 'currency' => 'EUR',
                 'billing_cycle' => 'monthly',
-                'features' => [
+                'features' => json_encode([
                     'vehicle_management',
                     'advanced_maintenance',
                     'partner_network',
                     'advanced_reporting',
                     'analytics',
                     'priority_support'
-                ],
-                'limits' => [
+                ]),
+                'limits' => json_encode([
                     'vehicles' => 25,
                     'users' => 10,
                     'support_tickets' => 20
-                ],
+                ]),
                 'is_active' => true,
                 'is_popular' => true,
                 'sort_order' => 2,
@@ -107,7 +107,7 @@ class ProductionDataSeeder extends Seeder
                 'price' => 199.99,
                 'currency' => 'EUR',
                 'billing_cycle' => 'monthly',
-                'features' => [
+                'features' => json_encode([
                     'vehicle_management',
                     'advanced_maintenance',
                     'partner_network',
@@ -115,12 +115,12 @@ class ProductionDataSeeder extends Seeder
                     'advanced_analytics',
                     'api_access',
                     'dedicated_support'
-                ],
-                'limits' => [
+                ]),
+                'limits' => json_encode([
                     'vehicles' => null, // Unlimited
                     'users' => null,
                     'support_tickets' => null
-                ],
+                ]),
                 'is_active' => true,
                 'is_popular' => false,
                 'sort_order' => 3,
@@ -342,6 +342,16 @@ class ProductionDataSeeder extends Seeder
 
         // Create all partners
         foreach (array_merge($garages, $centresCT, $assurances) as $partner) {
+            // Encode JSON fields
+            if (isset($partner['services'])) {
+                $partner['services'] = json_encode($partner['services']);
+            }
+            if (isset($partner['pricing'])) {
+                $partner['pricing'] = json_encode($partner['pricing']);
+            }
+            if (isset($partner['availability'])) {
+                $partner['availability'] = json_encode($partner['availability']);
+            }
             Partner::create($partner);
         }
     }
