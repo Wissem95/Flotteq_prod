@@ -301,21 +301,7 @@ class SocialAuthController extends Controller
                 ->where('tenant_id', $tenant->id)
                 ->first();
 
-            // If user doesn't exist in current tenant, check if they exist in another tenant
-            if (!$user) {
-                $existingUser = User::where('email', $googleUserData['email'])->first();
-                if ($existingUser) {
-                    Log::warning('Google OAuth: User exists in different tenant', [
-                        'email' => $googleUserData['email'],
-                        'existing_tenant' => $existingUser->tenant_id,
-                        'requested_tenant' => $tenant->id
-                    ]);
-                    return response()->json([
-                        'error' => 'Cet email est déjà associé à un autre domaine. Veuillez utiliser le bon domaine ou contacter l\'administrateur.'
-                    ], 409);
-                }
-            }
-
+            // Créer automatiquement l'utilisateur s'il n'existe pas
             if (!$user) {
                 Log::info('Google OAuth: Creating new user');
                 try {

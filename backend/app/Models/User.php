@@ -156,13 +156,14 @@ class User extends Authenticatable
      */
     public function hasIncompleteProfile(): bool
     {
-        // Champs obligatoires pour un profil complet
+        // Champs obligatoires pour un profil complet (sauf drive_license)
         $requiredFields = [
             'birthdate',
             'gender',
             'address',
             'city',
             'country',
+            'phone',  // Ajout du téléphone comme champ obligatoire
         ];
 
         // Vérifier si au moins un champ obligatoire est vide
@@ -188,6 +189,7 @@ class User extends Authenticatable
             'address' => 'Adresse',
             'city' => 'Ville',
             'country' => 'Pays',
+            'phone' => 'Téléphone',  // Ajout du téléphone
         ];
 
         $missingFields = [];

@@ -40,6 +40,14 @@ class AuthController extends Controller
                 'min:3',
                 'max:63'
             ],
+            // Champs de profil optionnels lors de l'inscription
+            'birthdate' => ['nullable', 'date', 'before:today'],
+            'gender' => ['nullable', 'string', 'in:male,female,other'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'country' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'drive_license' => ['nullable', 'string', 'max:50'],
         ]);
 
         // Create tenant first - generate domain if not provided
@@ -51,7 +59,7 @@ class AuthController extends Controller
             'is_active' => true,
         ]);
 
-        // Create admin user
+        // Create admin user with profile data
         $user = User::create([
             'email' => $validated['email'],
             'username' => $validated['username'],
@@ -61,6 +69,14 @@ class AuthController extends Controller
             'role' => 'admin',
             'tenant_id' => $tenant->id,
             'is_active' => true,
+            // Champs de profil
+            'birthdate' => $validated['birthdate'] ?? null,
+            'gender' => $validated['gender'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'city' => $validated['city'] ?? null,
+            'country' => $validated['country'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+            'drive_license' => $validated['drive_license'] ?? null,
         ]);
 
         // Assigner les permissions par défaut au nouvel utilisateur
@@ -111,7 +127,14 @@ class AuthController extends Controller
             'password' => ['required', 'confirmed', Password::defaults()],
             'tenant_id' => ['required', 'integer', 'exists:tenants,id'],
             'company_name' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            // Champs de profil optionnels
+            'birthdate' => ['nullable', 'date', 'before:today'],
+            'gender' => ['nullable', 'string', 'in:male,female,other'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'country' => ['nullable', 'string', 'max:255'],
+            'drive_license' => ['nullable', 'string', 'max:50'],
         ]);
 
         // Verify tenant is active
@@ -125,7 +148,7 @@ class AuthController extends Controller
             ]);
         }
 
-        // Create user in the existing tenant
+        // Create user in the existing tenant with profile data
         $user = User::create([
             'email' => $validated['email'],
             'username' => $validated['username'],
@@ -137,6 +160,13 @@ class AuthController extends Controller
             'is_active' => true,
             'company' => $validated['company_name'] ?? null,
             'phone' => $validated['phone'] ?? null,
+            // Champs de profil
+            'birthdate' => $validated['birthdate'] ?? null,
+            'gender' => $validated['gender'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'city' => $validated['city'] ?? null,
+            'country' => $validated['country'] ?? null,
+            'drive_license' => $validated['drive_license'] ?? null,
         ]);
 
         // Assign default permissions to the new user
@@ -430,14 +460,40 @@ class AuthController extends Controller
         // Remove common prefixes like www.
         $host = preg_replace('/^www\./', '', $host);
         
+        // Si on est sur un domaine frontend Vercel, retourner le premier tenant par défaut
+        if (strpos($host, 'vercel.app') !== false || strpos($host, 'localhost') !== false) {
+            // Retourner le premier tenant actif comme tenant par défaut
+            $tenant = Tenant::where('is_active', true)->first();
+            
+            if ($tenant) {
+                return response()->json([
+                    'tenant' => $tenant->only(['id', 'name', 'domain']),
+                    'host' => $host,
+                    'is_default' => true,
+                ]);
+            }
+        }
+        
+        // Recherche normale par domaine
         $tenant = Tenant::where('domain', $host)
                        ->where('is_active', true)
                        ->first();
 
         if (!$tenant) {
+            // Si aucun tenant trouvé, retourner le premier tenant actif
+            $defaultTenant = Tenant::where('is_active', true)->first();
+            
+            if ($defaultTenant) {
+                return response()->json([
+                    'tenant' => $defaultTenant->only(['id', 'name', 'domain']),
+                    'host' => $host,
+                    'is_default' => true,
+                ]);
+            }
+            
             return response()->json([
                 'error' => 'Tenant not found',
-                'message' => 'Aucun tenant actif trouvé pour ce domaine.',
+                'message' => 'Aucun tenant actif trouvé.',
                 'host' => $host,
             ], 404);
         }
@@ -445,6 +501,7 @@ class AuthController extends Controller
         return response()->json([
             'tenant' => $tenant->only(['id', 'name', 'domain']),
             'host' => $host,
+            'is_default' => false,
         ]);
     }
 }
