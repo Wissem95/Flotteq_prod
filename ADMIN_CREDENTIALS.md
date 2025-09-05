@@ -3,10 +3,11 @@
 ## 🌐 Compte INTERNE (Administration FlotteQ)
 
 - **Email:** `admin@flotteq.com`
-- **Mot de passe:** `AdminFlotteQ2024!`
+- **Mot de passe:** `Internal2024!`
 - **Type:** Super Administrateur Interne
 - **Interface:** https://internal-rust.vercel.app
 - **Rôle:** `super_admin`
+- **Table:** `internal_admins`
 - **Statut:** Actif ✅
 
 ## 🏢 Compte TENANT (Gestion d'entreprise)
