@@ -182,7 +182,7 @@ class SupportController extends Controller
      */
     public function assign(Request $request, SupportTicket $ticket): JsonResponse
     {
-        if (!$request->user()->isInternal()) {
+        if (!$request->user('internal') || !($request->user('internal') instanceof \App\Models\InternalAdmin)) {
             return response()->json(['error' => 'Access denied'], 403);
         }
 
@@ -201,8 +201,8 @@ class SupportController extends Controller
         // Add internal message
         $ticket->addMessage([
             'type' => 'internal',
-            'author_id' => $request->user()->id,
-            'author_name' => $request->user()->first_name . ' ' . $request->user()->last_name,
+            'author_id' => $request->user('internal')->id,
+            'author_name' => $request->user('internal')->first_name . ' ' . $request->user('internal')->last_name,
             'content' => "Ticket assigned to {$agent->first_name} {$agent->last_name}",
         ]);
 
@@ -267,7 +267,7 @@ class SupportController extends Controller
      */
     public function statistics(Request $request): JsonResponse
     {
-        if (!$request->user()->isInternal()) {
+        if (!$request->user('internal') || !($request->user('internal') instanceof \App\Models\InternalAdmin)) {
             return response()->json(['error' => 'Access denied'], 403);
         }
 
@@ -319,7 +319,7 @@ class SupportController extends Controller
      */
     public function tenantMetrics(Request $request, int $tenantId): JsonResponse
     {
-        if (!$request->user()->isInternal()) {
+        if (!$request->user('internal') || !($request->user('internal') instanceof \App\Models\InternalAdmin)) {
             return response()->json(['error' => 'Access denied'], 403);
         }
 

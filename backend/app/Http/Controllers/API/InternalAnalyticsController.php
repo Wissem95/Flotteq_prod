@@ -107,7 +107,7 @@ class InternalAnalyticsController extends Controller
      */
     public function globalMetrics(Request $request): JsonResponse
     {
-        if (!$request->user()->isInternal()) {
+        if (!$request->user('internal') || !($request->user('internal') instanceof \App\Models\InternalAdmin)) {
             return response()->json(['error' => 'Access denied'], 403);
         }
 
@@ -161,7 +161,7 @@ class InternalAnalyticsController extends Controller
      */
     public function tenantAnalytics(Request $request, int $tenantId): JsonResponse
     {
-        if (!$request->user()->isInternal()) {
+        if (!$request->user('internal') || !($request->user('internal') instanceof \App\Models\InternalAdmin)) {
             return response()->json(['error' => 'Access denied'], 403);
         }
 
@@ -260,7 +260,7 @@ class InternalAnalyticsController extends Controller
      */
     public function userBehavior(Request $request): JsonResponse
     {
-        if (!$request->user()->isInternal()) {
+        if (!$request->user('internal') || !($request->user('internal') instanceof \App\Models\InternalAdmin)) {
             return response()->json(['error' => 'Access denied'], 403);
         }
 
@@ -282,7 +282,7 @@ class InternalAnalyticsController extends Controller
      */
     public function performanceMetrics(Request $request): JsonResponse
     {
-        if (!$request->user()->isInternal()) {
+        if (!$request->user('internal') || !($request->user('internal') instanceof \App\Models\InternalAdmin)) {
             return response()->json(['error' => 'Access denied'], 403);
         }
 
@@ -463,7 +463,7 @@ class InternalAnalyticsController extends Controller
      */
     public function platformMetrics(Request $request): JsonResponse
     {
-        if (!$request->user()->isInternal()) {
+        if (!$request->user('internal') || !($request->user('internal') instanceof \App\Models\InternalAdmin)) {
             return response()->json(['error' => 'Access denied'], 403);
         }
 
@@ -494,7 +494,7 @@ class InternalAnalyticsController extends Controller
      */
     public function usageMetrics(Request $request): JsonResponse
     {
-        if (!$request->user()->isInternal()) {
+        if (!$request->user('internal') || !($request->user('internal') instanceof \App\Models\InternalAdmin)) {
             return response()->json(['error' => 'Access denied'], 403);
         }
 
@@ -528,7 +528,7 @@ class InternalAnalyticsController extends Controller
      */
     public function realtimeMetrics(Request $request): JsonResponse
     {
-        if (!$request->user()->isInternal()) {
+        if (!$request->user('internal') || !($request->user('internal') instanceof \App\Models\InternalAdmin)) {
             return response()->json(['error' => 'Access denied'], 403);
         }
 
