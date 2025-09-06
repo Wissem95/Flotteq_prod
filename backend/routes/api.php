@@ -154,7 +154,7 @@ Route::prefix('internal/auth')->group(function () {
 });
 
 // Internal protected routes
-Route::middleware(['auth:sanctum'])->prefix('internal')->group(function () {
+Route::middleware(['auth:internal'])->prefix('internal')->group(function () {
     // Auth routes for internal users
     Route::prefix('auth')->group(function () {
         Route::get('/me', [App\Http\Controllers\API\InternalAuthController::class, 'me']);
@@ -164,7 +164,7 @@ Route::middleware(['auth:sanctum'])->prefix('internal')->group(function () {
 });
 
 // Internal admin routes (FlotteQ employees only)
-Route::middleware(['auth:sanctum', 'is_super_admin_interne'])->prefix('internal')->group(function () {
+Route::middleware(['auth:internal', 'is_super_admin_interne'])->prefix('internal')->group(function () {
     Route::apiResource('employes', App\Http\Controllers\API\Admin\InternalEmployeeController::class);
 
     // Tenants management (Internal only)

@@ -45,6 +45,11 @@ return [
             'driver' => 'sanctum',
             'provider' => 'users',
         ],
+        
+        'internal' => [
+            'driver' => 'sanctum',
+            'provider' => 'internal_admins',
+        ],
     ],
 
     /*
@@ -68,6 +73,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
+        ],
+
+        'internal_admins' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\InternalAdmin::class,
         ],
 
         // 'users' => [

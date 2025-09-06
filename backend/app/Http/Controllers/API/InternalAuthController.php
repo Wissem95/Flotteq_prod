@@ -76,7 +76,7 @@ class InternalAuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $request->user('internal');
 
         if (!$user || !($user instanceof InternalAdmin)) {
             throw ValidationException::withMessages([
@@ -103,7 +103,7 @@ class InternalAuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $token = $request->user()->currentAccessToken();
+        $token = $request->user('internal')->currentAccessToken();
 
         if ($token) {
             $token->delete();
@@ -119,7 +119,7 @@ class InternalAuthController extends Controller
      */
     public function updateProfile(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $request->user('internal');
 
         if (!$user || !($user instanceof InternalAdmin)) {
             throw ValidationException::withMessages([
