@@ -22,9 +22,9 @@ class IsSuperAdminInterne
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
+        $user = $request->user('internal');
         
-        if (!$user || !$user->isInternal() || !$user->isSuperAdmin()) {
+        if (!$user || !($user instanceof \App\Models\InternalAdmin) || !$user->isSuperAdmin()) {
             return response()->json(['error' => 'Unauthorized (super-admin interne only)'], 403);
         }
         

@@ -163,8 +163,8 @@ Route::middleware(['auth:internal'])->prefix('internal')->group(function () {
     });
 });
 
-// Internal admin routes (FlotteQ employees only)
-Route::middleware(['auth:internal', 'is_super_admin_interne'])->prefix('internal')->group(function () {
+// Internal admin routes (FlotteQ employees only)  
+Route::middleware(['auth:internal'])->prefix('internal')->group(function () {
     Route::apiResource('employes', App\Http\Controllers\API\Admin\InternalEmployeeController::class);
 
     // Tenants management (Internal only)
