@@ -415,4 +415,37 @@ class FeatureFlagsController extends Controller
             ], 500);
         }
     }
+
+    public function statistics(Request $request)
+    {
+        try {
+            $totalFlags = FeatureFlag::count();
+            $enabledFlags = FeatureFlag::enabled()->count();
+            $disabledFlags = FeatureFlag::disabled()->count();
+            
+            $flagsByCategory = FeatureFlag::selectRaw('category, COUNT(*) as count')
+                ->groupBy('category')
+                ->pluck('count', 'category')
+                ->toArray();
+                
+            $flagsByRiskLevel = FeatureFlag::selectRaw('risk_level, COUNT(*) as count')
+                ->groupBy('risk_level')
+                ->pluck('count', 'risk_level')
+                ->toArray();
+
+            return response()->json([
+                'total_flags' => $totalFlags,
+                'enabled_flags' => $enabledFlags,
+                'disabled_flags' => $disabledFlags,
+                'by_category' => $flagsByCategory,
+                'by_risk_level' => $flagsByRiskLevel
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Erreur lors de la récupération des statistiques',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
