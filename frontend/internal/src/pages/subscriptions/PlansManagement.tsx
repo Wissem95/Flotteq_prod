@@ -4,31 +4,17 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
 import { Plus, Edit, MoreHorizontal, Star, Check, Eye, Power, Users, Car, Shield, Zap, Crown, Building2, DollarSign, } from "lucide-react";
-import { SubscriptionPlan, CreatePlanData, subscriptionsService } from "@/services/subscriptionsService";
+import { SubscriptionPlan, subscriptionsService } from "@/services/subscriptionsService";
+import CreatePlanModal from "@/components/subscriptions/CreatePlanModal";
 
 const PlansManagement: React.FC = () => {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
-  const [formData, setFormData] = useState<CreatePlanData>({
-    name: "",
-    description: "",
-    price_monthly: 0,
-    price_yearly: 0,
-    features: [],
-    max_vehicles: 0,
-    max_users: 0,
-    support_level: "basic",
-    is_popular: false,
-  });
 
 
   useEffect(() => {
@@ -48,30 +34,6 @@ const PlansManagement: React.FC = () => {
     }
   };
 
-  const handleCreatePlan = async () => {
-    try {
-      const newPlan = await subscriptionsService.createPlan(formData);
-      setPlans(prev => [...prev, newPlan]);
-      setShowCreateModal(false);
-      resetForm();
-    } catch (error) {
-      console.error("Erreur lors de la création du plan:", error);
-    }
-  };
-
-  const handleUpdatePlan = async () => {
-    if (!editingPlan) return;
-    
-    try {
-      const updatedPlan = await subscriptionsService.updatePlan(editingPlan.id, formData);
-      setPlans(prev => prev.map(plan => plan.id === editingPlan.id ? updatedPlan : plan));
-      setEditingPlan(null);
-      resetForm();
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour du plan:", error);
-    }
-  };
-
   const togglePlanStatus = async (planId: string) => {
     try {
       const updatedPlan = await subscriptionsService.togglePlanStatus(planId);
@@ -83,33 +45,19 @@ const PlansManagement: React.FC = () => {
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      description: "",
-      price_monthly: 0,
-      price_yearly: 0,
-      features: [],
-      max_vehicles: 0,
-      max_users: 0,
-      support_level: "basic",
-      is_popular: false,
-    });
-  };
-
   const openEditModal = (plan: SubscriptionPlan) => {
     setEditingPlan(plan);
-    setFormData({
-      name: plan.name || '',
-      description: plan.description || '',
-      price_monthly: plan.price_monthly || 0,
-      price_yearly: plan.price_yearly || 0,
-      features: plan.features || [],
-      max_vehicles: plan.max_vehicles || 0,
-      max_users: plan.max_users || 0,
-      support_level: plan.support_level || 'basic',
-      is_popular: plan.is_popular || false,
-    });
+  };
+
+  const handleModalSuccess = () => {
+    loadPlans(); // Recharger la liste des plans
+    setShowCreateModal(false);
+    setEditingPlan(null);
+  };
+
+  const handleModalClose = () => {
+    setShowCreateModal(false);
+    setEditingPlan(null);
   };
 
   const formatPrice = (price: number) => {
@@ -352,127 +300,12 @@ const PlansManagement: React.FC = () => {
       </div>
 
       {/* Modal de création/édition */}
-      <Dialog open={showCreateModal || editingPlan !== null} onOpenChange={(open) => {
-        if (!open) {
-          setShowCreateModal(false);
-          setEditingPlan(null);
-          resetForm();
-        }
-      }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {editingPlan ? 'Modifier le plan' : 'Créer un nouveau plan'}
-            </DialogTitle>
-            <DialogDescription>
-              {editingPlan ? 'Modifiez les détails du plan tarifaire' : 'Configurez les détails du nouveau plan tarifaire'}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Nom du plan</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Ex: Business"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Décrivez les avantages du plan"
-                rows={3}
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="price_monthly">Prix mensuel (€)</Label>
-                <Input
-                  id="price_monthly"
-                  type="number"
-                  value={formData.price_monthly}
-                  onChange={(e) => setFormData(prev => ({ ...prev, price_monthly: Number(e.target.value) }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="price_yearly">Prix annuel (€)</Label>
-                <Input
-                  id="price_yearly"
-                  type="number"
-                  value={formData.price_yearly}
-                  onChange={(e) => setFormData(prev => ({ ...prev, price_yearly: Number(e.target.value) }))}
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="max_vehicles">Véhicules max</Label>
-                <Input
-                  id="max_vehicles"
-                  type="number"
-                  value={formData.max_vehicles === -1 ? '' : formData.max_vehicles}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    max_vehicles: e.target.value === '' ? -1 : Number(e.target.value) 
-                  }))}
-                  placeholder="Illimité si vide"
-                />
-              </div>
-              <div>
-                <Label htmlFor="max_users">Utilisateurs max</Label>
-                <Input
-                  id="max_users"
-                  type="number"
-                  value={formData.max_users === -1 ? '' : formData.max_users}
-                  onChange={(e) => setFormData(prev => ({ 
-                    ...prev, 
-                    max_users: e.target.value === '' ? -1 : Number(e.target.value) 
-                  }))}
-                  placeholder="Illimité si vide"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="support_level">Niveau de support</Label>
-              <Select 
-                value={formData.support_level || "basic"} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, support_level: value as 'basic' | 'premium' | 'enterprise' }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un niveau" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="basic">Support basique</SelectItem>
-                  <SelectItem value="premium">Support premium</SelectItem>
-                  <SelectItem value="enterprise">Support 24/7</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setShowCreateModal(false);
-              setEditingPlan(null);
-              resetForm();
-            }}>
-              Annuler
-            </Button>
-            <Button onClick={editingPlan ? handleUpdatePlan : handleCreatePlan}>
-              {editingPlan ? 'Modifier' : 'Créer'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreatePlanModal
+        isOpen={showCreateModal || editingPlan !== null}
+        onClose={handleModalClose}
+        onSuccess={handleModalSuccess}
+        editingPlan={editingPlan}
+      />
     </div>
   );
 };

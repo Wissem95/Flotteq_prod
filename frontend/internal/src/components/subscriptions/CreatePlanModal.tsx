@@ -16,12 +16,25 @@ interface CreatePlanModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  editingPlan?: {
+    id: string;
+    name: string;
+    description: string;
+    price_monthly?: number;
+    price_yearly?: number;
+    features?: string[];
+    max_vehicles?: number;
+    max_users?: number;
+    support_level?: 'basic' | 'premium' | 'enterprise';
+    is_popular?: boolean;
+  } | null;
 }
 
 const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
   isOpen,
   onClose,
-  onSuccess
+  onSuccess,
+  editingPlan
 }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<CreatePlanData>({
@@ -37,6 +50,25 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
   });
 
   const [currentFeature, setCurrentFeature] = useState("");
+
+  // Pré-remplir le formulaire en mode édition
+  React.useEffect(() => {
+    if (editingPlan) {
+      setFormData({
+        name: editingPlan.name || "",
+        description: editingPlan.description || "",
+        price_monthly: editingPlan.price_monthly || 0,
+        price_yearly: editingPlan.price_yearly || 0,
+        features: editingPlan.features || [],
+        max_vehicles: editingPlan.max_vehicles || 5,
+        max_users: editingPlan.max_users || 3,
+        support_level: editingPlan.support_level || "basic",
+        is_popular: editingPlan.is_popular || false
+      });
+    } else {
+      resetForm();
+    }
+  }, [editingPlan, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,21 +114,30 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
         }
       };
 
-      await subscriptionsService.createPlan(planData as any);
-      
-      toast({
-        title: "Succès",
-        description: `Plan "${formData.name}" créé avec succès`
-      });
+      if (editingPlan) {
+        // Mode modification
+        await subscriptionsService.updatePlan(editingPlan.id, planData as any);
+        toast({
+          title: "Succès",
+          description: `Plan "${formData.name}" modifié avec succès`
+        });
+      } else {
+        // Mode création
+        await subscriptionsService.createPlan(planData as any);
+        toast({
+          title: "Succès",
+          description: `Plan "${formData.name}" créé avec succès`
+        });
+      }
       
       resetForm();
       onSuccess?.();
       onClose();
     } catch (error: any) {
-      console.error("Erreur création plan:", error);
+      console.error(`Erreur ${editingPlan ? 'modification' : 'création'} plan:`, error);
       toast({
         title: "Erreur",
-        description: error.response?.data?.message || "Impossible de créer le plan",
+        description: error.response?.data?.message || `Impossible de ${editingPlan ? 'modifier' : 'créer'} le plan`,
         variant: "destructive"
       });
     } finally {
@@ -145,9 +186,14 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Créer un nouveau plan d'abonnement</DialogTitle>
+          <DialogTitle>
+            {editingPlan ? 'Modifier le plan d\'abonnement' : 'Créer un nouveau plan d\'abonnement'}
+          </DialogTitle>
           <DialogDescription>
-            Définissez les caractéristiques et tarifs du nouveau plan
+            {editingPlan 
+              ? 'Modifiez les caractéristiques et tarifs du plan existant'
+              : 'Définissez les caractéristiques et tarifs du nouveau plan'
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -357,10 +403,10 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Création...
+                  {editingPlan ? 'Modification...' : 'Création...'}
                 </>
               ) : (
-                "Créer le plan"
+                editingPlan ? "Modifier le plan" : "Créer le plan"
               )}
             </Button>
           </DialogFooter>

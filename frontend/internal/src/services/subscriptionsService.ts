@@ -3,6 +3,38 @@ import { api } from "@/lib/api";
 
 // === INTERFACES ===
 
+// Interface pour les données brutes de l'API backend
+export interface SubscriptionPlanApi {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  currency: string;
+  billing_cycle: 'monthly' | 'yearly';
+  features: string[];
+  limits: {
+    vehicles?: number;
+    users?: number;
+    support_tickets?: number;
+    api_requests?: number;
+    storage_gb?: number;
+  };
+  is_active: boolean;
+  is_popular: boolean;
+  sort_order: number;
+  metadata?: {
+    pricing?: {
+      monthly?: number;
+      yearly?: number;
+    };
+    badge?: string;
+    color?: string;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+// Interface pour l'affichage frontend (format transformé)
 export interface SubscriptionPlan {
   id: string;
   name: string;
@@ -153,6 +185,32 @@ export interface CreatePlanApiData {
   metadata?: object;
 }
 
+// === TRANSFORMATIONS ===
+
+const transformPlanApiToFrontend = (apiPlan: SubscriptionPlanApi): SubscriptionPlan => {
+  return {
+    id: apiPlan.id,
+    name: apiPlan.name,
+    description: apiPlan.description,
+    price_monthly: apiPlan.metadata?.pricing?.monthly || apiPlan.price,
+    price_yearly: apiPlan.metadata?.pricing?.yearly || (apiPlan.price * 12 * 0.8),
+    features: apiPlan.features || [],
+    max_vehicles: apiPlan.limits?.vehicles || 0,
+    max_users: apiPlan.limits?.users || 0,
+    support_level: determineSupportLevel(apiPlan.limits?.support_tickets),
+    is_active: apiPlan.is_active,
+    is_popular: apiPlan.is_popular,
+    created_at: apiPlan.created_at,
+    updated_at: apiPlan.updated_at,
+  };
+};
+
+const determineSupportLevel = (supportTickets?: number): 'basic' | 'premium' | 'enterprise' => {
+  if (supportTickets === -1) return 'enterprise';
+  if (supportTickets && supportTickets > 10) return 'premium';
+  return 'basic';
+};
+
 // === SERVICE ===
 
 export const subscriptionsService = {
@@ -215,12 +273,14 @@ export const subscriptionsService = {
   
   async getPlans(): Promise<SubscriptionPlan[]> {
     const response = await api.get('/internal/subscriptions/plans');
-    return response.data;
+    const apiPlans: SubscriptionPlanApi[] = response.data;
+    return apiPlans.map(transformPlanApiToFrontend);
   },
 
   async getPlan(id: string): Promise<SubscriptionPlan> {
     const response = await api.get(`/internal/subscriptions/plans/${id}`);
-    return response.data;
+    const apiPlan: SubscriptionPlanApi = response.data;
+    return transformPlanApiToFrontend(apiPlan);
   },
 
   async createPlan(data: CreatePlanData | CreatePlanApiData): Promise<SubscriptionPlan> {
@@ -259,17 +319,54 @@ export const subscriptionsService = {
     }
 
     const response = await api.post('/internal/subscriptions/plans', apiData);
-    return response.data;
+    const apiPlan: SubscriptionPlanApi = response.data.plan || response.data;
+    return transformPlanApiToFrontend(apiPlan);
   },
 
-  async updatePlan(id: string, data: Partial<CreatePlanData>): Promise<SubscriptionPlan> {
-    const response = await api.put(`/internal/subscriptions/plans/${id}`, data);
-    return response.data;
+  async updatePlan(id: string, data: Partial<CreatePlanData> | CreatePlanApiData): Promise<SubscriptionPlan> {
+    // Transform data if needed (similar to createPlan)
+    let apiData: CreatePlanApiData;
+    
+    if (data && 'price_monthly' in data && 'max_vehicles' in data) {
+      // Frontend format - transform to API format
+      const frontendData = data as Partial<CreatePlanData>;
+      apiData = {
+        name: frontendData.name || '',
+        description: frontendData.description || '',
+        price: frontendData.price_monthly || 0,
+        price_monthly: frontendData.price_monthly,
+        price_yearly: frontendData.price_yearly,
+        currency: 'EUR',
+        billing_cycle: 'monthly',
+        features: frontendData.features || [],
+        max_vehicles: frontendData.max_vehicles,
+        max_users: frontendData.max_users,
+        support_level: frontendData.support_level,
+        is_active: true,
+        is_popular: frontendData.is_popular ?? false,
+        sort_order: frontendData.support_level === 'enterprise' ? 3 : 
+                   frontendData.support_level === 'premium' ? 2 : 1,
+        metadata: {
+          pricing: {
+            monthly: frontendData.price_monthly,
+            yearly: frontendData.price_yearly
+          }
+        }
+      };
+    } else {
+      // Already in API format
+      apiData = data as CreatePlanApiData;
+    }
+
+    const response = await api.put(`/internal/subscriptions/plans/${id}`, apiData);
+    const apiPlan: SubscriptionPlanApi = response.data.plan || response.data;
+    return transformPlanApiToFrontend(apiPlan);
   },
 
   async togglePlanStatus(id: string): Promise<SubscriptionPlan> {
     const response = await api.post(`/internal/subscriptions/plans/${id}/toggle-status`);
-    return response.data;
+    const apiPlan: SubscriptionPlanApi = response.data.plan || response.data;
+    return transformPlanApiToFrontend(apiPlan);
   },
 
   // === INVOICES ===
