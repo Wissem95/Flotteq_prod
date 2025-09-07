@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu";
-import { Plus, Edit, MoreHorizontal, Star, Check, Eye, Power, Users, Car, Shield, Zap, Crown, Building2, DollarSign, } from "lucide-react";
+import { Plus, Edit, MoreHorizontal, Star, Check, Eye, Power, Users, Car, Shield, Zap, Crown, Building2, DollarSign, Trash2 } from "lucide-react";
 import { SubscriptionPlan, subscriptionsService } from "@/services/subscriptionsService";
 import CreatePlanModal from "@/components/subscriptions/CreatePlanModal";
 import PlanDetailsModal from "@/components/subscriptions/PlanDetailsModal";
+import DeletePlanDialog from "@/components/subscriptions/DeletePlanDialog";
 
 const PlansManagement: React.FC = () => {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -17,6 +18,7 @@ const PlansManagement: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
   const [viewingPlan, setViewingPlan] = useState<SubscriptionPlan | null>(null);
+  const [deletingPlan, setDeletingPlan] = useState<SubscriptionPlan | null>(null);
 
 
   useEffect(() => {
@@ -55,6 +57,10 @@ const PlansManagement: React.FC = () => {
     setViewingPlan(plan);
   };
 
+  const openDeleteDialog = (plan: SubscriptionPlan) => {
+    setDeletingPlan(plan);
+  };
+
   const handleModalSuccess = () => {
     loadPlans(); // Recharger la liste des plans
     setShowCreateModal(false);
@@ -68,6 +74,15 @@ const PlansManagement: React.FC = () => {
 
   const handleDetailsModalClose = () => {
     setViewingPlan(null);
+  };
+
+  const handleDeleteSuccess = () => {
+    loadPlans(); // Recharger la liste des plans après suppression
+    setDeletingPlan(null);
+  };
+
+  const handleDeleteClose = () => {
+    setDeletingPlan(null);
   };
 
   const formatPrice = (price: number) => {
@@ -257,6 +272,20 @@ const PlansManagement: React.FC = () => {
                         <Power className="w-4 h-4" />
                         {plan.is_active ? 'Désactiver' : 'Activer'}
                       </DropdownMenuItem>
+                      
+                      {/* Option de suppression uniquement pour les plans inactifs */}
+                      {!plan.is_active && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => openDeleteDialog(plan)}
+                            className="flex items-center gap-2 text-red-600 focus:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Supprimer
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -354,6 +383,14 @@ const PlansManagement: React.FC = () => {
         isOpen={viewingPlan !== null}
         onClose={handleDetailsModalClose}
         plan={viewingPlan}
+      />
+
+      {/* Dialog de suppression du plan */}
+      <DeletePlanDialog
+        isOpen={deletingPlan !== null}
+        onClose={handleDeleteClose}
+        onSuccess={handleDeleteSuccess}
+        plan={deletingPlan}
       />
     </div>
   );

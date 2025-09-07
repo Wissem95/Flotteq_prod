@@ -369,6 +369,11 @@ export const subscriptionsService = {
     return transformPlanApiToFrontend(apiPlan);
   },
 
+  async deletePlan(id: string): Promise<{ message: string }> {
+    const response = await api.delete(`/internal/subscriptions/plans/${id}`);
+    return response.data;
+  },
+
   // === INVOICES ===
   
   async getInvoices(page: number = 1, perPage: number = 20, filters?: { subscription_id?: number; status?: string; tenant_id?: number }) {
