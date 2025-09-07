@@ -54,16 +54,17 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
   // Pré-remplir le formulaire en mode édition
   React.useEffect(() => {
     if (editingPlan) {
+      console.log("Editing plan data:", editingPlan); // Debug log
       setFormData({
         name: editingPlan.name || "",
         description: editingPlan.description || "",
-        price_monthly: editingPlan.price_monthly || 0,
-        price_yearly: editingPlan.price_yearly || 0,
-        features: editingPlan.features || [],
-        max_vehicles: editingPlan.max_vehicles || 5,
-        max_users: editingPlan.max_users || 3,
+        price_monthly: editingPlan.price_monthly > 0 ? editingPlan.price_monthly : 0,
+        price_yearly: editingPlan.price_yearly > 0 ? editingPlan.price_yearly : 0,
+        features: Array.isArray(editingPlan.features) ? editingPlan.features : [],
+        max_vehicles: editingPlan.max_vehicles !== undefined ? editingPlan.max_vehicles : 5,
+        max_users: editingPlan.max_users !== undefined ? editingPlan.max_users : 3,
         support_level: editingPlan.support_level || "basic",
-        is_popular: editingPlan.is_popular || false
+        is_popular: Boolean(editingPlan.is_popular)
       });
     } else {
       resetForm();
@@ -73,10 +74,31 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.description || formData.price_monthly <= 0) {
+    console.log("Form data at submit:", formData); // Debug log
+    
+    // Validation plus spécifique
+    if (!formData.name?.trim()) {
       toast({
         title: "Erreur",
-        description: "Veuillez remplir tous les champs obligatoires",
+        description: "Le nom du plan est obligatoire",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.description?.trim()) {
+      toast({
+        title: "Erreur",
+        description: "La description du plan est obligatoire",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.price_monthly || formData.price_monthly <= 0) {
+      toast({
+        title: "Erreur",
+        description: "Le prix mensuel doit être supérieur à 0",
         variant: "destructive"
       });
       return;
@@ -241,7 +263,7 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
                   type="number"
                   step="0.01"
                   min="0"
-                  value={formData.price_monthly}
+                  value={formData.price_monthly || ""}
                   onChange={(e) => {
                     const monthly = parseFloat(e.target.value) || 0;
                     setFormData(prev => ({
@@ -264,7 +286,7 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.price_yearly}
+                    value={formData.price_yearly || ""}
                     onChange={(e) => setFormData(prev => ({ ...prev, price_yearly: parseFloat(e.target.value) || 0 }))}
                     autoComplete="off"
                   />
@@ -291,8 +313,8 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
                   name="max_vehicles"
                   type="number"
                   min="-1"
-                  value={formData.max_vehicles}
-                  onChange={(e) => setFormData(prev => ({ ...prev, max_vehicles: parseInt(e.target.value) || 0 }))}
+                  value={formData.max_vehicles === -1 ? "" : formData.max_vehicles || ""}
+                  onChange={(e) => setFormData(prev => ({ ...prev, max_vehicles: e.target.value === "" ? -1 : parseInt(e.target.value) || 0 }))}
                   placeholder="-1 pour illimité"
                   autoComplete="off"
                 />
@@ -306,8 +328,8 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
                   name="max_users"
                   type="number"
                   min="-1"
-                  value={formData.max_users}
-                  onChange={(e) => setFormData(prev => ({ ...prev, max_users: parseInt(e.target.value) || 0 }))}
+                  value={formData.max_users === -1 ? "" : formData.max_users || ""}
+                  onChange={(e) => setFormData(prev => ({ ...prev, max_users: e.target.value === "" ? -1 : parseInt(e.target.value) || 0 }))}
                   placeholder="-1 pour illimité"
                   autoComplete="off"
                 />
