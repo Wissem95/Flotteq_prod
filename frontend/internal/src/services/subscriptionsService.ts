@@ -134,6 +134,25 @@ export interface CreatePlanData {
   is_popular?: boolean;
 }
 
+export interface CreatePlanApiData {
+  name: string;
+  description: string;
+  price: number;
+  price_monthly?: number;
+  price_yearly?: number;
+  currency: string;
+  billing_cycle: 'monthly' | 'yearly';
+  features: string[];
+  limits?: object;
+  max_vehicles?: number;
+  max_users?: number;
+  support_level?: string;
+  is_active?: boolean;
+  is_popular?: boolean;
+  sort_order?: number;
+  metadata?: object;
+}
+
 // === SERVICE ===
 
 export const subscriptionsService = {
@@ -204,8 +223,42 @@ export const subscriptionsService = {
     return response.data;
   },
 
-  async createPlan(data: CreatePlanData): Promise<SubscriptionPlan> {
-    const response = await api.post('/internal/subscriptions/plans', data);
+  async createPlan(data: CreatePlanData | CreatePlanApiData): Promise<SubscriptionPlan> {
+    // Transform data if it's in the frontend format
+    let apiData: CreatePlanApiData;
+    
+    if ('price_monthly' in data && 'max_vehicles' in data) {
+      // Frontend format - transform to API format
+      const frontendData = data as CreatePlanData;
+      apiData = {
+        name: frontendData.name,
+        description: frontendData.description,
+        price: frontendData.price_monthly,
+        price_monthly: frontendData.price_monthly,
+        price_yearly: frontendData.price_yearly,
+        currency: 'EUR',
+        billing_cycle: 'monthly',
+        features: frontendData.features,
+        max_vehicles: frontendData.max_vehicles,
+        max_users: frontendData.max_users,
+        support_level: frontendData.support_level,
+        is_active: true,
+        is_popular: frontendData.is_popular ?? false,
+        sort_order: frontendData.support_level === 'enterprise' ? 3 : 
+                   frontendData.support_level === 'premium' ? 2 : 1,
+        metadata: {
+          pricing: {
+            monthly: frontendData.price_monthly,
+            yearly: frontendData.price_yearly
+          }
+        }
+      };
+    } else {
+      // Already in API format
+      apiData = data as CreatePlanApiData;
+    }
+
+    const response = await api.post('/internal/subscriptions/plans', apiData);
     return response.data;
   },
 

@@ -57,20 +57,29 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
       const planData = {
         name: formData.name,
         description: formData.description,
-        price: formData.price_monthly, // L'API attend 'price' pas 'price_monthly'
+        price: formData.price_monthly,
+        price_monthly: formData.price_monthly,
+        price_yearly: formData.price_yearly,
         currency: "EUR",
         billing_cycle: "monthly" as const,
         features: formData.features,
-        limits: {
-          vehicles: formData.max_vehicles,
-          users: formData.max_users,
-          support_tickets: formData.support_level === 'enterprise' ? -1 : 
-                          formData.support_level === 'premium' ? 20 : 5
-        },
+        max_vehicles: formData.max_vehicles,
+        max_users: formData.max_users,
+        support_level: formData.support_level,
         is_active: true,
         is_popular: formData.is_popular,
         sort_order: formData.support_level === 'enterprise' ? 3 : 
-                   formData.support_level === 'premium' ? 2 : 1
+                   formData.support_level === 'premium' ? 2 : 1,
+        metadata: {
+          pricing: {
+            monthly: formData.price_monthly,
+            yearly: formData.price_yearly
+          },
+          badge: formData.support_level === 'enterprise' ? 'Premium' : 
+                formData.support_level === 'premium' ? 'Populaire' : 'Essentiel',
+          color: formData.support_level === 'enterprise' ? '#EF4444' : 
+                formData.support_level === 'premium' ? '#8B5CF6' : '#6B7280'
+        }
       };
 
       await subscriptionsService.createPlan(planData as any);

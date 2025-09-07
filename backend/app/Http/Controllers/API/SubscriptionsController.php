@@ -115,16 +115,66 @@ class SubscriptionsController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
+            'price_monthly' => 'sometimes|numeric|min:0',
+            'price_yearly' => 'sometimes|numeric|min:0',
             'currency' => 'required|string|size:3',
             'billing_cycle' => 'required|in:monthly,yearly',
             'features' => 'required|array',
             'limits' => 'nullable|array',
+            'max_vehicles' => 'sometimes|integer|min:-1',
+            'max_users' => 'sometimes|integer|min:-1',
+            'support_level' => 'sometimes|string|in:basic,premium,enterprise',
             'is_active' => 'boolean',
             'is_popular' => 'boolean',
-            'sort_order' => 'integer|min:0'
+            'sort_order' => 'integer|min:0',
+            'metadata' => 'nullable|array'
         ]);
 
-        $plan = Subscription::create($validated);
+        // Transform frontend data to backend structure
+        $data = [
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'price' => $validated['price'],
+            'currency' => $validated['currency'],
+            'billing_cycle' => $validated['billing_cycle'],
+            'features' => $validated['features'],
+            'is_active' => $validated['is_active'] ?? true,
+            'is_popular' => $validated['is_popular'] ?? false,
+            'sort_order' => $validated['sort_order'] ?? 0,
+            'metadata' => $validated['metadata'] ?? []
+        ];
+
+        // Handle limits from frontend format
+        if (isset($validated['limits'])) {
+            $data['limits'] = $validated['limits'];
+        } else {
+            // Build limits from individual fields if provided
+            $limits = [];
+            if (isset($validated['max_vehicles'])) {
+                $limits['vehicles'] = $validated['max_vehicles'];
+            }
+            if (isset($validated['max_users'])) {
+                $limits['users'] = $validated['max_users'];
+            }
+            if (isset($validated['support_level'])) {
+                $limits['support_tickets'] = match($validated['support_level']) {
+                    'enterprise' => -1,
+                    'premium' => 20,
+                    default => 5
+                };
+            }
+            $data['limits'] = $limits;
+        }
+
+        // Store additional pricing info in metadata if provided
+        if (isset($validated['price_monthly']) || isset($validated['price_yearly'])) {
+            $data['metadata']['pricing'] = [
+                'monthly' => $validated['price_monthly'] ?? $validated['price'],
+                'yearly' => $validated['price_yearly'] ?? ($validated['price'] * 12 * 0.8)
+            ];
+        }
+
+        $plan = Subscription::create($data);
 
         return response()->json([
             'message' => 'Subscription plan created successfully',
