@@ -18,6 +18,8 @@ class UserSubscription extends Model
         'end_date',
         'trial_ends_at',
         'auto_renew',
+        'billing_cycle',
+        'price_at_subscription',
         'metadata'
     ];
 
@@ -27,6 +29,7 @@ class UserSubscription extends Model
         'start_date' => 'datetime',
         'end_date' => 'datetime',
         'trial_ends_at' => 'datetime',
+        'price_at_subscription' => 'decimal:2',
         'metadata' => 'array'
     ];
 

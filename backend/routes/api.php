@@ -245,6 +245,7 @@ Route::middleware(['auth:internal'])->prefix('internal')->group(function () {
     // Subscriptions management (Internal only)
     Route::prefix('subscriptions')->group(function () {
         Route::get('/', [App\Http\Controllers\API\SubscriptionsController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\API\SubscriptionsController::class, 'createSubscription']);
         Route::get('/stats', [App\Http\Controllers\API\SubscriptionsController::class, 'getStats']);
         Route::get('/plans', [App\Http\Controllers\API\SubscriptionsController::class, 'getPlans']);
         Route::post('/plans', [App\Http\Controllers\API\SubscriptionsController::class, 'createPlan']);

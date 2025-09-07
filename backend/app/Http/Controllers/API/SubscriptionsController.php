@@ -7,6 +7,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Subscription;
 use App\Models\UserSubscription;
+use App\Models\Tenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +38,81 @@ class SubscriptionsController extends Controller
         $subscriptions = $query->paginate($request->get('per_page', 20));
 
         return response()->json($subscriptions);
+    }
+
+    /**
+     * Create a new subscription assignment (assign a plan to a tenant)
+     */
+    public function createSubscription(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'tenant_id' => 'required|integer|exists:tenants,id',
+            'subscription_id' => 'required|integer|exists:subscriptions,id',
+            'billing_cycle' => 'required|in:monthly,yearly',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'auto_renew' => 'boolean',
+            'trial_days' => 'nullable|integer|min:0|max:365',
+            'metadata' => 'nullable|array'
+        ]);
+
+        try {
+            // Check if tenant already has an active subscription
+            $existingSubscription = UserSubscription::where('tenant_id', $validated['tenant_id'])
+                ->where('is_active', true)
+                ->first();
+
+            if ($existingSubscription) {
+                return response()->json([
+                    'error' => 'Tenant already has an active subscription',
+                    'existing_subscription' => $existingSubscription->load('subscription')
+                ], 400);
+            }
+
+            // Get the subscription plan to save the price at time of subscription
+            $plan = Subscription::findOrFail($validated['subscription_id']);
+
+            // Prepare subscription data
+            $subscriptionData = [
+                'tenant_id' => $validated['tenant_id'],
+                'subscription_id' => $validated['subscription_id'],
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'],
+                'billing_cycle' => $validated['billing_cycle'],
+                'price_at_subscription' => $plan->price,
+                'is_active' => true,
+                'auto_renew' => $validated['auto_renew'] ?? false,
+                'metadata' => $validated['metadata'] ?? []
+            ];
+
+            // Handle trial period if specified
+            if (isset($validated['trial_days']) && $validated['trial_days'] > 0) {
+                $subscriptionData['trial_ends_at'] = now()->addDays($validated['trial_days']);
+            }
+
+            // Create the subscription
+            $userSubscription = UserSubscription::create($subscriptionData);
+
+            // Load relationships for response
+            $userSubscription->load(['subscription', 'tenant']);
+
+            return response()->json([
+                'message' => 'Subscription created successfully',
+                'subscription' => $userSubscription
+            ], 201);
+
+        } catch (\Exception $e) {
+            \Log::error('Error creating subscription: ' . $e->getMessage(), [
+                'tenant_id' => $validated['tenant_id'] ?? null,
+                'subscription_id' => $validated['subscription_id'] ?? null,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to create subscription',
+                'message' => 'An error occurred while processing your request'
+            ], 500);
+        }
     }
 
     /**
