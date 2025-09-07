@@ -100,15 +100,15 @@ const PlansManagement: React.FC = () => {
   const openEditModal = (plan: SubscriptionPlan) => {
     setEditingPlan(plan);
     setFormData({
-      name: plan.name,
-      description: plan.description,
-      price_monthly: plan.price_monthly,
-      price_yearly: plan.price_yearly,
-      features: plan.features,
-      max_vehicles: plan.max_vehicles,
-      max_users: plan.max_users,
-      support_level: plan.support_level,
-      is_popular: plan.is_popular,
+      name: plan.name || '',
+      description: plan.description || '',
+      price_monthly: plan.price_monthly || 0,
+      price_yearly: plan.price_yearly || 0,
+      features: plan.features || [],
+      max_vehicles: plan.max_vehicles || 0,
+      max_users: plan.max_users || 0,
+      support_level: plan.support_level || 'basic',
+      is_popular: plan.is_popular || false,
     });
   };
 
@@ -119,11 +119,16 @@ const PlansManagement: React.FC = () => {
     }).format(price);
   };
 
-  const getPlanIcon = (planName: string) => {
+  const getPlanIcon = (planName?: string) => {
+    if (!planName) {
+      return <Star className="w-5 h-5 text-gray-500" />;
+    }
+    
     switch (planName.toLowerCase()) {
       case 'starter':
         return <Zap className="w-5 h-5 text-green-500" />;
       case 'business':
+      case 'professional':
         return <Building2 className="w-5 h-5 text-blue-500" />;
       case 'enterprise':
         return <Crown className="w-5 h-5 text-purple-500" />;
@@ -132,7 +137,7 @@ const PlansManagement: React.FC = () => {
     }
   };
 
-  const getSupportBadge = (level: string) => {
+  const getSupportBadge = (level?: string) => {
     switch (level) {
       case 'basic':
         return <Badge variant="secondary">Support basique</Badge>;
@@ -185,7 +190,10 @@ const PlansManagement: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatPrice(Math.min(...plans.map(p => p.price_monthly)))}
+              {plans.length > 0 && plans.some(p => p.price_monthly !== undefined) 
+                ? formatPrice(Math.min(...plans.filter(p => p.price_monthly !== undefined).map(p => p.price_monthly)))
+                : '0,00 €'
+              }
             </div>
             <p className="text-xs text-muted-foreground">par mois</p>
           </CardContent>
@@ -198,7 +206,10 @@ const PlansManagement: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatPrice(Math.max(...plans.map(p => p.price_monthly)))}
+              {plans.length > 0 && plans.some(p => p.price_monthly !== undefined) 
+                ? formatPrice(Math.max(...plans.filter(p => p.price_monthly !== undefined).map(p => p.price_monthly)))
+                : '0,00 €'
+              }
             </div>
             <p className="text-xs text-muted-foreground">par mois</p>
           </CardContent>
@@ -275,15 +286,17 @@ const PlansManagement: React.FC = () => {
                 {/* Prix */}
                 <div className="space-y-2">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold">{formatPrice(plan.price_monthly)}</span>
+                    <span className="text-3xl font-bold">{formatPrice(plan.price_monthly || 0)}</span>
                     <span className="text-gray-500">/mois</span>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {formatPrice(plan.price_yearly)} /an 
-                    <span className="text-green-600 ml-1">
-                      (économie de {Math.round((1 - plan.price_yearly / (plan.price_monthly * 12)) * 100)}%)
-                    </span>
-                  </div>
+                  {plan.price_yearly && plan.price_monthly && (
+                    <div className="text-sm text-gray-500">
+                      {formatPrice(plan.price_yearly)} /an 
+                      <span className="text-green-600 ml-1">
+                        (économie de {Math.round((1 - plan.price_yearly / (plan.price_monthly * 12)) * 100)}%)
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Limites */}
@@ -291,13 +304,13 @@ const PlansManagement: React.FC = () => {
                   <div className="flex items-center gap-2 text-sm">
                     <Car className="w-4 h-4 text-gray-500" />
                     <span>
-                      {plan.max_vehicles === -1 ? 'Véhicules illimités' : `${plan.max_vehicles} véhicules max`}
+                      {(plan.max_vehicles === -1 || plan.max_vehicles === undefined) ? 'Véhicules illimités' : `${plan.max_vehicles} véhicules max`}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Users className="w-4 h-4 text-gray-500" />
                     <span>
-                      {plan.max_users === -1 ? 'Utilisateurs illimités' : `${plan.max_users} utilisateurs max`}
+                      {(plan.max_users === -1 || plan.max_users === undefined) ? 'Utilisateurs illimités' : `${plan.max_users} utilisateurs max`}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
@@ -307,22 +320,24 @@ const PlansManagement: React.FC = () => {
                 </div>
 
                 {/* Fonctionnalités */}
-                <div>
-                  <h4 className="font-medium mb-2">Fonctionnalités incluses :</h4>
-                  <ul className="space-y-1">
-                    {plan.features.slice(0, 4).map((feature, index) => (
-                      <li key={index} className="flex items-center gap-2 text-sm">
-                        <Check className="w-3 h-3 text-green-500" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                    {plan.features.length > 4 && (
-                      <li className="text-sm text-gray-500">
-                        +{plan.features.length - 4} autres fonctionnalités
-                      </li>
-                    )}
-                  </ul>
-                </div>
+                {plan.features && plan.features.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-2">Fonctionnalités incluses :</h4>
+                    <ul className="space-y-1">
+                      {plan.features.slice(0, 4).map((feature, index) => (
+                        <li key={index} className="flex items-center gap-2 text-sm">
+                          <Check className="w-3 h-3 text-green-500" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                      {plan.features.length > 4 && (
+                        <li className="text-sm text-gray-500">
+                          +{plan.features.length - 4} autres fonctionnalités
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Statut */}
                 <div className="pt-2 border-t">
@@ -429,11 +444,11 @@ const PlansManagement: React.FC = () => {
             <div>
               <Label htmlFor="support_level">Niveau de support</Label>
               <Select 
-                value={formData.support_level} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, support_level: value as any }))}
+                value={formData.support_level || "basic"} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, support_level: value as 'basic' | 'premium' | 'enterprise' }))}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Sélectionner un niveau" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="basic">Support basique</SelectItem>
