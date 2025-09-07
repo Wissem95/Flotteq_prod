@@ -42,10 +42,20 @@ class UserSubscription extends Model
     }
 
     /**
-     * Get the tenant that owns the subscription
+     * Get the tenant that owns the subscription (through the user)
      */
     public function tenant(): BelongsTo
     {
-        return $this->belongsTo(Tenant::class, 'user_id');
+        return $this->belongsTo(Tenant::class, 'tenant_id', 'id')
+            ->join('users', 'users.tenant_id', '=', 'tenants.id')
+            ->where('users.id', '=', $this->user_id);
+    }
+    
+    /**
+     * Get the user that owns the subscription
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'user_id');
     }
 }
