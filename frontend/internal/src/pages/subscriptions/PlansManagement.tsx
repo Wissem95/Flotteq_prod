@@ -9,12 +9,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Plus, Edit, MoreHorizontal, Star, Check, Eye, Power, Users, Car, Shield, Zap, Crown, Building2, DollarSign, } from "lucide-react";
 import { SubscriptionPlan, subscriptionsService } from "@/services/subscriptionsService";
 import CreatePlanModal from "@/components/subscriptions/CreatePlanModal";
+import PlanDetailsModal from "@/components/subscriptions/PlanDetailsModal";
 
 const PlansManagement: React.FC = () => {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
+  const [viewingPlan, setViewingPlan] = useState<SubscriptionPlan | null>(null);
 
 
   useEffect(() => {
@@ -49,6 +51,10 @@ const PlansManagement: React.FC = () => {
     setEditingPlan(plan);
   };
 
+  const openDetailsModal = (plan: SubscriptionPlan) => {
+    setViewingPlan(plan);
+  };
+
   const handleModalSuccess = () => {
     loadPlans(); // Recharger la liste des plans
     setShowCreateModal(false);
@@ -58,6 +64,10 @@ const PlansManagement: React.FC = () => {
   const handleModalClose = () => {
     setShowCreateModal(false);
     setEditingPlan(null);
+  };
+
+  const handleDetailsModalClose = () => {
+    setViewingPlan(null);
   };
 
   const formatPrice = (price: number) => {
@@ -235,7 +245,7 @@ const PlansManagement: React.FC = () => {
                         <Edit className="w-4 h-4" />
                         Modifier
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="flex items-center gap-2">
+                      <DropdownMenuItem onClick={() => openDetailsModal(plan)} className="flex items-center gap-2">
                         <Eye className="w-4 h-4" />
                         Voir détails
                       </DropdownMenuItem>
@@ -337,6 +347,13 @@ const PlansManagement: React.FC = () => {
         onClose={handleModalClose}
         onSuccess={handleModalSuccess}
         editingPlan={editingPlan}
+      />
+
+      {/* Modal de détails du plan */}
+      <PlanDetailsModal
+        isOpen={viewingPlan !== null}
+        onClose={handleDetailsModalClose}
+        plan={viewingPlan}
       />
     </div>
   );

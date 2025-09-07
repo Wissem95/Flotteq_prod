@@ -249,6 +249,7 @@ Route::middleware(['auth:internal'])->prefix('internal')->group(function () {
         Route::get('/plans', [App\Http\Controllers\API\SubscriptionsController::class, 'getPlans']);
         Route::post('/plans', [App\Http\Controllers\API\SubscriptionsController::class, 'createPlan']);
         Route::put('/plans/{plan}', [App\Http\Controllers\API\SubscriptionsController::class, 'updatePlan']);
+        Route::post('/plans/{plan}/toggle-status', [App\Http\Controllers\API\SubscriptionsController::class, 'togglePlanStatus']);
         Route::delete('/plans/{plan}', [App\Http\Controllers\API\SubscriptionsController::class, 'deletePlan']);
     });
 

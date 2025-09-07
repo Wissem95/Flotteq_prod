@@ -209,6 +209,21 @@ class SubscriptionsController extends Controller
     }
 
     /**
+     * Toggle a subscription plan status (active/inactive)
+     */
+    public function togglePlanStatus(Subscription $plan): JsonResponse
+    {
+        $plan->update([
+            'is_active' => !$plan->is_active
+        ]);
+
+        return response()->json([
+            'message' => 'Plan status updated successfully',
+            'plan' => $plan->fresh()
+        ]);
+    }
+
+    /**
      * Delete a subscription plan
      */
     public function deletePlan(Subscription $plan): JsonResponse
