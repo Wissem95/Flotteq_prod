@@ -204,9 +204,11 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
               <Label htmlFor="name">Nom du plan *</Label>
               <Input
                 id="name"
+                name="name"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Ex: Starter, Professional, Enterprise"
+                autoComplete="off"
                 required
               />
             </div>
@@ -215,10 +217,12 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
               <Label htmlFor="description">Description *</Label>
               <Textarea
                 id="description"
+                name="description"
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Description détaillée du plan et ses avantages"
                 rows={3}
+                autoComplete="off"
                 required
               />
             </div>
@@ -233,6 +237,7 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
                 <Label htmlFor="price_monthly">Prix mensuel (€) *</Label>
                 <Input
                   id="price_monthly"
+                  name="price_monthly"
                   type="number"
                   step="0.01"
                   min="0"
@@ -245,6 +250,7 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
                       price_yearly: calculateYearlyPrice(monthly)
                     }));
                   }}
+                  autoComplete="off"
                   required
                 />
               </div>
@@ -254,11 +260,13 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
                 <div className="flex items-center gap-2">
                   <Input
                     id="price_yearly"
+                    name="price_yearly"
                     type="number"
                     step="0.01"
                     min="0"
                     value={formData.price_yearly}
                     onChange={(e) => setFormData(prev => ({ ...prev, price_yearly: parseFloat(e.target.value) || 0 }))}
+                    autoComplete="off"
                   />
                   <Badge variant="secondary" className="whitespace-nowrap">
                     -20%
@@ -280,11 +288,13 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
                 <Label htmlFor="max_vehicles">Nombre max de véhicules</Label>
                 <Input
                   id="max_vehicles"
+                  name="max_vehicles"
                   type="number"
                   min="-1"
                   value={formData.max_vehicles}
                   onChange={(e) => setFormData(prev => ({ ...prev, max_vehicles: parseInt(e.target.value) || 0 }))}
                   placeholder="-1 pour illimité"
+                  autoComplete="off"
                 />
                 <p className="text-xs text-gray-500 mt-1">-1 pour illimité</p>
               </div>
@@ -293,11 +303,13 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
                 <Label htmlFor="max_users">Nombre max d'utilisateurs</Label>
                 <Input
                   id="max_users"
+                  name="max_users"
                   type="number"
                   min="-1"
                   value={formData.max_users}
                   onChange={(e) => setFormData(prev => ({ ...prev, max_users: parseInt(e.target.value) || 0 }))}
                   placeholder="-1 pour illimité"
+                  autoComplete="off"
                 />
                 <p className="text-xs text-gray-500 mt-1">-1 pour illimité</p>
               </div>
@@ -311,7 +323,7 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
                   setFormData(prev => ({ ...prev, support_level: value }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger id="support_level">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -328,22 +340,29 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
             <h3 className="font-semibold text-lg">Fonctionnalités incluses</h3>
             
             <div className="flex gap-2">
-              <Input
-                value={currentFeature}
-                onChange={(e) => setCurrentFeature(e.target.value)}
-                placeholder="Ajouter une fonctionnalité"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addFeature();
-                  }
-                }}
-              />
+              <div className="flex-1">
+                <Label htmlFor="current_feature" className="sr-only">Nouvelle fonctionnalité</Label>
+                <Input
+                  id="current_feature"
+                  name="current_feature"
+                  value={currentFeature}
+                  onChange={(e) => setCurrentFeature(e.target.value)}
+                  placeholder="Ajouter une fonctionnalité"
+                  autoComplete="off"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addFeature();
+                    }
+                  }}
+                />
+              </div>
               <Button
                 type="button"
                 onClick={addFeature}
                 variant="outline"
                 size="icon"
+                aria-label="Ajouter la fonctionnalité"
               >
                 <Plus className="w-4 h-4" />
               </Button>
@@ -359,6 +378,7 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6"
+                    aria-label={`Supprimer la fonctionnalité: ${feature}`}
                   >
                     <X className="w-3 h-3" />
                   </Button>
