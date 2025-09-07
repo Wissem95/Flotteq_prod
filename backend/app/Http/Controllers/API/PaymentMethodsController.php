@@ -410,48 +410,4 @@ class PaymentMethodsController extends Controller
             ], 500);
         }
     }
-
-    public function testConnection(PaymentMethod $paymentMethod)
-    {
-        try {
-            // Test basique de la connexion selon le type de méthode de paiement
-            $testResult = [
-                'success' => true,
-                'response_time' => rand(50, 200) . 'ms', // Simulation
-                'status' => 'connected',
-                'provider_response' => 'Connection successful'
-            ];
-
-            // Logique spécifique selon le provider (à implémenter plus tard)
-            switch ($paymentMethod->provider) {
-                case 'stripe':
-                    // Test API Stripe
-                    break;
-                case 'paypal':
-                    // Test API PayPal
-                    break;
-                default:
-                    $testResult['status'] = 'simulated';
-                    break;
-            }
-
-            return response()->json([
-                'message' => 'Test de connexion effectué',
-                'payment_method' => $paymentMethod->display_name,
-                'test_result' => $testResult
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Erreur lors du test de connexion',
-                'message' => $e->getMessage(),
-                'test_result' => [
-                    'success' => false,
-                    'status' => 'error',
-                    'provider_response' => $e->getMessage()
-                ]
-            ], 500);
-        }
-    }
 }

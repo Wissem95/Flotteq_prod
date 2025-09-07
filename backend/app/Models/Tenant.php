@@ -266,4 +266,80 @@ class Tenant extends Model implements IsTenant
             default => 0,
         };
     }
+
+    /**
+     * Suspend this tenant.
+     */
+    public function suspend(string $reason = null): self
+    {
+        $this->update([
+            'status' => 'suspended',
+            'is_active' => false
+        ]);
+
+        // Log the suspension reason if provided
+        if ($reason) {
+            $this->analyticsEvents()->create([
+                'event_type' => 'tenant_suspended',
+                'event_data' => json_encode(['reason' => $reason]),
+                'user_id' => null,
+                'created_at' => now()
+            ]);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Activate this tenant.
+     */
+    public function activate(): self
+    {
+        $this->update([
+            'status' => 'active',
+            'is_active' => true
+        ]);
+
+        // Log the activation
+        $this->analyticsEvents()->create([
+            'event_type' => 'tenant_activated',
+            'event_data' => json_encode(['activated_at' => now()]),
+            'user_id' => null,
+            'created_at' => now()
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * Check if tenant is active.
+     */
+    public function isActive(): bool
+    {
+        return $this->is_active && $this->status === 'active';
+    }
+
+    /**
+     * Check if tenant is suspended.
+     */
+    public function isSuspended(): bool
+    {
+        return $this->status === 'suspended';
+    }
+
+    /**
+     * Scope to get only active tenants.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true)->where('status', 'active');
+    }
+
+    /**
+     * Scope to get only suspended tenants.
+     */
+    public function scopeSuspended($query)
+    {
+        return $query->where('status', 'suspended');
+    }
 }
