@@ -61,6 +61,9 @@ const PlansManagement: React.FC = () => {
   };
 
   const formatPrice = (price: number) => {
+    if (price === 0) {
+      return 'Gratuit';
+    }
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
       currency: 'EUR',
@@ -72,7 +75,13 @@ const PlansManagement: React.FC = () => {
       return <Star className="w-5 h-5 text-gray-500" />;
     }
     
-    switch (planName.toLowerCase()) {
+    const name = planName.toLowerCase();
+    
+    if (name.includes('trial') || name.includes('free') || name.includes('gratuit')) {
+      return <Star className="w-5 h-5 text-green-500" />;
+    }
+    
+    switch (name) {
       case 'starter':
         return <Zap className="w-5 h-5 text-green-500" />;
       case 'business':
@@ -185,7 +194,7 @@ const PlansManagement: React.FC = () => {
           </div>
         ) : (
           plans.map((plan) => (
-            <Card key={plan.id} className={`relative ${plan.is_popular ? 'ring-2 ring-blue-500' : ''}`}>
+            <Card key={plan.id} className={`relative ${plan.is_popular ? 'ring-2 ring-blue-500' : ''} ${(plan.price_monthly === 0 || plan.price_monthly === undefined) ? 'ring-2 ring-green-500' : ''}`}>
               {plan.is_popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                   <Badge className="bg-blue-500 text-white">
@@ -195,11 +204,25 @@ const PlansManagement: React.FC = () => {
                 </div>
               )}
               
+              {/* Badge automatique pour plans gratuits */}
+              {(plan.price_monthly === 0 || (plan.price_monthly === undefined && plan.name?.toLowerCase().includes('trial'))) && !plan.is_popular && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-green-500 text-white">
+                    <Check className="w-3 h-3 mr-1" />
+                    {plan.name?.toLowerCase().includes('trial') ? 'Essai gratuit' : 'Gratuit'}
+                  </Badge>
+                </div>
+              )}
+              
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {getPlanIcon(plan.name)}
                     <CardTitle className="text-xl">{plan.name}</CardTitle>
+                    {/* Badge inline pour plan gratuit si pas déjà affiché en haut */}
+                    {(plan.price_monthly === 0) && plan.is_popular && (
+                      <Badge className="bg-green-100 text-green-800 ml-2">Gratuit</Badge>
+                    )}
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -235,14 +258,23 @@ const PlansManagement: React.FC = () => {
                 <div className="space-y-2">
                   <div className="flex items-baseline gap-2">
                     <span className="text-3xl font-bold">{formatPrice(plan.price_monthly || 0)}</span>
-                    <span className="text-gray-500">/mois</span>
+                    {(plan.price_monthly !== 0) && <span className="text-gray-500">/mois</span>}
                   </div>
-                  {plan.price_yearly && plan.price_monthly && (
+                  {plan.price_yearly && plan.price_monthly && plan.price_monthly > 0 && (
                     <div className="text-sm text-gray-500">
                       {formatPrice(plan.price_yearly)} /an 
                       <span className="text-green-600 ml-1">
                         (économie de {Math.round((1 - plan.price_yearly / (plan.price_monthly * 12)) * 100)}%)
                       </span>
+                    </div>
+                  )}
+                  {/* Message spécial pour les plans gratuits */}
+                  {(plan.price_monthly === 0) && (
+                    <div className="text-sm text-green-600">
+                      {plan.name?.toLowerCase().includes('trial') 
+                        ? `Période d'essai ${plan.limits?.trial_days || 14} jours`
+                        : 'Plan gratuit à vie'
+                      }
                     </div>
                   )}
                 </div>

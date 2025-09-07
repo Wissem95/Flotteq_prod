@@ -95,10 +95,10 @@ const CreatePlanModal: React.FC<CreatePlanModalProps> = ({
       return;
     }
 
-    if (!formData.price_monthly || formData.price_monthly <= 0) {
+    if (formData.price_monthly < 0) {
       toast({
         title: "Erreur",
-        description: "Le prix mensuel doit être supérieur à 0",
+        description: "Le prix mensuel ne peut pas être négatif",
         variant: "destructive"
       });
       return;
