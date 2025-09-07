@@ -58,7 +58,7 @@ class SubscriptionsController extends Controller
 
         try {
             // Check if tenant already has an active subscription
-            $existingSubscription = UserSubscription::where('tenant_id', $validated['tenant_id'])
+            $existingSubscription = UserSubscription::where('user_id', $validated['tenant_id'])
                 ->where('is_active', true)
                 ->first();
 
@@ -72,12 +72,12 @@ class SubscriptionsController extends Controller
             // Get the subscription plan to save the price at time of subscription
             $plan = Subscription::findOrFail($validated['subscription_id']);
 
-            // Prepare subscription data
+            // Prepare subscription data with correct column names
             $subscriptionData = [
-                'tenant_id' => $validated['tenant_id'],
+                'user_id' => $validated['tenant_id'],              // user_id maps to tenant_id
                 'subscription_id' => $validated['subscription_id'],
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
+                'starts_at' => $validated['start_date'],           // starts_at maps to start_date
+                'ends_at' => $validated['end_date'],               // ends_at maps to end_date
                 'billing_cycle' => $validated['billing_cycle'],
                 'price_at_subscription' => $plan->price,
                 'is_active' => true,

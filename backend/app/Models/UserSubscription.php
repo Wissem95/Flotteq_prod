@@ -11,11 +11,11 @@ class UserSubscription extends Model
     use UsesLandlordConnection;
 
     protected $fillable = [
-        'tenant_id',
+        'user_id',           // Correspond à tenant_id dans la logique métier
         'subscription_id',
         'is_active',
-        'start_date',
-        'end_date',
+        'starts_at',         // Correspond à start_date dans la logique métier
+        'ends_at',           // Correspond à end_date dans la logique métier
         'trial_ends_at',
         'auto_renew',
         'billing_cycle',
@@ -26,8 +26,8 @@ class UserSubscription extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'auto_renew' => 'boolean',
-        'start_date' => 'datetime',
-        'end_date' => 'datetime',
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
         'trial_ends_at' => 'datetime',
         'price_at_subscription' => 'decimal:2',
         'metadata' => 'array'
@@ -46,6 +46,6 @@ class UserSubscription extends Model
      */
     public function tenant(): BelongsTo
     {
-        return $this->belongsTo(Tenant::class);
+        return $this->belongsTo(Tenant::class, 'user_id');
     }
 }
