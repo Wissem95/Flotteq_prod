@@ -11,6 +11,7 @@ use App\Models\Tenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class SubscriptionsController extends Controller
 {
@@ -57,8 +58,23 @@ class SubscriptionsController extends Controller
         ]);
 
         try {
-            // Check if tenant already has an active subscription
-            $existingSubscription = UserSubscription::where('user_id', $validated['tenant_id'])
+            // Find the primary/admin user for this tenant
+            $primaryUser = \App\Models\User::where('tenant_id', $validated['tenant_id'])
+                ->where('is_active', true)
+                ->orderBy('created_at')  // Get the first/primary user
+                ->first();
+
+            if (!$primaryUser) {
+                return response()->json([
+                    'error' => 'No active user found for this tenant',
+                    'message' => 'Cannot assign subscription to tenant without active users'
+                ], 400);
+            }
+
+            // Check if tenant already has an active subscription (via any of its users)
+            $existingSubscription = UserSubscription::whereIn('user_id', 
+                    \App\Models\User::where('tenant_id', $validated['tenant_id'])->pluck('id')
+                )
                 ->where('is_active', true)
                 ->first();
 
@@ -69,37 +85,59 @@ class SubscriptionsController extends Controller
                 ], 400);
             }
 
-            // Get the subscription plan to save the price at time of subscription
+            // Get the subscription plan
             $plan = Subscription::findOrFail($validated['subscription_id']);
 
-            // Prepare subscription data with correct column names
+            // Prepare subscription data (only use columns that exist in current DB)
             $subscriptionData = [
-                'user_id' => $validated['tenant_id'],              // user_id maps to tenant_id
+                'user_id' => $primaryUser->id,                    // Assign to primary user of tenant
                 'subscription_id' => $validated['subscription_id'],
-                'starts_at' => $validated['start_date'],           // starts_at maps to start_date
-                'ends_at' => $validated['end_date'],               // ends_at maps to end_date
-                'billing_cycle' => $validated['billing_cycle'],
-                'price_at_subscription' => $plan->price,
-                'is_active' => true,
-                'auto_renew' => $validated['auto_renew'] ?? false,
-                'metadata' => $validated['metadata'] ?? []
+                'starts_at' => $validated['start_date'],          
+                'ends_at' => $validated['end_date'],               
+                'is_active' => true
             ];
 
+            // Add optional fields only if they exist in database
+            if (Schema::hasColumn('user_subscriptions', 'billing_cycle')) {
+                $subscriptionData['billing_cycle'] = $validated['billing_cycle'];
+            }
+            if (Schema::hasColumn('user_subscriptions', 'price_at_subscription')) {
+                $subscriptionData['price_at_subscription'] = $plan->price;
+            }
+            if (Schema::hasColumn('user_subscriptions', 'auto_renew')) {
+                $subscriptionData['auto_renew'] = $validated['auto_renew'] ?? false;
+            }
+            if (Schema::hasColumn('user_subscriptions', 'metadata')) {
+                $subscriptionData['metadata'] = $validated['metadata'] ?? [];
+            }
+
             // Handle trial period if specified
-            if (isset($validated['trial_days']) && $validated['trial_days'] > 0) {
+            if (isset($validated['trial_days']) && $validated['trial_days'] > 0 && 
+                Schema::hasColumn('user_subscriptions', 'trial_ends_at')) {
                 $subscriptionData['trial_ends_at'] = now()->addDays($validated['trial_days']);
             }
 
             // Create the subscription
             $userSubscription = UserSubscription::create($subscriptionData);
 
-            // Load relationships for response
-            $userSubscription->load(['subscription', 'tenant']);
-
-            return response()->json([
+            // Load relationships for response  
+            $userSubscription->load(['subscription']);
+            
+            // Add tenant info to response
+            $response = [
                 'message' => 'Subscription created successfully',
-                'subscription' => $userSubscription
-            ], 201);
+                'subscription' => $userSubscription,
+                'tenant' => [
+                    'id' => $validated['tenant_id'],
+                    'name' => Tenant::find($validated['tenant_id'])->name
+                ],
+                'assigned_to_user' => [
+                    'id' => $primaryUser->id,
+                    'name' => trim($primaryUser->first_name . ' ' . $primaryUser->last_name)
+                ]
+            ];
+
+            return response()->json($response, 201);
 
         } catch (\Exception $e) {
             \Log::error('Error creating subscription: ' . $e->getMessage(), [
