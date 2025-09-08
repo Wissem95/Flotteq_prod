@@ -42,26 +42,26 @@ class AlertsController extends Controller
 
             $alerts = $alerts->merge($vehicleAlerts);
 
-            // Maintenance alerts (overdue)
-            $overdueMaintenances = Maintenance::with(['vehicle.tenant'])
-                ->where('status', 'pending')
-                ->where('scheduled_date', '<', now())
+            // Maintenance alerts (upcoming in next 30 days)
+            $upcomingMaintenances = Maintenance::with(['vehicle.tenant'])
+                ->where('date', '>', now())
+                ->where('date', '<=', now()->addDays(30))
                 ->limit(10)
                 ->get()
                 ->map(function ($maintenance) {
                     return [
                         'id' => 'maintenance_' . $maintenance->id,
-                        'type' => 'maintenance_overdue',
-                        'title' => 'Maintenance en retard',
-                        'message' => "Maintenance en retard pour le véhicule {$maintenance->vehicle->immatriculation}",
-                        'severity' => 'high',
+                        'type' => 'maintenance_upcoming',
+                        'title' => 'Maintenance programmée',
+                        'message' => "Maintenance programmée pour le véhicule {$maintenance->vehicle->immatriculation} - {$maintenance->type}",
+                        'severity' => 'medium',
                         'tenant' => $maintenance->vehicle->tenant->name ?? 'N/A',
-                        'created_at' => $maintenance->scheduled_date,
+                        'created_at' => $maintenance->date,  // Fixed: scheduled_date → date
                         'read' => false,
                     ];
                 });
 
-            $alerts = $alerts->merge($overdueMaintenances);
+            $alerts = $alerts->merge($upcomingMaintenances);  // Fixed: $overdueMaintenances → $upcomingMaintenances
 
             // System health alerts
             $systemAlerts = $this->getSystemHealthAlerts();
