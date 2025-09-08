@@ -160,7 +160,7 @@ class SubscriptionsController extends Controller
     {
         $totalSubscriptions = UserSubscription::count();
         $activeSubscriptions = UserSubscription::where('is_active', true)->count();
-        $expiredSubscriptions = UserSubscription::where('end_date', '<', now())->count();
+        $expiredSubscriptions = UserSubscription::where('ends_at', '<', now())->count();  // Fixed: end_date → ends_at
         $trialSubscriptions = UserSubscription::whereBetween('created_at', [now()->subDays(30), now()])->count();
         
         // Monthly revenue calculation
