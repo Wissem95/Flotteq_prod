@@ -198,10 +198,10 @@ class SubscriptionsController extends Controller
             'active_subscriptions' => $activeSubscriptions,
             'expired_subscriptions' => $expiredSubscriptions,
             'trial_subscriptions' => $trialSubscriptions,
-            'monthly_revenue' => round($monthlyRevenue, 2),
+            'monthly_revenue' => round((float) $monthlyRevenue, 2),     // Fixed: cast to float
             'revenue_by_plan' => $revenueByPlan,
             'subscriptions_by_plan' => $subscriptionsByPlan,
-            'growth_rate' => round($growthRate, 2),
+            'growth_rate' => round((float) $growthRate, 2),             // Fixed: cast to float
             'conversion_metrics' => [
                 'trial_to_paid' => 85.4, // Mock data - implement proper calculation
                 'churn_rate' => 5.2,
