@@ -42,26 +42,59 @@ class AlertsController extends Controller
 
             $alerts = $alerts->merge($vehicleAlerts);
 
-            // Maintenance alerts (upcoming in next 30 days)
-            $upcomingMaintenances = Maintenance::with(['vehicle.tenant'])
-                ->where('date', '>', now())
-                ->where('date', '<=', now()->addDays(30))
+            // Maintenance alerts - Overdue (en retard)
+            $overdueMaintenances = Maintenance::with(['vehicle.tenant'])
+                ->overdue()  // Utilise le scope défini dans le modèle
                 ->limit(10)
                 ->get()
                 ->map(function ($maintenance) {
+                    $daysOverdue = now()->diffInDays($maintenance->scheduled_date);
                     return [
-                        'id' => 'maintenance_' . $maintenance->id,
-                        'type' => 'maintenance_upcoming',
-                        'title' => 'Maintenance programmée',
-                        'message' => "Maintenance programmée pour le véhicule {$maintenance->vehicle->immatriculation} - {$maintenance->type}",
-                        'severity' => 'medium',
+                        'id' => 'maintenance_overdue_' . $maintenance->id,
+                        'type' => 'maintenance_overdue',
+                        'title' => 'Maintenance en retard',
+                        'message' => "⚠️ Maintenance en retard de {$daysOverdue} jours pour le véhicule {$maintenance->vehicle->immatriculation} - {$maintenance->type}",
+                        'severity' => 'high',
                         'tenant' => $maintenance->vehicle->tenant->name ?? 'N/A',
-                        'created_at' => $maintenance->date,  // Fixed: scheduled_date → date
+                        'created_at' => $maintenance->scheduled_date,
                         'read' => false,
+                        'metadata' => [
+                            'vehicle_id' => $maintenance->vehicle_id,
+                            'maintenance_id' => $maintenance->id,
+                            'days_overdue' => $daysOverdue,
+                            'priority' => $maintenance->priority ?? 'medium'
+                        ]
                     ];
                 });
 
-            $alerts = $alerts->merge($upcomingMaintenances);  // Fixed: $overdueMaintenances → $upcomingMaintenances
+            $alerts = $alerts->merge($overdueMaintenances);
+
+            // Maintenance alerts - Upcoming (à venir dans les 30 prochains jours)
+            $upcomingMaintenances = Maintenance::with(['vehicle.tenant'])
+                ->upcoming(30)  // Utilise le scope défini dans le modèle
+                ->limit(10)
+                ->get()
+                ->map(function ($maintenance) {
+                    $daysUntil = now()->diffInDays($maintenance->scheduled_date);
+                    return [
+                        'id' => 'maintenance_upcoming_' . $maintenance->id,
+                        'type' => 'maintenance_upcoming',
+                        'title' => 'Maintenance à venir',
+                        'message' => "📅 Maintenance prévue dans {$daysUntil} jours pour le véhicule {$maintenance->vehicle->immatriculation} - {$maintenance->type}",
+                        'severity' => $daysUntil <= 7 ? 'medium' : 'low',
+                        'tenant' => $maintenance->vehicle->tenant->name ?? 'N/A',
+                        'created_at' => $maintenance->scheduled_date,
+                        'read' => false,
+                        'metadata' => [
+                            'vehicle_id' => $maintenance->vehicle_id,
+                            'maintenance_id' => $maintenance->id,
+                            'days_until' => $daysUntil,
+                            'priority' => $maintenance->priority ?? 'medium'
+                        ]
+                    ];
+                });
+
+            $alerts = $alerts->merge($upcomingMaintenances);
 
             // System health alerts
             $systemAlerts = $this->getSystemHealthAlerts();
