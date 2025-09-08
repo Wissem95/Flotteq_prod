@@ -15,23 +15,26 @@ class Maintenance extends Model
     protected $fillable = [
         'vehicle_id',
         'user_id',
-        'type',                    // maintenance_type → type (selon la DB actuelle)
+        'maintenance_type',        // Colonne réelle dans DB
         'reason',
         'description',
-        'date',                    // maintenance_date → date (selon la DB actuelle)
-        'scheduled_date',          // Nouvelle colonne pour planification
+        'maintenance_date',        // Colonne réelle dans DB
         'mileage',
         'cost',
-        'garage',                  // workshop → garage (selon la DB actuelle)
-        'status',                  // Nouvelle colonne
-        'priority',                // Nouvelle colonne
-        'notes',                   // Nouvelle colonne
-        'next_maintenance_km',     // Nouvelle colonne
-        'completed_at',            // Nouvelle colonne
+        'workshop',                // Colonne réelle dans DB
+        'status',                  // Existe dans DB originale
+        'notes',                   // Existe dans DB originale
+        'next_maintenance',        // Colonne réelle dans DB
+        // Nouvelles colonnes (ajoutées par migration future)
+        'scheduled_date',          
+        'priority',                
+        'next_maintenance_km',     
+        'completed_at',            
     ];
 
     protected $casts = [
-        'date' => 'date',
+        'maintenance_date' => 'date',
+        'next_maintenance' => 'date',
         'scheduled_date' => 'date',
         'completed_at' => 'datetime',
         'cost' => 'decimal:2',
@@ -56,6 +59,54 @@ class Maintenance extends Model
     }
 
     /**
+     * Accessor for 'type' (compatibility with new naming)
+     */
+    public function getTypeAttribute(): ?string
+    {
+        return $this->maintenance_type;
+    }
+
+    /**
+     * Mutator for 'type' (compatibility with new naming)
+     */
+    public function setTypeAttribute($value): void
+    {
+        $this->attributes['maintenance_type'] = $value;
+    }
+
+    /**
+     * Accessor for 'date' (compatibility with new naming)
+     */
+    public function getDateAttribute(): ?string
+    {
+        return $this->maintenance_date ? $this->maintenance_date->format('Y-m-d') : null;
+    }
+
+    /**
+     * Mutator for 'date' (compatibility with new naming)
+     */
+    public function setDateAttribute($value): void
+    {
+        $this->attributes['maintenance_date'] = $value;
+    }
+
+    /**
+     * Accessor for 'garage' (compatibility with new naming)
+     */
+    public function getGarageAttribute(): ?string
+    {
+        return $this->workshop;
+    }
+
+    /**
+     * Mutator for 'garage' (compatibility with new naming)
+     */
+    public function setGarageAttribute($value): void
+    {
+        $this->attributes['workshop'] = $value;
+    }
+
+    /**
      * Scope for pending maintenances
      */
     public function scopePending($query)
@@ -64,22 +115,36 @@ class Maintenance extends Model
     }
 
     /**
-     * Scope for overdue maintenances
+     * Scope for overdue maintenances (compatible avec structure actuelle)
      */
     public function scopeOverdue($query)
     {
         return $query->where('status', '!=', 'completed')
                      ->where('status', '!=', 'cancelled')
-                     ->where('scheduled_date', '<', now());
+                     ->where(function ($q) {
+                         // Si scheduled_date existe, l'utiliser, sinon utiliser next_maintenance
+                         $q->where('scheduled_date', '<', now())
+                           ->orWhere(function ($subQ) {
+                               $subQ->whereNull('scheduled_date')
+                                    ->where('next_maintenance', '<', now());
+                           });
+                     });
     }
 
     /**
-     * Scope for upcoming maintenances
+     * Scope for upcoming maintenances (compatible avec structure actuelle)
      */
     public function scopeUpcoming($query, $days = 30)
     {
         return $query->where('status', 'scheduled')
-                     ->whereBetween('scheduled_date', [now(), now()->addDays($days)]);
+                     ->where(function ($q) use ($days) {
+                         // Si scheduled_date existe, l'utiliser, sinon utiliser next_maintenance
+                         $q->whereBetween('scheduled_date', [now(), now()->addDays($days)])
+                           ->orWhere(function ($subQ) use ($days) {
+                               $subQ->whereNull('scheduled_date')
+                                    ->whereBetween('next_maintenance', [now(), now()->addDays($days)]);
+                           });
+                     });
     }
 
     /**

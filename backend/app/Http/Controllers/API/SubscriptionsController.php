@@ -50,8 +50,8 @@ class SubscriptionsController extends Controller
             'tenant_id' => 'required|integer|exists:tenants,id',
             'subscription_id' => 'required|integer|exists:subscriptions,id',
             'billing_cycle' => 'required|in:monthly,yearly',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
+            'starts_at' => 'required|date',
+            'ends_at' => 'required|date|after:starts_at',
             'auto_renew' => 'boolean',
             'trial_days' => 'nullable|integer|min:0|max:365',
             'metadata' => 'nullable|array'
@@ -92,8 +92,8 @@ class SubscriptionsController extends Controller
             $subscriptionData = [
                 'user_id' => $primaryUser->id,                    // Assign to primary user of tenant
                 'subscription_id' => $validated['subscription_id'],
-                'starts_at' => $validated['start_date'],          
-                'ends_at' => $validated['end_date'],               
+                'starts_at' => $validated['starts_at'],          
+                'ends_at' => $validated['ends_at'],               
                 'is_active' => true
             ];
 

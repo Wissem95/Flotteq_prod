@@ -196,11 +196,7 @@ Route::middleware(['auth:internal'])->prefix('internal')->group(function () {
         Route::get('/tenants-list', [App\Http\Controllers\API\InternalDashboardController::class, 'getTenantsList']);
     });
 
-    // Additional internal routes
-    Route::get('/tickets', [App\Http\Controllers\API\SupportController::class, 'index']);
-    Route::get('/employees', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'index']);
-    Route::get('/stats', [App\Http\Controllers\API\InternalAnalyticsController::class, 'getStats']);
-    Route::get('/statistics', [App\Http\Controllers\API\InternalAnalyticsController::class, 'getStatistics']);
+    // Additional internal routes (ces routes sont déjà définies dans leurs sections respectives)
 
     // Partners management (Internal only)
     Route::prefix('partners')->group(function () {
@@ -262,13 +258,15 @@ Route::middleware(['auth:internal'])->prefix('internal')->group(function () {
         Route::post('/reports', [App\Http\Controllers\API\FinancialController::class, 'generateReport']);
     });
 
-    // Employees management (Internal only) - alias for employes route
-    Route::get('/employees/stats', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'getStats']);
-    Route::get('/employees', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'index']);
-    Route::get('/employees/{id}', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'show']);
-    Route::post('/employees', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'store']);
-    Route::put('/employees/{id}', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'update']);
-    Route::delete('/employees/{id}', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'destroy']);
+    // Employees routes (consolidated)
+    Route::prefix('employees')->group(function () {
+        Route::get('/stats', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'getStats']);
+        Route::get('/', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'index']);
+        Route::get('/{id}', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'show']);
+        Route::post('/', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'store']);
+        Route::put('/{id}', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'update']);
+        Route::delete('/{id}', [App\Http\Controllers\API\Admin\InternalEmployeeController::class, 'destroy']);
+    });
 
     // Promotions management (Internal only)
     Route::prefix('promotions')->group(function () {

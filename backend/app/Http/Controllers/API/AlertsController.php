@@ -48,7 +48,10 @@ class AlertsController extends Controller
                 ->limit(10)
                 ->get()
                 ->map(function ($maintenance) {
-                    $daysOverdue = now()->diffInDays($maintenance->scheduled_date);
+                    // Utiliser scheduled_date si disponible, sinon next_maintenance
+                    $referenceDate = $maintenance->scheduled_date ?? $maintenance->next_maintenance;
+                    $daysOverdue = $referenceDate ? now()->diffInDays($referenceDate) : 0;
+                    
                     return [
                         'id' => 'maintenance_overdue_' . $maintenance->id,
                         'type' => 'maintenance_overdue',
@@ -56,13 +59,14 @@ class AlertsController extends Controller
                         'message' => "⚠️ Maintenance en retard de {$daysOverdue} jours pour le véhicule {$maintenance->vehicle->immatriculation} - {$maintenance->type}",
                         'severity' => 'high',
                         'tenant' => $maintenance->vehicle->tenant->name ?? 'N/A',
-                        'created_at' => $maintenance->scheduled_date,
+                        'created_at' => $referenceDate ?? $maintenance->created_at,
                         'read' => false,
                         'metadata' => [
                             'vehicle_id' => $maintenance->vehicle_id,
                             'maintenance_id' => $maintenance->id,
                             'days_overdue' => $daysOverdue,
-                            'priority' => $maintenance->priority ?? 'medium'
+                            'priority' => $maintenance->priority ?? 'medium',
+                            'maintenance_type' => $maintenance->maintenance_type
                         ]
                     ];
                 });
@@ -75,7 +79,10 @@ class AlertsController extends Controller
                 ->limit(10)
                 ->get()
                 ->map(function ($maintenance) {
-                    $daysUntil = now()->diffInDays($maintenance->scheduled_date);
+                    // Utiliser scheduled_date si disponible, sinon next_maintenance
+                    $referenceDate = $maintenance->scheduled_date ?? $maintenance->next_maintenance;
+                    $daysUntil = $referenceDate ? now()->diffInDays($referenceDate, false) : 0;
+                    
                     return [
                         'id' => 'maintenance_upcoming_' . $maintenance->id,
                         'type' => 'maintenance_upcoming',
@@ -83,13 +90,14 @@ class AlertsController extends Controller
                         'message' => "📅 Maintenance prévue dans {$daysUntil} jours pour le véhicule {$maintenance->vehicle->immatriculation} - {$maintenance->type}",
                         'severity' => $daysUntil <= 7 ? 'medium' : 'low',
                         'tenant' => $maintenance->vehicle->tenant->name ?? 'N/A',
-                        'created_at' => $maintenance->scheduled_date,
+                        'created_at' => $referenceDate ?? $maintenance->created_at,
                         'read' => false,
                         'metadata' => [
                             'vehicle_id' => $maintenance->vehicle_id,
                             'maintenance_id' => $maintenance->id,
                             'days_until' => $daysUntil,
-                            'priority' => $maintenance->priority ?? 'medium'
+                            'priority' => $maintenance->priority ?? 'medium',
+                            'maintenance_type' => $maintenance->maintenance_type
                         ]
                     ];
                 });
