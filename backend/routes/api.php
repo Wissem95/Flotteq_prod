@@ -359,7 +359,9 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
     Route::prefix('tenant/subscription')->group(function () {
         Route::get('/plans', [App\Http\Controllers\API\TenantSubscriptionController::class, 'getAvailablePlans']);
         Route::get('/current', [App\Http\Controllers\API\TenantSubscriptionController::class, 'getCurrentSubscription']);
+        Route::get('/usage', [App\Http\Controllers\API\TenantSubscriptionController::class, 'getUsageStats']);
         Route::post('/subscribe', [App\Http\Controllers\API\TenantSubscriptionController::class, 'subscribe']);
+        Route::post('/change', [App\Http\Controllers\API\TenantSubscriptionController::class, 'changeSubscription']);
         Route::post('/cancel', [App\Http\Controllers\API\TenantSubscriptionController::class, 'cancelSubscription']);
         Route::get('/history', [App\Http\Controllers\API\TenantSubscriptionController::class, 'getSubscriptionHistory']);
         Route::get('/feature/{feature}/check', [App\Http\Controllers\API\TenantSubscriptionController::class, 'checkFeatureAccess']);
