@@ -63,17 +63,15 @@ class CheckPlanLimits
      */
     private function getCurrentSubscription($tenantId)
     {
-        // Récupérer l'abonnement actif du tenant via UserSubscription
-        $primaryUser = User::where('tenant_id', $tenantId)
-            ->orderBy('created_at')
-            ->first();
+        // Récupérer l'abonnement actif via n'importe quel utilisateur du tenant
+        $tenantUsers = User::where('tenant_id', $tenantId)->pluck('id');
 
-        if (!$primaryUser) {
+        if ($tenantUsers->isEmpty()) {
             return null;
         }
 
         return UserSubscription::with('subscription')
-            ->where('user_id', $primaryUser->id)
+            ->whereIn('user_id', $tenantUsers)
             ->where('is_active', true)
             ->where(function ($query) {
                 $query->whereNull('ends_at')
@@ -258,8 +256,8 @@ class CheckPlanLimits
     {
         $middleware = new self();
         
-        $primaryUser = User::where('tenant_id', $tenantId)->first();
-        if (!$primaryUser) {
+        $tenantUsers = User::where('tenant_id', $tenantId)->pluck('id');
+        if ($tenantUsers->isEmpty()) {
             return ['allowed' => false, 'message' => 'Tenant invalide'];
         }
 
