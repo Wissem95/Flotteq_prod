@@ -203,19 +203,120 @@ class Tenant extends Model implements IsTenant
     }
 
     /**
-     * Get subscriptions for this tenant.
+     * Get subscriptions for this tenant (tenant-centric approach).
      */
     public function subscriptions(): HasMany
     {
-        return $this->hasMany(UserSubscription::class);
+        return $this->hasMany(UserSubscription::class, 'tenant_id');
     }
 
     /**
-     * Get active subscription for this tenant.
+     * Get active subscription for this tenant (improved tenant-centric).
      */
     public function activeSubscription()
     {
-        return $this->subscriptions()->where('is_active', true)->first();
+        return $this->subscriptions()
+            ->with('subscription')
+            ->where('is_active', true)
+            ->where('status', 'active')
+            ->where(function ($query) {
+                $query->whereNull('ends_at')
+                      ->orWhere('ends_at', '>', now());
+            })
+            ->first();
+    }
+
+    /**
+     * Get current subscription plan for this tenant.
+     */
+    public function getCurrentPlan()
+    {
+        $tenantSubscription = $this->activeSubscription();
+        if ($tenantSubscription && $tenantSubscription->subscription) {
+            return $tenantSubscription->subscription;
+        }
+
+        // Fallback: try via users (compatibility during migration)
+        $userIds = $this->users()->pluck('id');
+        if ($userIds->isNotEmpty()) {
+            $userSubscription = UserSubscription::with('subscription')
+                ->whereIn('user_id', $userIds)
+                ->where('is_active', true)
+                ->first();
+            
+            return $userSubscription?->subscription;
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if tenant can add vehicles.
+     */
+    public function canAddVehicles(int $count = 1): bool
+    {
+        $plan = $this->getCurrentPlan();
+        if (!$plan) {
+            return false; // No plan = no additions allowed
+        }
+        
+        $maxVehicles = $plan->max_vehicles ?? 1;
+        $currentCount = $this->vehicles()->count();
+        
+        return ($currentCount + $count) <= $maxVehicles;
+    }
+
+    /**
+     * Check if tenant can add users.
+     */
+    public function canAddUsers(int $count = 1): bool
+    {
+        $plan = $this->getCurrentPlan();
+        if (!$plan) {
+            return false; // No plan = no additions allowed
+        }
+        
+        $maxUsers = $plan->max_users ?? 1;
+        $currentCount = $this->users()->count();
+        
+        return ($currentCount + $count) <= $maxUsers;
+    }
+
+    /**
+     * Get subscription limits summary.
+     */
+    public function getSubscriptionLimits(): array
+    {
+        $plan = $this->getCurrentPlan();
+        if (!$plan) {
+            return [
+                'plan_name' => 'Aucun plan',
+                'vehicles_used' => $this->vehicles()->count(),
+                'vehicles_limit' => 0,
+                'users_used' => $this->users()->count(),
+                'users_limit' => 0,
+                'vehicles_available' => 0,
+                'users_available' => 0
+            ];
+        }
+
+        $vehiclesUsed = $this->vehicles()->count();
+        $usersUsed = $this->users()->count();
+        $vehiclesLimit = $plan->max_vehicles ?? 1;
+        $usersLimit = $plan->max_users ?? 1;
+
+        return [
+            'plan_name' => $plan->name,
+            'plan_code' => $plan->code ?? 'unknown',
+            'vehicles_used' => $vehiclesUsed,
+            'vehicles_limit' => $vehiclesLimit,
+            'users_used' => $usersUsed,
+            'users_limit' => $usersLimit,
+            'vehicles_available' => max(0, $vehiclesLimit - $vehiclesUsed),
+            'users_available' => max(0, $usersLimit - $usersUsed),
+            'vehicles_at_limit' => $vehiclesUsed >= $vehiclesLimit,
+            'users_at_limit' => $usersUsed >= $usersLimit
+        ];
     }
 
     /**

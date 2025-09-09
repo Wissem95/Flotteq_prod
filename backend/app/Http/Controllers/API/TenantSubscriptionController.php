@@ -511,7 +511,7 @@ class TenantSubscriptionController extends Controller
     }
 
     /**
-     * Get subscription usage and limits for current tenant
+     * Get subscription usage and limits for current tenant (Enhanced with Tenant model)
      */
     public function getUsageStats(Request $request): JsonResponse
     {
@@ -525,45 +525,46 @@ class TenantSubscriptionController extends Controller
                 ], 400);
             }
 
-            // Get current subscription
-            $subscription = UserSubscription::with('subscription')
-                ->where('tenant_id', $tenantId)
-                ->where('is_active', true)
-                ->first();
+            $tenant = Tenant::find($tenantId);
+            if (!$tenant) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tenant not found'
+                ], 404);
+            }
 
-            // Current usage
-            $vehicleCount = Vehicle::where('tenant_id', $tenantId)->count();
-            $userCount = User::where('tenant_id', $tenantId)->count();
+            // Get subscription limits using the new Tenant method
+            $limits = $tenant->getSubscriptionLimits();
+            $subscription = $tenant->activeSubscription();
 
-            $limits = $subscription ? [
-                'vehicles' => $subscription->subscription->max_vehicles ?? 1,
-                'users' => $subscription->subscription->max_users ?? 1,
-            ] : [
-                'vehicles' => 1, // Free tier
-                'users' => 1
-            ];
-
+            // Build usage stats with percentages
             $usage = [
                 'vehicles' => [
-                    'used' => $vehicleCount,
-                    'limit' => $limits['vehicles'],
-                    'remaining' => max(0, $limits['vehicles'] - $vehicleCount),
-                    'percentage' => $limits['vehicles'] > 0 ? round(($vehicleCount / $limits['vehicles']) * 100, 1) : 100
+                    'used' => $limits['vehicles_used'],
+                    'limit' => $limits['vehicles_limit'],
+                    'remaining' => $limits['vehicles_available'],
+                    'percentage' => $limits['vehicles_limit'] > 0 
+                        ? round(($limits['vehicles_used'] / $limits['vehicles_limit']) * 100, 1) 
+                        : 100,
+                    'at_limit' => $limits['vehicles_at_limit']
                 ],
                 'users' => [
-                    'used' => $userCount,
-                    'limit' => $limits['users'],
-                    'remaining' => max(0, $limits['users'] - $userCount),
-                    'percentage' => $limits['users'] > 0 ? round(($userCount / $limits['users']) * 100, 1) : 100
+                    'used' => $limits['users_used'],
+                    'limit' => $limits['users_limit'],
+                    'remaining' => $limits['users_available'],
+                    'percentage' => $limits['users_limit'] > 0 
+                        ? round(($limits['users_used'] / $limits['users_limit']) * 100, 1) 
+                        : 100,
+                    'at_limit' => $limits['users_at_limit']
                 ]
             ];
 
-            // Warnings for limits approaching
+            // Generate warnings for approaching limits
             $warnings = [];
             if ($usage['vehicles']['percentage'] >= 80) {
                 $warnings[] = [
                     'type' => 'vehicles',
-                    'message' => "Vous approchez de la limite de véhicules ({$vehicleCount}/{$limits['vehicles']})",
+                    'message' => "Vous approchez de la limite de véhicules ({$usage['vehicles']['used']}/{$usage['vehicles']['limit']})",
                     'severity' => $usage['vehicles']['percentage'] >= 95 ? 'critical' : 'warning'
                 ];
             }
@@ -571,7 +572,7 @@ class TenantSubscriptionController extends Controller
             if ($usage['users']['percentage'] >= 80) {
                 $warnings[] = [
                     'type' => 'users',
-                    'message' => "Vous approchez de la limite d'utilisateurs ({$userCount}/{$limits['users']})",
+                    'message' => "Vous approchez de la limite d'utilisateurs ({$usage['users']['used']}/{$usage['users']['limit']})",
                     'severity' => $usage['users']['percentage'] >= 95 ? 'critical' : 'warning'
                 ];
             }
@@ -582,14 +583,23 @@ class TenantSubscriptionController extends Controller
                     'current_plan' => $subscription ? [
                         'id' => $subscription->subscription->id,
                         'name' => $subscription->subscription->name,
+                        'code' => $subscription->subscription->code,
                         'price' => $subscription->subscription->price,
-                        'billing_cycle' => $subscription->metadata['billing_cycle'] ?? 'monthly'
-                    ] : null,
+                        'billing_cycle' => $subscription->billing_cycle ?? 'monthly'
+                    ] : [
+                        'name' => $limits['plan_name'],
+                        'code' => 'free'
+                    ],
                     'usage' => $usage,
                     'warnings' => $warnings,
-                    'days_remaining' => $subscription && $subscription->end_date 
-                        ? Carbon::now()->diffInDays($subscription->end_date, false) 
-                        : null
+                    'capabilities' => [
+                        'can_add_vehicles' => $tenant->canAddVehicles(),
+                        'can_add_users' => $tenant->canAddUsers()
+                    ],
+                    'days_remaining' => $subscription && $subscription->ends_at 
+                        ? $subscription->daysRemaining()
+                        : null,
+                    'trial_days_remaining' => $subscription ? $subscription->trialDaysRemaining() : null
                 ]
             ]);
 
@@ -602,32 +612,45 @@ class TenantSubscriptionController extends Controller
     }
 
     /**
-     * Verify if tenant can upgrade/downgrade to a specific plan
+     * Verify if tenant can upgrade/downgrade to a specific plan (Enhanced)
      */
     private function verifyPlanLimits(int $tenantId, Subscription $newPlan): array
     {
-        $vehicleCount = Vehicle::where('tenant_id', $tenantId)->count();
-        $userCount = User::where('tenant_id', $tenantId)->count();
+        $tenant = Tenant::find($tenantId);
+        if (!$tenant) {
+            return [
+                'valid' => false,
+                'errors' => ['Tenant not found'],
+                'usage' => []
+            ];
+        }
 
+        $currentLimits = $tenant->getSubscriptionLimits();
         $errors = [];
-        $usage = [
-            'vehicles' => $vehicleCount,
-            'users' => $userCount,
-            'plan_limits' => [
-                'vehicles' => $newPlan->max_vehicles,
-                'users' => $newPlan->max_users
-            ]
-        ];
 
         // Check vehicle limits
-        if ($vehicleCount > ($newPlan->max_vehicles ?? 0)) {
-            $errors[] = "Vous avez {$vehicleCount} véhicules, mais le plan {$newPlan->name} est limité à {$newPlan->max_vehicles} véhicules.";
+        if ($currentLimits['vehicles_used'] > ($newPlan->max_vehicles ?? 0)) {
+            $errors[] = "Vous avez {$currentLimits['vehicles_used']} véhicules, mais le plan {$newPlan->name} est limité à {$newPlan->max_vehicles} véhicules.";
         }
 
         // Check user limits
-        if ($userCount > ($newPlan->max_users ?? 0)) {
-            $errors[] = "Vous avez {$userCount} utilisateurs, mais le plan {$newPlan->name} est limité à {$newPlan->max_users} utilisateurs.";
+        if ($currentLimits['users_used'] > ($newPlan->max_users ?? 0)) {
+            $errors[] = "Vous avez {$currentLimits['users_used']} utilisateurs, mais le plan {$newPlan->name} est limité à {$newPlan->max_users} utilisateurs.";
         }
+
+        $usage = [
+            'vehicles' => $currentLimits['vehicles_used'],
+            'users' => $currentLimits['users_used'],
+            'current_plan' => $currentLimits['plan_name'],
+            'new_plan_limits' => [
+                'vehicles' => $newPlan->max_vehicles,
+                'users' => $newPlan->max_users
+            ],
+            'compatibility' => [
+                'vehicles_compatible' => $currentLimits['vehicles_used'] <= ($newPlan->max_vehicles ?? 0),
+                'users_compatible' => $currentLimits['users_used'] <= ($newPlan->max_users ?? 0)
+            ]
+        ];
 
         return [
             'valid' => empty($errors),

@@ -9,7 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Vehicle;
 use App\Models\Maintenance;
 use App\Models\VehicleStatusNotification;
-use App\Http\Middleware\CheckPlanLimits;
+use App\Http\Middleware\CheckTenantLimits;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -66,7 +66,7 @@ class VehicleController extends Controller
         }
 
         // VÉRIFICATION DES LIMITES DU PLAN D'ABONNEMENT
-        $limitCheck = CheckPlanLimits::checkTenantLimits($user->tenant_id, 'vehicles');
+        $limitCheck = CheckTenantLimits::checkTenantLimits($user->tenant_id, 'vehicles');
         if (!$limitCheck['allowed']) {
             return response()->json([
                 'success' => false,
@@ -74,13 +74,8 @@ class VehicleController extends Controller
                 'message' => $limitCheck['message'],
                 'details' => $limitCheck['details'] ?? null,
                 'upgrade_required' => true,
-                'suggestion' => 'Passez à un plan supérieur pour ajouter plus de véhicules'
+                'suggestion' => $limitCheck['suggestion'] ?? 'Passez à un plan supérieur pour ajouter plus de véhicules'
             ], 422);
-        }
-
-        // Avertissement si proche de la limite
-        if (isset($limitCheck['warning']) && $limitCheck['warning']) {
-            // Note: On continue mais on pourra ajouter l'avertissement dans la réponse
         }
 
         $validated = $request->validate([

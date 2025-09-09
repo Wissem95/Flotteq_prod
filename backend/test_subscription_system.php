@@ -45,33 +45,40 @@ class SubscriptionSystemTester
     }
 
     /**
-     * Configuration de l'environnement de test
+     * Configuration de l'environnement de test (Tenant-centric)
      */
     private function setupTestEnvironment(): void
     {
-        echo "\n1. 🔧 CONFIGURATION DE L'ENVIRONNEMENT\n";
-        echo str_repeat('-', 40) . "\n";
+        echo "\n1. 🔧 CONFIGURATION DE L'ENVIRONNEMENT (TENANT-CENTRIC)\n";
+        echo str_repeat('-', 50) . "\n";
         
-        // Récupérer ou créer le tenant de test "3WS"
+        // Récupérer le tenant de test "3WS"
         $this->tenant = Tenant::where('name', '3WS')->first();
         
         if (!$this->tenant) {
-            echo "⚠️ Tenant '3WS' non trouvé, création...\n";
-            $this->tenant = Tenant::create([
-                'name' => '3WS',
-                'domain' => '3ws.flotteq.local'
-            ]);
+            echo "❌ Tenant '3WS' non trouvé!\n";
+            $this->testResults['setup'] = false;
+            return;
         }
 
         echo "✅ Tenant utilisé: {$this->tenant->name} (ID: {$this->tenant->id})\n";
 
-        // Vérifier les plans d'abonnement
-        $plans = Subscription::active()->get();
+        // Vérifier les plans d'abonnement avec nouvelles limites
+        $plans = Subscription::where('is_active', true)->orderBy('price')->get();
         echo "✅ Plans disponibles: " . $plans->count() . "\n";
         
         foreach ($plans as $plan) {
-            echo "   - {$plan->name}: {$plan->price}€ ({$plan->max_vehicles} véhicules, {$plan->max_users} users)\n";
+            echo "   - {$plan->name}: {$plan->price}€ ({$plan->max_vehicles}v, {$plan->max_users}u)\n";
         }
+
+        // Obtenir les informations d'abonnement actuelles via Tenant
+        $currentPlan = $this->tenant->getCurrentPlan();
+        $limits = $this->tenant->getSubscriptionLimits();
+        
+        echo "\n📊 Status abonnement actuel:\n";
+        echo "   Plan: {$limits['plan_name']}\n";
+        echo "   Véhicules: {$limits['vehicles_used']}/{$limits['vehicles_limit']}\n";
+        echo "   Utilisateurs: {$limits['users_used']}/{$limits['users_limit']}\n";
 
         $this->testResults['setup'] = true;
     }
@@ -110,35 +117,31 @@ class SubscriptionSystemTester
     }
 
     /**
-     * Test des limitations de plan
+     * Test des limitations de plan (Tenant-centric)
      */
     private function testPlanLimitations(): void
     {
-        echo "\n3. 🚫 TEST DES LIMITATIONS DE PLAN\n";
-        echo str_repeat('-', 40) . "\n";
+        echo "\n3. 🚫 TEST DES LIMITATIONS DE PLAN (TENANT-CENTRIC)\n";
+        echo str_repeat('-', 50) . "\n";
 
-        // Récupérer l'abonnement actuel
-        $primaryUser = User::where('tenant_id', $this->tenant->id)->first();
-        $subscription = UserSubscription::where('tenant_id', $this->tenant->id)
-            ->where('is_active', true)
-            ->with('subscription')
-            ->first();
+        // Utiliser les nouvelles méthodes du modèle Tenant
+        $limits = $this->tenant->getSubscriptionLimits();
+        $currentPlan = $this->tenant->getCurrentPlan();
 
-        if ($subscription) {
-            echo "📋 Plan actuel: {$subscription->subscription->name}\n";
-            echo "   Limites: {$subscription->subscription->max_vehicles} véhicules, {$subscription->subscription->max_users} utilisateurs\n";
-        } else {
-            echo "⚠️ Aucun abonnement actif - Mode gratuit\n";
+        echo "📋 Plan actuel: {$limits['plan_name']}\n";
+        if ($currentPlan) {
+            echo "   Code: {$currentPlan->code}\n";
+            echo "   Prix: {$currentPlan->price}€\n";
         }
+        echo "   Limites: {$limits['vehicles_limit']} véhicules, {$limits['users_limit']} utilisateurs\n";
 
-        // Test des limites véhicules
-        $currentVehicles = Vehicle::where('tenant_id', $this->tenant->id)->count();
-        $vehicleLimit = $subscription ? $subscription->subscription->max_vehicles : 1;
-        
+        // Test des limites véhicules avec nouvelles méthodes
         echo "\n🚗 Test limite véhicules:\n";
-        echo "   Utilisés: {$currentVehicles} / {$vehicleLimit}\n";
+        echo "   Utilisés: {$limits['vehicles_used']} / {$limits['vehicles_limit']}\n";
+        echo "   Disponibles: {$limits['vehicles_available']}\n";
+        echo "   Peut ajouter: " . ($this->tenant->canAddVehicles() ? '✅ OUI' : '❌ NON') . "\n";
         
-        if ($currentVehicles >= $vehicleLimit) {
+        if ($limits['vehicles_at_limit']) {
             echo "✅ Limitation fonctionnelle (limite atteinte)\n";
             $this->testResults['vehicle_limits'] = true;
         } else {
@@ -146,39 +149,50 @@ class SubscriptionSystemTester
             $this->testResults['vehicle_limits'] = 'partial';
         }
 
-        // Test des limites utilisateurs
-        $currentUsers = User::where('tenant_id', $this->tenant->id)->count();
-        $userLimit = $subscription ? $subscription->subscription->max_users : 1;
-        
+        // Test des limites utilisateurs avec nouvelles méthodes
         echo "\n👥 Test limite utilisateurs:\n";
-        echo "   Utilisés: {$currentUsers} / {$userLimit}\n";
+        echo "   Utilisés: {$limits['users_used']} / {$limits['users_limit']}\n";
+        echo "   Disponibles: {$limits['users_available']}\n";
+        echo "   Peut ajouter: " . ($this->tenant->canAddUsers() ? '✅ OUI' : '❌ NON') . "\n";
         
-        if ($currentUsers >= $userLimit) {
+        if ($limits['users_at_limit']) {
             echo "✅ Limitation fonctionnelle (limite atteinte)\n";
             $this->testResults['user_limits'] = true;
         } else {
             echo "⚠️ Limite non encore atteinte\n";
             $this->testResults['user_limits'] = 'partial';
         }
+
+        // Test du nouveau middleware
+        echo "\n🔒 Test middleware CheckTenantLimits:\n";
+        $vehicleCheck = \App\Http\Middleware\CheckTenantLimits::checkTenantLimits($this->tenant->id, 'vehicles');
+        echo "   Ajout véhicule: " . ($vehicleCheck['allowed'] ? '✅ AUTORISÉ' : '❌ BLOQUÉ') . "\n";
+        if (!$vehicleCheck['allowed']) {
+            echo "   Message: {$vehicleCheck['message']}\n";
+        }
+
+        $userCheck = \App\Http\Middleware\CheckTenantLimits::checkTenantLimits($this->tenant->id, 'users');
+        echo "   Ajout utilisateur: " . ($userCheck['allowed'] ? '✅ AUTORISÉ' : '❌ BLOQUÉ') . "\n";
+        if (!$userCheck['allowed']) {
+            echo "   Message: {$userCheck['message']}\n";
+        }
     }
 
     /**
-     * Test d'upgrade de plan
+     * Test d'upgrade de plan (Tenant-centric)
      */
     private function testPlanUpgrade(): void
     {
-        echo "\n4. ⬆️ TEST D'UPGRADE DE PLAN\n";
-        echo str_repeat('-', 40) . "\n";
+        echo "\n4. ⬆️ TEST D'UPGRADE DE PLAN (TENANT-CENTRIC)\n";
+        echo str_repeat('-', 50) . "\n";
 
         try {
-            // Récupérer l'abonnement actuel
-            $currentSubscription = UserSubscription::where('tenant_id', $this->tenant->id)
-                ->where('is_active', true)
-                ->with('subscription')
-                ->first();
+            // Utiliser les nouvelles méthodes Tenant
+            $currentPlan = $this->tenant->getCurrentPlan();
+            $currentSubscription = $this->tenant->activeSubscription();
 
             // Trouver un plan plus élevé
-            $currentPrice = $currentSubscription ? $currentSubscription->subscription->price : 0;
+            $currentPrice = $currentPlan ? $currentPlan->price : 0;
             $higherPlan = Subscription::where('price', '>', $currentPrice)
                 ->where('is_active', true)
                 ->orderBy('price')
@@ -191,29 +205,56 @@ class SubscriptionSystemTester
             }
 
             echo "📈 Upgrade vers: {$higherPlan->name} ({$higherPlan->price}€)\n";
+            echo "   Code: {$higherPlan->code}\n";
             echo "   Nouvelles limites: {$higherPlan->max_vehicles} véhicules, {$higherPlan->max_users} utilisateurs\n";
 
-            // Simuler l'upgrade
+            // Vérifier compatibilité avec TenantSubscriptionController method
+            $controller = new \App\Http\Controllers\API\TenantSubscriptionController();
+            $reflection = new \ReflectionClass($controller);
+            $method = $reflection->getMethod('verifyPlanLimits');
+            $method->setAccessible(true);
+            
+            $limitCheck = $method->invoke($controller, $this->tenant->id, $higherPlan);
+            
+            echo "   Compatibilité: " . ($limitCheck['valid'] ? '✅ COMPATIBLE' : '❌ INCOMPATIBLE') . "\n";
+            if (!$limitCheck['valid']) {
+                foreach ($limitCheck['errors'] as $error) {
+                    echo "   ⚠️ {$error}\n";
+                }
+            }
+
+            // Simuler l'upgrade en utilisant les nouvelles colonnes
             if ($currentSubscription) {
                 $currentSubscription->update([
                     'is_active' => false,
-                    'end_date' => now(),
+                    'status' => 'cancelled',
+                    'ends_at' => now(),
                 ]);
             }
 
             $newSubscription = UserSubscription::create([
                 'tenant_id' => $this->tenant->id,
                 'subscription_id' => $higherPlan->id,
+                'user_id' => User::where('tenant_id', $this->tenant->id)->first()->id,
                 'is_active' => true,
-                'start_date' => now(),
-                'end_date' => now()->addMonth(),
+                'status' => 'active',
+                'starts_at' => now(),
+                'ends_at' => now()->addMonth(),
+                'billing_cycle' => 'monthly',
                 'metadata' => [
-                    'billing_cycle' => 'monthly',
-                    'upgrade_test' => true
+                    'upgrade_test' => true,
+                    'previous_plan' => $currentPlan?->name
                 ]
             ]);
 
             echo "✅ Upgrade réussi vers {$higherPlan->name}\n";
+            
+            // Vérifier les nouvelles limites
+            $newLimits = $this->tenant->getSubscriptionLimits();
+            echo "   Nouvelles capacités:\n";
+            echo "   - Peut ajouter véhicules: " . ($this->tenant->canAddVehicles() ? '✅ OUI' : '❌ NON') . "\n";
+            echo "   - Peut ajouter utilisateurs: " . ($this->tenant->canAddUsers() ? '✅ OUI' : '❌ NON') . "\n";
+
             $this->testResults['upgrade'] = true;
 
         } catch (\Exception $e) {
