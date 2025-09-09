@@ -14,7 +14,7 @@ class CheckPlanLimits
     /**
      * Handle an incoming request to check plan limits
      */
-    public function handle(Request $request, Closure $next, string $resource = null): Response
+    public function handle(Request $request, Closure $next, ?string $resource = null): Response
     {
         $user = $request->user();
         
@@ -83,7 +83,7 @@ class CheckPlanLimits
     /**
      * Gérer les tenants sans abonnement (mode gratuit très limité)
      */
-    private function handleNoSubscription(Request $request, Closure $next, string $resource = null, int $tenantId): Response
+    private function handleNoSubscription(Request $request, Closure $next, ?string $resource, int $tenantId): Response
     {
         if ($resource === 'vehicles') {
             $vehicleCount = Vehicle::where('tenant_id', $tenantId)->count();
@@ -127,7 +127,7 @@ class CheckPlanLimits
     /**
      * Vérifier les limites pour une ressource spécifique
      */
-    private function checkResourceLimit($subscription, string $resource, int $tenantId, Request $request): array
+    private function checkResourceLimit($subscription, string $resource, int $tenantId, ?Request $request = null): array
     {
         $plan = $subscription->subscription;
         
