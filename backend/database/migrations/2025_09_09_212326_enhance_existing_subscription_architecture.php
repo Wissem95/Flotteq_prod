@@ -62,10 +62,10 @@ return new class extends Migration
 
         // 5. Add indexes for performance
         Schema::table('user_subscriptions', function (Blueprint $table) {
-            if (!$this->indexExists('user_subscriptions', 'user_subscriptions_tenant_id_status_index')) {
+            if (!Schema::hasIndex('user_subscriptions', 'user_subscriptions_tenant_id_status_index')) {
                 $table->index(['tenant_id', 'status']);
             }
-            if (!$this->indexExists('user_subscriptions', 'user_subscriptions_tenant_id_is_active_index')) {
+            if (!Schema::hasIndex('user_subscriptions', 'user_subscriptions_tenant_id_is_active_index')) {
                 $table->index(['tenant_id', 'is_active']);
             }
         });
@@ -135,11 +135,16 @@ return new class extends Migration
      */
     private function consolidateTenantSubscriptions(): void
     {
-        $tenants = DB::table('user_subscriptions')
-            ->whereNotNull('tenant_id')
-            ->select('tenant_id')
-            ->groupBy('tenant_id')
-            ->get();
+        try {
+            $tenants = DB::table('user_subscriptions')
+                ->whereNotNull('tenant_id')
+                ->select('tenant_id')
+                ->groupBy('tenant_id')
+                ->get();
+        } catch (\Exception $e) {
+            // Si la table n'a pas de tenant_id, on skip cette étape
+            return;
+        }
 
         foreach ($tenants as $tenant) {
             $subscriptions = DB::table('user_subscriptions')
@@ -165,19 +170,6 @@ return new class extends Migration
         }
     }
 
-    /**
-     * Check if index exists
-     */
-    private function indexExists(string $table, string $index): bool
-    {
-        try {
-            $sm = Schema::getConnection()->getDoctrineSchemaManager();
-            $indexes = $sm->listTableIndexes($table);
-            return array_key_exists($index, $indexes);
-        } catch (\Exception $e) {
-            return false;
-        }
-    }
 
     /**
      * Reverse the migrations.
@@ -186,11 +178,11 @@ return new class extends Migration
     {
         // Remove indexes
         Schema::table('user_subscriptions', function (Blueprint $table) {
-            try {
+            if (Schema::hasIndex('user_subscriptions', 'user_subscriptions_tenant_id_status_index')) {
                 $table->dropIndex(['tenant_id', 'status']);
+            }
+            if (Schema::hasIndex('user_subscriptions', 'user_subscriptions_tenant_id_is_active_index')) {
                 $table->dropIndex(['tenant_id', 'is_active']);
-            } catch (\Exception $e) {
-                // Ignore if indexes don't exist
             }
         });
 
