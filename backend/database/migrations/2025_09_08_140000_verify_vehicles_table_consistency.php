@@ -34,16 +34,16 @@ return new class extends Migration
         // Ajouter les indexes manquants s'ils n'existent pas
         Schema::table('vehicles', function (Blueprint $table) {
             // Vérifier si l'index n'existe pas avant de l'ajouter
-            if (!$this->indexExists('vehicles', 'vehicles_insurance_expiry_date_index')) {
+            if (!Schema::hasIndex('vehicles', 'vehicles_insurance_expiry_date_index')) {
                 $table->index('insurance_expiry_date');
             }
             
-            if (!$this->indexExists('vehicles', 'vehicles_insurance_expiry_date_status_index')) {
+            if (!Schema::hasIndex('vehicles', 'vehicles_insurance_expiry_date_status_index')) {
                 $table->index(['insurance_expiry_date', 'status']);
             }
             
             // Index pour les requêtes de performance communes
-            if (!$this->indexExists('vehicles', 'vehicles_tenant_id_status_index')) {
+            if (!Schema::hasIndex('vehicles', 'vehicles_tenant_id_status_index')) {
                 $table->index(['tenant_id', 'status']);
             }
         });
@@ -55,29 +55,17 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('vehicles', function (Blueprint $table) {
-            // Supprimer les indexes ajoutés
-            try {
+            // Supprimer les indexes ajoutés - vérifier existence d'abord
+            if (Schema::hasIndex('vehicles', 'vehicles_tenant_id_status_index')) {
                 $table->dropIndex(['tenant_id', 'status']);
+            }
+            if (Schema::hasIndex('vehicles', 'vehicles_insurance_expiry_date_status_index')) {
                 $table->dropIndex(['insurance_expiry_date', 'status']);
+            }
+            if (Schema::hasIndex('vehicles', 'vehicles_insurance_expiry_date_index')) {
                 $table->dropIndex(['insurance_expiry_date']);
-            } catch (\Exception $e) {
-                // Ignore if indexes don't exist
             }
         });
     }
 
-    /**
-     * Check if index exists
-     */
-    private function indexExists($table, $index): bool
-    {
-        try {
-            $sm = Schema::getConnection()->getDoctrineSchemaManager();
-            $indexes = $sm->listTableIndexes($table);
-            
-            return array_key_exists($index, $indexes);
-        } catch (\Exception $e) {
-            return false;
-        }
-    }
 };
