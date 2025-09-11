@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('user_subscriptions', function (Blueprint $table) {
             // Add missing fields that are in the UserSubscription model
             if (!Schema::hasColumn('user_subscriptions', 'trial_ends_at')) {
-                $table->timestamp('trial_ends_at')->nullable()->after('end_date');
+                $table->timestamp('trial_ends_at')->nullable()->after('ends_at');
             }
             
             if (!Schema::hasColumn('user_subscriptions', 'auto_renew')) {
@@ -35,8 +35,14 @@ return new class extends Migration
             }
             
             // Add index for better query performance
-            $table->index(['tenant_id', 'subscription_id']);
-            $table->index(['is_active', 'end_date']);
+            if (!Schema::hasIndex('user_subscriptions', 'user_subscriptions_tenant_id_subscription_id_index')) {
+                $table->index(['tenant_id', 'subscription_id']);
+            }
+            
+            // Use existing 'ends_at' column instead of non-existent 'end_date'
+            if (Schema::hasColumn('user_subscriptions', 'ends_at') && !Schema::hasIndex('user_subscriptions', 'user_subscriptions_is_active_ends_at_index')) {
+                $table->index(['is_active', 'ends_at']);
+            }
         });
     }
 
@@ -46,9 +52,15 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('user_subscriptions', function (Blueprint $table) {
-            // Remove indexes first
-            $table->dropIndex(['tenant_id', 'subscription_id']);
-            $table->dropIndex(['is_active', 'end_date']);
+            // Remove indexes first - check if they exist
+            if (Schema::hasIndex('user_subscriptions', 'user_subscriptions_tenant_id_subscription_id_index')) {
+                $table->dropIndex(['tenant_id', 'subscription_id']);
+            }
+            
+            // Drop index on 'ends_at' (not 'end_date')
+            if (Schema::hasIndex('user_subscriptions', 'user_subscriptions_is_active_ends_at_index')) {
+                $table->dropIndex(['is_active', 'ends_at']);
+            }
             
             // Drop columns in reverse order
             if (Schema::hasColumn('user_subscriptions', 'price_at_subscription')) {
