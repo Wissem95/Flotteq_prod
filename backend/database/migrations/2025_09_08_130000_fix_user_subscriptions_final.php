@@ -67,10 +67,10 @@ return new class extends Migration
 
         // Add proper indexes
         Schema::table('user_subscriptions', function (Blueprint $table) {
-            if (!$this->indexExists('user_subscriptions', 'user_subscriptions_user_id_subscription_id_index')) {
+            if (!Schema::hasIndex('user_subscriptions', 'user_subscriptions_user_id_subscription_id_index')) {
                 $table->index(['user_id', 'subscription_id']);
             }
-            if (!$this->indexExists('user_subscriptions', 'user_subscriptions_is_active_ends_at_index')) {
+            if (!Schema::hasIndex('user_subscriptions', 'user_subscriptions_is_active_ends_at_index')) {
                 $table->index(['is_active', 'ends_at']);
             }
         });
@@ -82,12 +82,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('user_subscriptions', function (Blueprint $table) {
-            // Remove indexes
-            try {
+            // Remove indexes - check if they exist first
+            if (Schema::hasIndex('user_subscriptions', 'user_subscriptions_user_id_subscription_id_index')) {
                 $table->dropIndex(['user_id', 'subscription_id']);
+            }
+            if (Schema::hasIndex('user_subscriptions', 'user_subscriptions_is_active_ends_at_index')) {
                 $table->dropIndex(['is_active', 'ends_at']);
-            } catch (\Exception $e) {
-                // Ignore if indexes don't exist
             }
             
             // Remove additional columns (keep core structure)
@@ -109,14 +109,4 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Check if index exists
-     */
-    private function indexExists($table, $index): bool
-    {
-        $sm = Schema::getConnection()->getDoctrineSchemaManager();
-        $indexes = $sm->listTableIndexes($table);
-        
-        return array_key_exists($index, $indexes);
-    }
 };
