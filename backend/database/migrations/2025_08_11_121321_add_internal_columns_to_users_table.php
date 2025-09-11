@@ -13,10 +13,14 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             // Colonne pour le rôle interne (admin, manager, etc.)
-            $table->string('role_interne', 50)->nullable()->after('role');
+            if (!Schema::hasColumn('users', 'role_interne')) {
+                $table->string('role_interne', 50)->nullable()->after('role');
+            }
 
             // Colonne pour identifier les utilisateurs internes
-            $table->boolean('is_internal')->default(false)->after('role_interne');
+            if (!Schema::hasColumn('users', 'is_internal')) {
+                $table->boolean('is_internal')->default(false)->after('role_interne');
+            }
         });
     }
 
@@ -26,7 +30,12 @@ return new class extends Migration
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['role_interne', 'is_internal']);
+            if (Schema::hasColumn('users', 'is_internal')) {
+                $table->dropColumn('is_internal');
+            }
+            if (Schema::hasColumn('users', 'role_interne')) {
+                $table->dropColumn('role_interne');
+            }
         });
     }
 };
