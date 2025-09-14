@@ -35,8 +35,6 @@ class User extends Authenticatable
         'role',
         'tenant_id',
         'is_active',
-        'is_internal',
-        'role_interne',
         'phone',
         'birthdate',
         'gender',
@@ -133,21 +131,6 @@ class User extends Authenticatable
         return $this->is_active;
     }
 
-    /**
-     * Check if user is internal (employé FlotteQ).
-     */
-    public function isInternal(): bool
-    {
-        return (bool) $this->is_internal;
-    }
-
-    /**
-     * Check if user is super admin interne.
-     */
-    public function isSuperAdmin(): bool
-    {
-        return $this->is_internal && in_array($this->role_interne, ['super_admin', 'admin']);
-    }
 
     /**
      * Vérifier si le profil utilisateur est incomplet.
