@@ -21,9 +21,8 @@ class TenantUsersController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            // Base query - seulement les utilisateurs non-internes (clients des tenants)
+            // Base query - seulement les utilisateurs tenant
             $query = User::with(['tenant'])
-                ->where('is_internal', false) // Exclure les employés FlotteQ
                 ->whereNotNull('tenant_id'); // S'assurer qu'ils appartiennent à un tenant
 
             // Filtre par tenant
@@ -71,9 +70,9 @@ class TenantUsersController extends Controller
 
             // Statistiques globales
             $stats = [
-                'total_users' => User::where('is_internal', false)->whereNotNull('tenant_id')->count(),
-                'active_users' => User::where('is_internal', false)->whereNotNull('tenant_id')->where('is_active', true)->count(),
-                'inactive_users' => User::where('is_internal', false)->whereNotNull('tenant_id')->where('is_active', false)->count(),
+                'total_users' => User::whereNotNull('tenant_id')->count(),
+                'active_users' => User::whereNotNull('tenant_id')->where('is_active', true)->count(),
+                'inactive_users' => User::whereNotNull('tenant_id')->where('is_active', false)->count(),
                 'users_by_tenant' => User::select('tenant_id', DB::raw('count(*) as count'))
                     ->where('is_internal', false)
                     ->whereNotNull('tenant_id')
