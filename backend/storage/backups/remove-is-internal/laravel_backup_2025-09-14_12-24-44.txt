@@ -1,0 +1,191 @@
+=== TABLE: users ===
+Count: 2
+Records: [
+    {
+        "id": 22,
+        "email": "belprelocation.reservation@gmail.com",
+        "username": "prenolsylvain",
+        "first_name": "Prenol",
+        "last_name": "SYLVAIN",
+        "password": "$2y$12$4aGtZMm0zUN6TQZAazebr.HOHwv0bh7Lh4WMqJvomAJICQSkIP.oW",
+        "role": "user",
+        "tenant_id": 8,
+        "is_active": true,
+        "email_verified_at": null,
+        "remember_token": null,
+        "created_at": "2025-09-08 02:45:44",
+        "updated_at": "2025-09-08 02:45:44",
+        "phone": null,
+        "birthdate": null,
+        "gender": null,
+        "address": null,
+        "postalCode": null,
+        "city": null,
+        "country": null,
+        "company": null,
+        "fleet_role": null,
+        "license_number": null,
+        "reset_code": null,
+        "reset_code_expires_at": null,
+        "verification_code": null,
+        "verification_code_expires_at": null,
+        "role_interne": null,
+        "is_internal": false,
+        "google_id": "x3cs0CQ3WeYvkaESwVu3GkeEhTt1",
+        "avatar": "https:\/\/lh3.googleusercontent.com\/a\/ACg8ocLg2Owf4HnIzchbKLGelSYvjS1DxV1Xm9c6auHuqDUO7-KJl8o=s96-c",
+        "locale": null,
+        "phone_verified": false,
+        "email_verified_status": false
+    },
+    {
+        "id": 19,
+        "email": "wissemkarboubbb@gmail.com",
+        "username": "wissem95",
+        "first_name": "Wissem",
+        "last_name": "Karboub",
+        "password": "$2y$12$NOIz8IIFwC3qT\/Rt5v2FH.6cEGqRLzFja9RAcu2fXe55hYUFVgv1i",
+        "role": "admin",
+        "tenant_id": 8,
+        "is_active": true,
+        "email_verified_at": null,
+        "remember_token": null,
+        "created_at": "2025-09-05 05:21:01",
+        "updated_at": "2025-09-05 05:47:13",
+        "phone": "0667606792",
+        "birthdate": "2002-10-17",
+        "gender": "male",
+        "address": "30 rue daniel panquin",
+        "postalCode": "95140",
+        "city": "Garges-les-gonesse",
+        "country": "France",
+        "company": "3WS",
+        "fleet_role": "PDG",
+        "license_number": "1837482",
+        "reset_code": null,
+        "reset_code_expires_at": null,
+        "verification_code": null,
+        "verification_code_expires_at": null,
+        "role_interne": null,
+        "is_internal": false,
+        "google_id": null,
+        "avatar": null,
+        "locale": null,
+        "phone_verified": false,
+        "email_verified_status": false
+    }
+]
+
+=== TABLE: internal_admins ===
+Count: 1
+Records: [
+    {
+        "id": 1,
+        "email": "admin@flotteq.com",
+        "username": "admin",
+        "first_name": "Admin",
+        "last_name": "FlotteQ",
+        "password": "$2y$12$1nKEVgIPV4TmDQt5isb8WOij.NOWA07i6LZ33Oex3z.Gs2WNlhewu",
+        "role": "super_admin",
+        "is_active": true,
+        "email_verified_at": "2025-09-02 21:52:51",
+        "last_login": "2025-09-09 22:15:32",
+        "phone": null,
+        "created_at": "2025-09-02 21:52:51",
+        "updated_at": "2025-09-09 22:15:32"
+    }
+]
+
+=== TABLE: internal_employees ===
+Count: 0
+
+=== TABLE: vehicles ===
+Count: 1
+Records: [
+    {
+        "id": 3,
+        "user_id": 22,
+        "tenant_id": 8,
+        "marque": "Reanult",
+        "modele": "Twingo",
+        "immatriculation": "CQ-019-DP",
+        "vin": null,
+        "annee": 2013,
+        "couleur": "BLANC",
+        "kilometrage": 100000,
+        "carburant": "essence",
+        "transmission": "manuelle",
+        "puissance": null,
+        "purchase_date": null,
+        "purchase_price": null,
+        "status": "active",
+        "last_ct_date": null,
+        "next_ct_date": null,
+        "notes": null,
+        "created_at": "2025-09-08 02:49:29",
+        "updated_at": "2025-09-08 02:49:29",
+        "insurance_start_date": null,
+        "insurance_expiry_date": null,
+        "insurance_company": null,
+        "insurance_policy_number": null
+    }
+]
+
+=== TABLE: tenants ===
+Count: 1
+Records: [
+    {
+        "id": 8,
+        "name": "3WS",
+        "domain": "3ws.flotteq.local",
+        "database": "flotteq_3ws_flotteq_local",
+        "is_active": true,
+        "created_at": "2025-09-05 05:21:00",
+        "updated_at": "2025-09-05 05:21:00",
+        "email": null,
+        "phone": null,
+        "address": null,
+        "status": "pending"
+    }
+]
+
+=== TABLE: user_subscriptions ===
+Count: 2
+Records: [
+    {
+        "id": 4,
+        "user_id": 19,
+        "subscription_id": 6,
+        "starts_at": "2025-09-07 00:00:00",
+        "ends_at": "2025-09-09 22:22:40",
+        "is_active": false,
+        "created_at": "2025-09-07 22:39:05",
+        "updated_at": "2025-09-09 22:22:40",
+        "tenant_id": 8,
+        "status": "cancelled",
+        "billing_cycle": "monthly",
+        "amount_paid": null,
+        "metadata": null,
+        "trial_ends_at": null,
+        "auto_renew": false,
+        "price_at_subscription": null
+    },
+    {
+        "id": 5,
+        "user_id": 22,
+        "subscription_id": 1,
+        "starts_at": "2025-09-09 22:22:40",
+        "ends_at": "2025-10-09 22:22:40",
+        "is_active": true,
+        "created_at": "2025-09-09 22:22:40",
+        "updated_at": "2025-09-09 22:22:40",
+        "tenant_id": 8,
+        "status": "active",
+        "billing_cycle": "monthly",
+        "amount_paid": null,
+        "metadata": null,
+        "trial_ends_at": null,
+        "auto_renew": false,
+        "price_at_subscription": null
+    }
+]
+
