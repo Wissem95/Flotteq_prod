@@ -93,7 +93,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         // Préparer les données utilisateur avec le statut du profil
-        $userProfileData = $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'role', 'is_internal', 'role_interne']);
+        $userProfileData = $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'role']);
         // Temporairement désactivé pour diagnostic erreurs 500
         try {
             $userProfileData['profile_incomplete'] = $user->hasIncompleteProfile();
@@ -181,7 +181,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         // Prepare user data with profile status
-        $userProfileData = $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'role', 'is_internal', 'role_interne']);
+        $userProfileData = $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'role']);
         try {
             $userProfileData['profile_incomplete'] = $user->hasIncompleteProfile();
             $userProfileData['missing_fields'] = $user->getMissingProfileFields();
@@ -269,7 +269,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth-token')->plainTextToken;
 
         // OPTIMISATION: Simplification des données utilisateur - vérification du profil reportée côté client
-        $userProfileData = $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'role', 'is_internal', 'role_interne']);
+        $userProfileData = $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'role']);
         
         // Vérification rapide du profil sans méthodes coûteuses
         $requiredFields = ['birthdate', 'gender', 'address', 'city', 'country'];
