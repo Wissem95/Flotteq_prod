@@ -74,7 +74,6 @@ class TenantUsersController extends Controller
                 'active_users' => User::whereNotNull('tenant_id')->where('is_active', true)->count(),
                 'inactive_users' => User::whereNotNull('tenant_id')->where('is_active', false)->count(),
                 'users_by_tenant' => User::select('tenant_id', DB::raw('count(*) as count'))
-                    ->where('is_internal', false)
                     ->whereNotNull('tenant_id')
                     ->groupBy('tenant_id')
                     ->with('tenant:id,name')
@@ -86,12 +85,10 @@ class TenantUsersController extends Controller
                             'tenant' => $item->tenant ? ['id' => $item->tenant->id, 'name' => $item->tenant->name] : null
                         ];
                     }),
-                'recent_registrations' => User::where('is_internal', false)
-                    ->whereNotNull('tenant_id')
+                'recent_registrations' => User::whereNotNull('tenant_id')
                     ->where('created_at', '>=', now()->subDays(7))
                     ->count(),
-                'recent_logins' => User::where('is_internal', false)
-                    ->whereNotNull('tenant_id')
+                'recent_logins' => User::whereNotNull('tenant_id')
                     ->where('updated_at', '>=', now()->subDays(1)) // Utiliser updated_at comme proxy
                     ->count()
             ];
