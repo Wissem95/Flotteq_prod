@@ -118,7 +118,6 @@ class TenantUsersController extends Controller
     {
         try {
             $user = User::with(['tenant'])
-                ->where('is_internal', false)
                 ->whereNotNull('tenant_id')
                 ->findOrFail($userId);
 
@@ -141,8 +140,7 @@ class TenantUsersController extends Controller
     public function update(Request $request, string $userId): JsonResponse
     {
         try {
-            $user = User::where('is_internal', false)
-                ->whereNotNull('tenant_id')
+            $user = User::whereNotNull('tenant_id')
                 ->findOrFail($userId);
 
             $validatedData = $request->validate([
@@ -183,8 +181,7 @@ class TenantUsersController extends Controller
     public function toggleStatus(string $userId): JsonResponse
     {
         try {
-            $user = User::where('is_internal', false)
-                ->whereNotNull('tenant_id')
+            $user = User::whereNotNull('tenant_id')
                 ->findOrFail($userId);
                 
             $user->is_active = !$user->is_active;
@@ -212,8 +209,7 @@ class TenantUsersController extends Controller
     public function destroy(string $userId): JsonResponse
     {
         try {
-            $user = User::where('is_internal', false)
-                ->whereNotNull('tenant_id')
+            $user = User::whereNotNull('tenant_id')
                 ->findOrFail($userId);
                 
             $tenantName = $user->tenant->name ?? 'Unknown';
