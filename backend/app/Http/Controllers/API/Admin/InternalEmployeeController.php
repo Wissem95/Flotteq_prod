@@ -120,20 +120,18 @@ class InternalEmployeeController extends Controller
      */
     public function getStats(): JsonResponse
     {
-        $totalEmployees = User::where('is_internal', true)->count();
-        $activeEmployees = User::where('is_internal', true)->where('is_active', true)->count();
+        $totalEmployees = InternalAdmin::count();
+        $activeEmployees = InternalAdmin::where('is_active', true)->count();
         $inactiveEmployees = $totalEmployees - $activeEmployees;
 
         // Employees by role
-        $employeesByRole = User::where('is_internal', true)
-            ->selectRaw('role_interne, COUNT(*) as count')
-            ->groupBy('role_interne')
-            ->pluck('count', 'role_interne')
+        $employeesByRole = InternalAdmin::selectRaw('role, COUNT(*) as count')
+            ->groupBy('role')
+            ->pluck('count', 'role')
             ->toArray();
 
         // Recent hires (last 30 days)
-        $recentHires = User::where('is_internal', true)
-            ->where('created_at', '>=', now()->subDays(30))
+        $recentHires = InternalAdmin::where('created_at', '>=', now()->subDays(30))
             ->count();
 
         // Department distribution (mock data based on role)
