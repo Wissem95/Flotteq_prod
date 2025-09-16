@@ -217,7 +217,6 @@ class TenantUsersController extends Controller
             // Vérifier s'il n'est pas le dernier admin du tenant (si applicable)
             $adminUsersCount = User::where('tenant_id', $user->tenant_id)
                 ->where('role', 'admin')
-                ->where('is_internal', false)
                 ->count();
 
             if ($adminUsersCount === 1 && $user->role === 'admin') {
@@ -250,7 +249,6 @@ class TenantUsersController extends Controller
     {
         try {
             $query = User::with(['tenant'])
-                ->where('is_internal', false)
                 ->whereNotNull('tenant_id');
 
             // Appliquer les mêmes filtres que pour l'index
