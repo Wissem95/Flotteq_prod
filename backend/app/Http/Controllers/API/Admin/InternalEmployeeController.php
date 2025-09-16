@@ -6,6 +6,7 @@ namespace App\Http\Controllers\API\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\InternalAdmin;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
@@ -18,8 +19,16 @@ class InternalEmployeeController extends Controller
      */
     public function index(): JsonResponse
     {
-        $employees = User::where('is_internal', true)
-            ->select(['id', 'first_name', 'last_name', 'email', 'username', 'role_interne', 'avatar', 'is_active', 'created_at'])
+        $employees = InternalAdmin::select([
+            'id', 
+            'first_name as prenom', 
+            'last_name as nom', 
+            'email', 
+            'username', 
+            'role as internalRole', 
+            'is_active', 
+            'created_at as createdAt'
+        ])
             ->orderBy('first_name')
             ->paginate(10);
             
