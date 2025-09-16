@@ -83,16 +83,15 @@ class InternalEmployeeController extends Controller
      */
     public function update(Request $request, int $id): JsonResponse
     {
-        $employee = User::where('is_internal', true)->findOrFail($id);
+        $employee = InternalAdmin::findOrFail($id);
 
         $data = $request->validate([
             'first_name' => ['sometimes', 'string'],
             'last_name' => ['sometimes', 'string'],
-            'email' => ['sometimes', 'email', Rule::unique('users')->ignore($employee->id)],
-            'username' => ['sometimes', 'string', Rule::unique('users')->ignore($employee->id)],
+            'email' => ['sometimes', 'email', Rule::unique('internal_admins')->ignore($employee->id)],
+            'username' => ['sometimes', 'string', Rule::unique('internal_admins')->ignore($employee->id)],
             'password' => ['nullable', 'string', 'min:8'],
-            'role_interne' => ['sometimes', 'string'],
-            'avatar' => ['nullable', 'string'],
+            'role' => ['sometimes', 'string'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
@@ -111,7 +110,7 @@ class InternalEmployeeController extends Controller
      */
     public function destroy(int $id): JsonResponse
     {
-        $employee = User::where('is_internal', true)->findOrFail($id);
+        $employee = InternalAdmin::findOrFail($id);
         $employee->delete();
         return response()->json(['message' => 'Employé supprimé']);
     }
