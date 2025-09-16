@@ -51,18 +51,19 @@ class InternalEmployeeController extends Controller
         $data = $request->validate([
             'first_name' => ['required', 'string'],
             'last_name' => ['required', 'string'],
-            'email' => ['required', 'email', 'unique:users,email'],
-            'username' => ['required', 'string', 'unique:users,username'],
+            'email' => ['required', 'email', 'unique:internal_admins,email'],
+            'username' => ['required', 'string', 'unique:internal_admins,username'],
             'password' => ['required', 'string', 'min:8'],
-            'role_interne' => ['required', 'string'],
-            'avatar' => ['nullable', 'string'],
+            'role' => ['required', 'string'],
         ]);
 
-        $employee = User::create([
-            ...$data,
-            'is_internal' => true,
-            'role' => 'admin', // ou autre selon logique
-            'tenant_id' => null,
+        $employee = InternalAdmin::create([
+            'first_name' => $data['first_name'],
+            'last_name' => $data['last_name'], 
+            'email' => $data['email'],
+            'username' => $data['username'],
+            'password' => $data['password'],
+            'role' => $data['role'],
             'is_active' => true,
         ]);
 
