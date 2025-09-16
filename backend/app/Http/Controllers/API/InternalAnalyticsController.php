@@ -29,8 +29,8 @@ class InternalAnalyticsController extends Controller
                     'growth' => $this->getTenantGrowthPercentage(),
                 ],
                 'users' => [
-                    'total' => User::where('is_internal', false)->count(),
-                    'active' => User::where('is_internal', false)->where('is_active', true)->count(),
+                    'total' => User::whereNotNull('tenant_id')->count(),
+                    'active' => User::whereNotNull('tenant_id')->where('is_active', true)->count(),
                     'growth' => $this->getUserGrowth(),
                 ],
                 'vehicles' => [
@@ -572,9 +572,9 @@ class InternalAnalyticsController extends Controller
 
     private function getUserGrowth(): float
     {
-        $lastMonth = User::where('is_internal', false)
+        $lastMonth = User::whereNotNull('tenant_id')
             ->whereMonth('created_at', now()->subMonth()->month)->count();
-        $thisMonth = User::where('is_internal', false)
+        $thisMonth = User::whereNotNull('tenant_id')
             ->whereMonth('created_at', now()->month)->count();
         
         if ($lastMonth == 0) return 100.0;
