@@ -61,7 +61,7 @@ class SocialAuthController extends Controller
             ]);
 
             // 2. Utiliser la même logique que l'OAuth existant
-            $tenant = $this->getTenantForAuth($request->tenant_domain);
+            $tenant = $this->getTenantForAuth($request->tenant_domain, $userData);
             // Tenant makeCurrent removed
 
             // 3. Préparer les données utilisateur avec toutes les données disponibles
@@ -112,17 +112,57 @@ class SocialAuthController extends Controller
     /**
      * Méthode helper pour réutiliser la logique de tenant
      */
-    private function getTenantForAuth(?string $tenantDomain): Tenant
+    private function getTenantForAuth(?string $tenantDomain, ?array $googleUserData = null): Tenant
     {
+        // Si un domain spécifique est fourni, l'utiliser
         if ($tenantDomain) {
             return Tenant::where('domain', $tenantDomain)->firstOrFail();
         }
-        
-        $tenant = Tenant::first();
-        if (!$tenant) {
-            throw new \Exception('No tenant available');
+
+        // Pour les nouvelles inscriptions Google sans tenant
+        if ($googleUserData && isset($googleUserData['email'])) {
+            // Vérifier si l'utilisateur existe déjà
+            $existingUser = User::where('email', $googleUserData['email'])->first();
+            if ($existingUser && $existingUser->tenant_id) {
+                return Tenant::findOrFail($existingUser->tenant_id);
+            }
+
+            // Créer un nouveau tenant pour ce nouvel utilisateur
+            return $this->createTenantForNewUser($googleUserData);
         }
-        
+
+        throw new \Exception('Tenant creation required for new users');
+    }
+
+    /**
+     * Créer un nouveau tenant pour un nouvel utilisateur
+     */
+    private function createTenantForNewUser(array $userData): Tenant
+    {
+        // Générer un nom de tenant unique basé sur l'email
+        $emailParts = explode('@', $userData['email']);
+        $baseName = Str::slug($emailParts[0]);
+        $domain = $baseName;
+        $counter = 1;
+
+        // S'assurer que le domain est unique
+        while (Tenant::where('domain', $domain)->exists()) {
+            $domain = $baseName . '-' . $counter;
+            $counter++;
+        }
+
+        // Créer le nouveau tenant
+        $tenant = Tenant::create([
+            'name' => $userData['name'] . ' - Organisation',
+            'domain' => $domain,
+            'status' => 'pending_setup',
+            'email' => $userData['email'],
+            'database' => 'default',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         return $tenant;
     }
 
@@ -295,6 +335,10 @@ class SocialAuthController extends Controller
                 'id' => $googleUserData['id'],
                 'extracted_data' => $googleUserData
             ]);
+
+            // Get or create tenant for this user
+            $tenantDomain = $stateData['tenant_domain'] ?? null;
+            $tenant = $this->getTenantForAuth($tenantDomain, $googleUserData);
 
             // Find or create user in current tenant
             $user = User::where('email', $googleUserData['email'])
