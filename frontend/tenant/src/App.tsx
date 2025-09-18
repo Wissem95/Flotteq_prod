@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import Layout from "./components/layout/Layout";
 import TenantSetupModal from "./components/TenantSetupModal";
 import { needsTenantSetup, completeTenantSetup, getCurrentUser, type TenantSetupData } from "./services/authService";
-import { SubscriptionProvider } from "./contexts/SubscriptionContext";
+import { SubscriptionProvider, useSubscription } from "./contexts/SubscriptionContext";
 import SubscriptionManager from "./components/subscriptions/SubscriptionManager";
 
 // Pages publiques
@@ -89,8 +89,9 @@ const PrivateRoute = ({ children }: { children: JSX.Element }) => {
 
 const queryClient = new QueryClient();
 
-const App = () => {
+const AppContent = () => {
   const [showSetupModal, setShowSetupModal] = useState(false);
+  const { refreshSubscription, checkSubscriptionRequired } = useSubscription();
 
   useEffect(() => {
     // Vérifier si l'utilisateur connecté a besoin du setup
@@ -121,12 +122,11 @@ const App = () => {
       await completeTenantSetup(data);
       setShowSetupModal(false);
 
-      // Le SubscriptionContext va automatiquement détecter le besoin d'abonnement
-      // et afficher la modal de sélection de plan si nécessaire
-      // Pas besoin de recharger la page immédiatement
-
-      // Optionnel: Déclencher une vérification manuelle si vous avez accès au context
-      // ou laisser autoCheckOnLoad faire son travail
+      // Déclencher une vérification d'abonnement après setup
+      setTimeout(async () => {
+        await refreshSubscription();
+        await checkSubscriptionRequired();
+      }, 500); // Petit délai pour laisser le backend se synchroniser
 
     } catch (error) {
       console.error('Setup failed:', error);
@@ -135,13 +135,12 @@ const App = () => {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <SubscriptionProvider autoCheckOnLoad={true}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <Routes>
+    <>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Routes>
           {/* Racine → register */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/verification" element={<CodeVerification />} />
@@ -202,10 +201,17 @@ const App = () => {
         <SubscriptionManager />
       </BrowserRouter>
     </TooltipProvider>
-  </SubscriptionProvider>
-  </QueryClientProvider>
+    </>
   );
 };
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <SubscriptionProvider autoCheckOnLoad={true}>
+      <AppContent />
+    </SubscriptionProvider>
+  </QueryClientProvider>
+);
 
 export default App;
 
