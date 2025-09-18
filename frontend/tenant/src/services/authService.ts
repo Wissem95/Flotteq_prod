@@ -147,6 +147,60 @@ export const register = async (userData: {
   }
 };
 
+// Interface pour les données de setup du tenant
+export interface TenantSetupData {
+  company_name: string;
+  industry: string;
+  company_size: string;
+  phone?: string;
+  address?: string;
+  description?: string;
+}
 
+// Fonction pour compléter la configuration du tenant
+export const completeTenantSetup = async (data: TenantSetupData) => {
+  try {
+    const response = await api.put("/tenant/complete-setup", data, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    });
+
+    // Mettre à jour les données utilisateur dans le localStorage si nécessaire
+    const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+    if (currentUser && response.data.tenant) {
+      currentUser.tenant = response.data.tenant;
+      currentUser.needs_setup = false;
+      localStorage.setItem("user", JSON.stringify(currentUser));
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la configuration du tenant:", error);
+    throw error;
+  }
+};
+
+// Fonction pour vérifier si l'utilisateur a besoin du setup
+export const needsTenantSetup = (): boolean => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    return user?.needs_setup === true;
+  } catch (error) {
+    console.error("Erreur lors de la vérification du setup:", error);
+    return false;
+  }
+};
+
+// Fonction pour obtenir les données utilisateur actuelles
+export const getCurrentUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("user") || "{}");
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'utilisateur:", error);
+    return null;
+  }
+};
 
 

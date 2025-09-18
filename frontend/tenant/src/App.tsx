@@ -4,8 +4,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 import Layout from "./components/layout/Layout";
+import TenantSetupModal from "./components/TenantSetupModal";
+import { needsTenantSetup, completeTenantSetup, getCurrentUser, type TenantSetupData } from "./services/authService";
 
 // Pages publiques
 import Login from "./pages/Login";
@@ -58,18 +61,78 @@ const isAuthenticated = () => {
 
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
   const authenticated = isAuthenticated();
-  return authenticated ? children : <Navigate to="/register" replace />;
+  const needsSetup = needsTenantSetup();
+
+  if (!authenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Si l'utilisateur a besoin du setup, bloquer la navigation
+  if (needsSetup) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Configuration en cours...</p>
+          <p className="text-sm text-gray-500 mt-2">
+            Veuillez compléter la configuration de votre entreprise pour continuer.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return children;
 };
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <Routes>
+const App = () => {
+  const [showSetupModal, setShowSetupModal] = useState(false);
+
+  useEffect(() => {
+    // Vérifier si l'utilisateur connecté a besoin du setup
+    const checkSetupNeeded = () => {
+      if (isAuthenticated() && needsTenantSetup()) {
+        setShowSetupModal(true);
+      }
+    };
+
+    checkSetupNeeded();
+
+    // Écouter les changements de localStorage pour détecter les nouvelles connexions
+    const handleStorageChange = () => {
+      checkSetupNeeded();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('focus', checkSetupNeeded);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', checkSetupNeeded);
+    };
+  }, []);
+
+  const handleSetupComplete = async (data: TenantSetupData) => {
+    try {
+      await completeTenantSetup(data);
+      setShowSetupModal(false);
+      // Optionnel: recharger la page pour mettre à jour l'interface
+      window.location.reload();
+    } catch (error) {
+      console.error('Setup failed:', error);
+      throw error; // Re-throw pour que le modal affiche l'erreur
+    }
+  };
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <Routes>
           {/* Racine → register */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/verification" element={<CodeVerification />} />
@@ -114,15 +177,22 @@ const App = () => (
 
           {/* Fallback vers register si non connecté, dashboard si connecté */}
           <Route path="*" element={
-            isAuthenticated() ? 
-            <Navigate to="/dashboard" replace /> : 
+            isAuthenticated() ?
+            <Navigate to="/dashboard" replace /> :
             <Navigate to="/login" replace />
           } />
         </Routes>
+
+        {/* Modal de setup obligatoire */}
+        <TenantSetupModal
+          isOpen={showSetupModal}
+          onComplete={handleSetupComplete}
+        />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;
 
