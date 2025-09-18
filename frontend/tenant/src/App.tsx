@@ -9,6 +9,8 @@ import { useState, useEffect } from "react";
 import Layout from "./components/layout/Layout";
 import TenantSetupModal from "./components/TenantSetupModal";
 import { needsTenantSetup, completeTenantSetup, getCurrentUser, type TenantSetupData } from "./services/authService";
+import { SubscriptionProvider } from "./contexts/SubscriptionContext";
+import SubscriptionManager from "./components/subscriptions/SubscriptionManager";
 
 // Pages publiques
 import Login from "./pages/Login";
@@ -118,8 +120,14 @@ const App = () => {
     try {
       await completeTenantSetup(data);
       setShowSetupModal(false);
-      // Optionnel: recharger la page pour mettre à jour l'interface
-      window.location.reload();
+
+      // Le SubscriptionContext va automatiquement détecter le besoin d'abonnement
+      // et afficher la modal de sélection de plan si nécessaire
+      // Pas besoin de recharger la page immédiatement
+
+      // Optionnel: Déclencher une vérification manuelle si vous avez accès au context
+      // ou laisser autoCheckOnLoad faire son travail
+
     } catch (error) {
       console.error('Setup failed:', error);
       throw error; // Re-throw pour que le modal affiche l'erreur
@@ -128,10 +136,11 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <SubscriptionProvider autoCheckOnLoad={true}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
           {/* Racine → register */}
           <Route path="/" element={<Navigate to="/login" replace />} />
@@ -188,8 +197,12 @@ const App = () => {
           isOpen={showSetupModal}
           onComplete={handleSetupComplete}
         />
+
+        {/* Manager des abonnements - détection automatique */}
+        <SubscriptionManager />
       </BrowserRouter>
     </TooltipProvider>
+  </SubscriptionProvider>
   </QueryClientProvider>
   );
 };

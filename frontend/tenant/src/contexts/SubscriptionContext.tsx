@@ -264,19 +264,21 @@ export const withSubscriptionCheck = <P extends object>(
 export const useSubscriptionAwareApi = () => {
   const { handleApiError } = useSubscription();
 
-  const apiCall = useCallback(async <T>(
+  const apiCall = useCallback(function<T>(
     apiFunction: () => Promise<T>
-  ): Promise<T | null> => {
-    try {
-      return await apiFunction();
-    } catch (error) {
-      const wasSubscriptionError = handleApiError(error);
-      if (!wasSubscriptionError) {
-        // Re-throw if it's not a subscription error
-        throw error;
+  ): () => Promise<T | null> {
+    return async (): Promise<T | null> => {
+      try {
+        return await apiFunction();
+      } catch (error) {
+        const wasSubscriptionError = handleApiError(error);
+        if (!wasSubscriptionError) {
+          // Re-throw if it's not a subscription error
+          throw error;
+        }
+        return null;
       }
-      return null;
-    }
+    };
   }, [handleApiError]);
 
   return { apiCall };
