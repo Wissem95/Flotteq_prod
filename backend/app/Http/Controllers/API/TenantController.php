@@ -218,6 +218,43 @@ class TenantController extends Controller
     }
 
     /**
+     * Complete tenant setup after initial creation
+     */
+    public function completeSetup(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $tenant = $user->tenant;
+
+        if (!$tenant || $tenant->status !== 'pending_setup') {
+            return response()->json(['error' => 'Setup not required'], 400);
+        }
+
+        $validatedData = $request->validate([
+            'company_name' => 'required|string|max:255',
+            'industry' => 'required|string|max:100',
+            'company_size' => 'required|string|in:1-10,11-50,51-200,201-500,500+',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:500'
+        ]);
+
+        $tenant->update([
+            'name' => $validatedData['company_name'],
+            'status' => 'active',
+            'industry' => $validatedData['industry'],
+            'company_size' => $validatedData['company_size'],
+            'phone' => $validatedData['phone'],
+            'address' => $validatedData['address'],
+            'description' => $validatedData['description'],
+        ]);
+
+        return response()->json([
+            'message' => 'Configuration terminée avec succès',
+            'tenant' => $tenant->fresh()
+        ]);
+    }
+
+    /**
      * Get monthly growth statistics
      */
     private function getMonthlyGrowth(): array
@@ -228,13 +265,13 @@ class TenantController extends Controller
             $count = Tenant::whereYear('created_at', $date->year)
                            ->whereMonth('created_at', $date->month)
                            ->count();
-            
+
             $months[] = [
                 'month' => $date->format('Y-m'),
                 'count' => $count
             ];
         }
-        
+
         return $months;
     }
 }

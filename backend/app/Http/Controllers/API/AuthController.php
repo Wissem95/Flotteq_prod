@@ -109,6 +109,8 @@ class AuthController extends Controller
             'message' => 'Registration successful',
             'user' => $userProfileData,
             'tenant' => $tenant->only(['id', 'name', 'domain']),
+            'tenant_status' => $tenant->status,
+            'needs_setup' => $tenant->status === 'pending_setup',
             'token' => $token,
         ], 201);
     }
@@ -196,6 +198,8 @@ class AuthController extends Controller
             'message' => 'Registration successful',
             'user' => $userProfileData,
             'tenant' => $tenant->only(['id', 'name', 'domain']),
+            'tenant_status' => $tenant->status,
+            'needs_setup' => $tenant->status === 'pending_setup',
             'token' => $token,
         ], 201);
     }
@@ -285,7 +289,9 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Login successful',
             'user' => $userProfileData,
-            // 'tenant' => $tenant->only(['id', 'name', 'domain']),
+            'tenant' => $user->tenant ? $user->tenant->only(['id', 'name', 'domain']) : null,
+            'tenant_status' => $user->tenant ? $user->tenant->status : null,
+            'needs_setup' => $user->tenant && $user->tenant->status === 'pending_setup',
             'token' => $token,
         ]);
     }
@@ -328,6 +334,8 @@ class AuthController extends Controller
         return response()->json([
             'user' => $userProfileData,
             'tenant' => $tenant->only(['id', 'name', 'domain']),
+            'tenant_status' => $tenant->status,
+            'needs_setup' => $tenant->status === 'pending_setup',
         ]);
     }
 

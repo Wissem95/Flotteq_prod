@@ -94,6 +94,8 @@ class SocialAuthController extends Controller
                 'user' => $user->only(['id', 'email', 'username', 'first_name', 'last_name', 'avatar']),
                 'token' => $token,
                 'tenant' => $tenant->only(['id', 'name', 'domain']),
+                'tenant_status' => $tenant->status,
+                'needs_setup' => $tenant->status === 'pending_setup',
             ]);
 
         } catch (\Exception $e) {
@@ -486,6 +488,8 @@ class SocialAuthController extends Controller
                 'user' => $userProfileData,
                 'token' => $token,
                 'tenant' => $tenant->only(['id', 'name', 'domain']),
+                'tenant_status' => $tenant->status,
+                'needs_setup' => $tenant->status === 'pending_setup',
             ]));
 
             // Redirection vers le frontend avec les données
